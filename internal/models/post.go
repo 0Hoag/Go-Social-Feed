@@ -7,10 +7,10 @@ import (
 )
 
 type Post struct {
-	ID        primitive.ObjectID `bson:"_id,omitempty"`
-	AuthorID  primitive.ObjectID `bson:"author_id"`
-	Content   string             `bson:"content,omitempty"`
-	MediaURLs []string           `bson:"media_urls,omitempty"`
+	ID           primitive.ObjectID `bson:"_id,omitempty"`
+	Pin          bool               `bson:"pin"`
+	TaggedTarget []string           `bson:"tagged_target,omitempty"`
+	AuthorID     primitive.ObjectID `bson:"author_id"`
 
 	CreatedAt time.Time  `bson:"created_at"`
 	UpdatedAt time.Time  `bson:"updated_at"`
