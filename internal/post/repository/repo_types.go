@@ -1,6 +1,9 @@
 package repository
 
-import "github.com/hoag/go-social-feed/pkg/paginator"
+import (
+	"github.com/hoag/go-social-feed/internal/models"
+	"github.com/hoag/go-social-feed/pkg/paginator"
+)
 
 // Post
 type CreateOptions struct {
@@ -27,7 +30,7 @@ type GetOptions struct {
 }
 
 type UpdateOptions struct {
-	ID           string
+	Post         models.Post
 	Content      string
 	FileIDs      []string
 	Pin          bool
