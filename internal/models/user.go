@@ -9,8 +9,8 @@ import (
 type User struct {
 	ID           primitive.ObjectID `bson:"_id,omitempty"`
 	Username     string             `bson:"username"`
-	PasswordHash string             `bson:"password_hash,omitempty"`
 	Phone        string             `bson:"phone,omitempty"`
+	PasswordHash string             `bson:"password_hash,omitempty"`
 	AvatarURL    string             `bson:"avatar_url,omitempty"`
 	Bio          string             `bson:"bio,omitempty"`
 	Birthday     time.Time          `bson:"birthday,omitempty"`

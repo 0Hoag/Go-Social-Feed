@@ -1,0 +1,37 @@
+package repository
+
+import (
+	"time"
+
+	"github.com/hoag/go-social-feed/internal/models"
+	"github.com/hoag/go-social-feed/pkg/paginator"
+)
+
+// Post
+type CreateOptions struct {
+	UserName     string
+	Phone        string
+	PasswordHash string
+	Birthday     time.Time
+}
+
+type Filter struct {
+	ID       string
+	IDs      []string
+	UserName string
+}
+
+type ListOptions struct {
+	Filter
+}
+
+type GetOptions struct {
+	Filter
+	PagQuery paginator.PaginatorQuery
+}
+
+type UpdateOptions struct {
+	User      models.User
+	UserName  string
+	AvatarURL string
+}

@@ -161,12 +161,6 @@ type postDataResp struct {
 	Pin          bool     `json:"pin"`
 }
 
-func (h handler) newResp(p models.Post) detailResp {
-	return detailResp{
-		postDataResp: h.newPostDataResp(p),
-	}
-}
-
 type postItem struct {
 	postDataResp
 }
