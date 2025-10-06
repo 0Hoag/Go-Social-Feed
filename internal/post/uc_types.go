@@ -7,10 +7,11 @@ import (
 
 // Post
 type CreateInput struct {
+	Pin          bool
 	Content      string
 	FileIDs      []string
-	Pin          bool
 	TaggedTarget []string
+	Permission   string
 }
 
 type Filter struct {
@@ -36,8 +37,9 @@ type GetOutput struct {
 
 type UpdateInput struct {
 	ID           string
+	Pin          bool
 	Content      string
 	FileIDs      []string
-	Pin          bool
 	TaggedTarget []string
+	Permission   string
 }

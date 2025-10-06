@@ -119,3 +119,45 @@ func (repo impleRepository) Get(ctx context.Context, sc models.Scope, opts repos
 		CurrentPage: opts.PagQuery.Page,
 	}, nil
 }
+
+func (repo impleRepository) Update(ctx context.Context, sc models.Scope, opts repository.UpdateOptions) error {
+	col := repo.getPostCollection()
+
+	filter, err := repo.buildDetailQuery(ctx, sc, opts.Post.ID.Hex())
+	if err != nil {
+		repo.l.Errorf(ctx, "post.mongo.Update.buildUpdateModels: %v", err)
+		return err
+	}
+
+	update, err := repo.buildUpdateModels(ctx, sc, opts)
+	if err != nil {
+		repo.l.Errorf(ctx, "post.mongo.Update.buildUpdateModels: %v", err)
+		return err
+	}
+
+	_, err = col.UpdateOne(ctx, filter, update)
+	if err != nil {
+		repo.l.Errorf(ctx, "post.mongo.Update.UpdateOne: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (repo impleRepository) Delete(ctx context.Context, sc models.Scope, id string) error {
+	col := repo.getPostCollection()
+
+	filter, err := repo.buildDetailQuery(ctx, sc, id)
+	if err != nil {
+		repo.l.Errorf(ctx, "post.mongo.Delete.buildDetailQuery: %v", err)
+		return err
+	}
+
+	_, err = col.DeleteOne(ctx, filter)
+	if err != nil {
+		repo.l.Errorf(ctx, "post.mongo.Delete.DeleteOne: %v", err)
+		return err
+	}
+
+	return nil
+}

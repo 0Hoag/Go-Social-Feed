@@ -46,7 +46,10 @@ func (repo impleRepository) buildModels(ctx context.Context, sc models.Scope, op
 	post := models.Post{
 		ID:           repo.db.NewObjectID(),
 		Pin:          opts.Pin,
+		Content:      opts.Content,
+		FileIDs:      fileIDs,
 		TaggedTarget: tmpTagged,
+		Permission:   models.PrivacyType(opts.Permission),
 		AuthorID:     authorID,
 		CreatedAt:    now,
 		UpdatedAt:    now,
@@ -55,10 +58,9 @@ func (repo impleRepository) buildModels(ctx context.Context, sc models.Scope, op
 	return post, nil
 }
 
-func (repo impleRepository) buildUpdateModels(ctx context.Context, sc models.Scope, opts repository.UpdateOptions) (models.Post, bson.M, error) {
+func (repo impleRepository) buildUpdateModels(ctx context.Context, sc models.Scope, opts repository.UpdateOptions) (bson.M, error) {
 	now := repo.clock()
 
-	unset := bson.M{}
 	set := bson.M{}
 
 	fileIDs := make([]primitive.ObjectID, len(opts.FileIDs))
@@ -69,7 +71,7 @@ func (repo impleRepository) buildUpdateModels(ctx context.Context, sc models.Sco
 			fID, err := primitive.ObjectIDFromHex(id)
 			if err != nil {
 				repo.l.Errorf(ctx, "post.mongo.buildUpdateModels.ObjectIDFromHex: %v", err)
-				return models.Post{}, bson.M{}, err
+				return bson.M{}, err
 			}
 			fileIDs = append(fileIDs, fID)
 		}
@@ -80,10 +82,29 @@ func (repo impleRepository) buildUpdateModels(ctx context.Context, sc models.Sco
 			tID, err := primitive.ObjectIDFromHex(id)
 			if err != nil {
 				repo.l.Errorf(ctx, "post.mongo.buildUpdateModels.ObjectIDFromHex: %v", err)
-				return models.Post{}, bson.M{}, err
+				return bson.M{}, err
 			}
 			taggedIDs = append(fileIDs, tID)
 		}
 	}
 
+	if opts.Content != "" {
+		set["content"] = opts.Content
+	}
+
+	if len(fileIDs) > 0 {
+		set["file_ids"] = fileIDs
+	}
+
+	if len(taggedIDs) > 0 {
+		set["tagged_target"] = taggedIDs
+	}
+
+	if opts.Pin {
+		set["pin"] = opts.Pin
+	}
+
+	set["updated_at"] = now
+
+	return set, nil
 }
