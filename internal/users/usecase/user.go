@@ -23,6 +23,16 @@ func (uc impleUsecase) Create(ctx context.Context, sc models.Scope, input users.
 	return users, nil
 }
 
+func (uc impleUsecase) GetSessionUser(ctx context.Context, sc models.Scope) (models.User, error) {
+	u, err := uc.repo.Detail(ctx, sc, sc.UserID)
+	if err != nil {
+		uc.l.Errorf(ctx, "users.usecase.GetSessionUser.Detail: %v", err)
+		return models.User{}, nil
+	}
+
+	return u, nil
+}
+
 func (uc impleUsecase) Detail(ctx context.Context, sc models.Scope, id string) (models.User, error) {
 	users, err := uc.repo.Detail(ctx, sc, id)
 	if err != nil {

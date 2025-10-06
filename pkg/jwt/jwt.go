@@ -12,9 +12,9 @@ type Manager interface {
 
 type Payload struct {
 	jwt.StandardClaims
-	UserID  string `json:"sub"`
-	Type    string `json:"type"`
-	Refresh bool   `json:"refresh"`
+	UserID      string   `json:"sub"`
+	Permissions []string `json:"permissions,omitempty"`
+	Roles       []string `json:"roles,omitempty"`
 }
 
 type implManager struct {

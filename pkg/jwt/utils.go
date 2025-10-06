@@ -25,6 +25,11 @@ func GetPayloadFromContext(ctx context.Context) (Payload, bool) {
 	return payload, ok
 }
 
+// SetUserToContext sets the user to context
+func SetUserToContext(ctx context.Context, user models.User) context.Context {
+	return context.WithValue(ctx, SessionUserCtxKey{}, user)
+}
+
 // GetSubFromContext gets the subject from context
 func GetUserIdFromContext(ctx context.Context) (string, bool) {
 	payload, ok := GetPayloadFromContext(ctx)
