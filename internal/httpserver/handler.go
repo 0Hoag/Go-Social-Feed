@@ -14,6 +14,9 @@ import (
 	userHTTP "github.com/hoag/go-social-feed/internal/users/delivery/http"
 	userMongo "github.com/hoag/go-social-feed/internal/users/repository/mongo"
 	userUC "github.com/hoag/go-social-feed/internal/users/usecase"
+
+	// Import this to execute the init function in docs.go which setups the Swagger docs.
+	_ "github.com/hoag/go-social-feed/docs"
 )
 
 func (srv HTTPServer) mapHandlers() error {
@@ -40,6 +43,9 @@ func (srv HTTPServer) mapHandlers() error {
 	api := srv.gin.Group("/api/v1")
 
 	// Routes
+	newsFeedGroup := api.Group("/news-feed")
+	postHTTP.MapRoutes(newsFeedGroup.Group("/posts"), postH, mw)
+	userHTTP.MapRoutes(newsFeedGroup.Group("/user"), userH, mw)
 
 	return nil
 }
