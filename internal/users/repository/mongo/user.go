@@ -57,6 +57,25 @@ func (repo impleRepository) Detail(ctx context.Context, sc models.Scope, id stri
 	return m, nil
 }
 
+func (repo impleRepository) GetOne(ctx context.Context, f repository.Filter) (models.User, error) {
+	col := repo.getUserCollection()
+
+	filter, err := repo.buildGetOneQuery(ctx, f)
+	if err != nil {
+		repo.l.Errorf(ctx, "users.mongo.GetOne.buildGetOneQuery: %v", err)
+		return models.User{}, nil
+	}
+
+	var m models.User
+	err = col.FindOne(ctx, filter).Decode(&m)
+	if err != nil {
+		repo.l.Errorf(ctx, "users.mongo.GetOne.FindOne: %v", err)
+		return models.User{}, err
+	}
+
+	return m, nil
+}
+
 func (repo impleRepository) List(ctx context.Context, sc models.Scope, opts repository.ListOptions) ([]models.User, error) {
 	col := repo.getUserCollection()
 

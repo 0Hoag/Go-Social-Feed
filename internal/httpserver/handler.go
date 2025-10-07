@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"github.com/hoag/go-social-feed/config"
 	_ "github.com/hoag/go-social-feed/docs"
 	"github.com/hoag/go-social-feed/pkg/jwt"
 	swaggerFiles "github.com/swaggo/files"
@@ -15,6 +16,9 @@ import (
 	userMongo "github.com/hoag/go-social-feed/internal/users/repository/mongo"
 	userUC "github.com/hoag/go-social-feed/internal/users/usecase"
 
+	authHTTP "github.com/hoag/go-social-feed/internal/auth/delivery/http"
+	authUC "github.com/hoag/go-social-feed/internal/auth/usecase"
+
 	// Import this to execute the init function in docs.go which setups the Swagger docs.
 	_ "github.com/hoag/go-social-feed/docs"
 )
@@ -23,6 +27,8 @@ func (srv HTTPServer) mapHandlers() error {
 	srv.gin.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	jwtManager := jwt.NewManager(srv.jwtSecretKey)
 
+	cfg, _ := config.Load()
+
 	// Repositories
 	postRepo := postMongo.New(srv.l, srv.db)
 	userRepo := userMongo.New(srv.l, srv.db)
@@ -30,10 +36,12 @@ func (srv HTTPServer) mapHandlers() error {
 	// Usecases
 	postUC := postUC.New(srv.l, postRepo)
 	userUC := userUC.New(srv.l, userRepo)
+	authUC := authUC.New(srv.l, cfg, userUC)
 
 	// Handlers
 	postH := postHTTP.New(srv.l, postUC)
 	userH := userHTTP.New(srv.l, userUC)
+	authH := authHTTP.New(srv.l, authUC)
 
 	// Middlewares
 	mw := middleware.New(srv.l, userUC, jwtManager, srv.encrypter, srv.internalKey)
@@ -44,6 +52,7 @@ func (srv HTTPServer) mapHandlers() error {
 
 	// Routes
 	newsFeedGroup := api.Group("/news-feed")
+	authHTTP.MapRoutes(newsFeedGroup.Group("/auth"), authH, mw)
 	postHTTP.MapRoutes(newsFeedGroup.Group("/posts"), postH, mw)
 	userHTTP.MapRoutes(newsFeedGroup.Group("/user"), userH, mw)
 

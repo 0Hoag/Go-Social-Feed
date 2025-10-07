@@ -6,14 +6,21 @@ import (
 	"github.com/hoag/go-social-feed/internal/models"
 	"github.com/hoag/go-social-feed/internal/users"
 	"github.com/hoag/go-social-feed/internal/users/repository"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func (uc impleUsecase) Create(ctx context.Context, input users.CreateInput) (models.User, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.PasswordHash), bcrypt.DefaultCost)
+	if err != nil {
+		uc.l.Errorf(ctx, "users.usecase.Create.HashPassword: %v", err)
+		return models.User{}, err
+	}
+
 	users, err := uc.repo.Create(ctx, repository.CreateOptions{
 		UserName:     input.UserName,
 		AvatarURL:    input.AvatarURL,
 		Phone:        input.Phone,
-		PasswordHash: input.PasswordHash,
+		PasswordHash: string(hashedPassword),
 		Birthday:     input.Birthday,
 		Roles:        input.Roles,
 		Permissions:  input.Permissions,
@@ -40,6 +47,19 @@ func (uc impleUsecase) Detail(ctx context.Context, sc models.Scope, id string) (
 	users, err := uc.repo.Detail(ctx, sc, id)
 	if err != nil {
 		uc.l.Errorf(ctx, "users.usecase.Detail.Detail: %v", err)
+		return models.User{}, err
+	}
+	return users, nil
+}
+
+func (uc impleUsecase) GetOne(ctx context.Context, f users.Filter) (models.User, error) {
+	users, err := uc.repo.GetOne(ctx, repository.Filter{
+		ID:       f.ID,
+		UserName: f.UserName,
+		Phone:    f.Phone,
+	})
+	if err != nil {
+		uc.l.Errorf(ctx, "users.usecase.GetOne.GetOne: %v", err)
 		return models.User{}, err
 	}
 	return users, nil

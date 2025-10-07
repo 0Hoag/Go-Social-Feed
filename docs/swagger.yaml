@@ -16,7 +16,64 @@ definitions:
           type: string
         type: array
     type: object
-  http.usersItem:
+  internal_auth_delivery_http.createReq:
+    properties:
+      birthday:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      username:
+        type: string
+    type: object
+  internal_auth_delivery_http.detailResp:
+    properties:
+      avatar_url:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      phone:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  internal_auth_delivery_http.getMetaResponse:
+    properties:
+      count:
+        type: integer
+      current_page:
+        type: integer
+      per_page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  internal_auth_delivery_http.getResp:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/internal_auth_delivery_http.usersItem'
+        type: array
+      meta:
+        $ref: '#/definitions/internal_auth_delivery_http.getMetaResponse'
+    type: object
+  internal_auth_delivery_http.updateReq:
+    properties:
+      avatar_url:
+        type: string
+      id:
+        type: string
+      username:
+        type: string
+    type: object
+  internal_auth_delivery_http.usersItem:
     properties:
       avatar_url:
         type: string
@@ -143,7 +200,7 @@ definitions:
     properties:
       items:
         items:
-          $ref: '#/definitions/http.usersItem'
+          $ref: '#/definitions/internal_users_delivery_http.usersItem'
         type: array
       meta:
         $ref: '#/definitions/internal_users_delivery_http.getMetaResponse'
@@ -153,6 +210,21 @@ definitions:
       avatar_url:
         type: string
       id:
+        type: string
+      username:
+        type: string
+    type: object
+  internal_users_delivery_http.usersItem:
+    properties:
+      avatar_url:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      phone:
+        type: string
+      updated_at:
         type: string
       username:
         type: string

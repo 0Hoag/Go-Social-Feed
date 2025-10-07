@@ -2,12 +2,18 @@ package jwt
 
 import (
 	"log"
+	"time"
 
 	"github.com/golang-jwt/jwt"
 )
 
+const (
+	defaultTokenDuration = 24 * time.Hour
+)
+
 type Manager interface {
 	Verify(token string) (Payload, error)
+	Generate(userID string, roles []string, permissions []string) (string, error)
 }
 
 type Payload struct {
@@ -55,4 +61,22 @@ func (m implManager) Verify(token string) (Payload, error) {
 	}
 
 	return *payload, nil
+}
+
+func (m implManager) Generate(userID string, roles []string, permissions []string) (string, error) {
+	now := time.Now()
+
+	claims := Payload{
+		UserID:      userID,
+		Roles:       roles,
+		Permissions: permissions,
+		StandardClaims: jwt.StandardClaims{
+			IssuedAt:  now.Unix(),
+			ExpiresAt: now.Add(defaultTokenDuration).Unix(),
+			Subject:   userID,
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(m.secretKey))
 }

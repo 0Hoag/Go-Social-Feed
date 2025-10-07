@@ -22,6 +22,11 @@ type Filter struct {
 	ID       string
 	IDs      []string
 	UserName string
+	Phone    string
+}
+
+type GetOneInput struct {
+	Filter
 }
 
 type ListInput struct {
