@@ -8,12 +8,15 @@ import (
 	"github.com/hoag/go-social-feed/internal/users/repository"
 )
 
-func (uc impleUsecase) Create(ctx context.Context, sc models.Scope, input users.CreateInput) (models.User, error) {
-	users, err := uc.repo.Create(ctx, sc, repository.CreateOptions{
+func (uc impleUsecase) Create(ctx context.Context, input users.CreateInput) (models.User, error) {
+	users, err := uc.repo.Create(ctx, repository.CreateOptions{
 		UserName:     input.UserName,
+		AvatarURL:    input.AvatarURL,
 		Phone:        input.Phone,
 		PasswordHash: input.PasswordHash,
 		Birthday:     input.Birthday,
+		Roles:        input.Roles,
+		Permissions:  input.Permissions,
 	})
 	if err != nil {
 		uc.l.Errorf(ctx, "users.usecase.Create.Create: %v", err)

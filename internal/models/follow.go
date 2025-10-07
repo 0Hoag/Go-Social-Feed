@@ -11,5 +11,6 @@ type Follow struct {
 	FollowerID primitive.ObjectID `bson:"follower_id"`
 	FolloweeID primitive.ObjectID `bson:"followee_id"`
 
-	CreatedAt time.Time `bson:"created_at"`
+	CreatedAt time.Time  `bson:"created_at"`
+	DeletedAt *time.Time `bson:"deleted_at,omitempty"`
 }

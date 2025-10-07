@@ -24,14 +24,14 @@ import (
 func (h handler) Create(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	req, sc, err := h.processCreateRequest(c)
+	req, err := h.processCreateRequest(c)
 	if err != nil {
 		h.l.Errorf(ctx, "user.delivery.http.Create.processCreateRequest: %v", err)
 		response.Error(c, err)
 		return
 	}
 
-	e, err := h.uc.Create(ctx, sc, req.toInput())
+	e, err := h.uc.Create(ctx, req.toInput())
 	if err != nil {
 		h.l.Errorf(ctx, "user.delivery.http.Create.Create: %v", err)
 		mapErr := h.mapError(err)

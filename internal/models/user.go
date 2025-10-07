@@ -15,6 +15,9 @@ type User struct {
 	Bio          string             `bson:"bio,omitempty"`
 	Birthday     time.Time          `bson:"birthday,omitempty"`
 
+	Roles       []string `bson:"roles,omitempty"`
+	Permissions []string `bson:"permissions,omitempty"`
+
 	CreatedAt time.Time  `bson:"created_at"`
 	UpdatedAt time.Time  `bson:"updated_at"`
 	DeletedAt *time.Time `bson:"deleted_at,omitempty"`

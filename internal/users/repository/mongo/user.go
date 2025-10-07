@@ -20,10 +20,10 @@ func (repo impleRepository) getUserCollection() mongo.Collection {
 	return repo.db.Collection(collName)
 }
 
-func (repo impleRepository) Create(ctx context.Context, sc models.Scope, opts repository.CreateOptions) (models.User, error) {
+func (repo impleRepository) Create(ctx context.Context, opts repository.CreateOptions) (models.User, error) {
 	col := repo.getUserCollection()
 
-	m, err := repo.buildModels(ctx, sc, opts)
+	m, err := repo.buildModels(ctx, opts)
 	if err != nil {
 		repo.l.Errorf(ctx, "users.mongo.Create.buildModels: %v", err)
 		return models.User{}, err

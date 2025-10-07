@@ -8,15 +8,18 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func (repo impleRepository) buildModels(ctx context.Context, sc models.Scope, opts repository.CreateOptions) (models.User, error) {
+func (repo impleRepository) buildModels(ctx context.Context, opts repository.CreateOptions) (models.User, error) {
 	now := repo.clock()
 
 	user := models.User{
 		ID:           repo.db.NewObjectID(),
 		Username:     opts.UserName,
+		AvatarURL:    opts.AvatarURL,
 		Phone:        opts.Phone,
 		PasswordHash: opts.PasswordHash,
 		Birthday:     opts.Birthday,
+		Roles:        opts.Roles,
+		Permissions:  opts.Permissions,
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	}

@@ -6,10 +6,14 @@ import (
 )
 
 func MapRoutes(r *gin.RouterGroup, h Handler, mw middleware.Middleware) {
-	r.Use(mw.Auth())
 	r.POST("", h.Create)
-	r.GET("/:id", h.Detail)
-	r.GET("", h.Get)
-	r.PUT("", h.Update)
-	r.DELETE("/:id", h.Delete)
+
+	authGroup := r.Group("")
+	authGroup.Use(mw.Auth())
+	{
+		authGroup.GET("/:id", h.Detail)
+		authGroup.GET("", h.Get)
+		authGroup.PUT("", h.Update)
+		authGroup.DELETE("/:id", h.Delete)
+	}
 }

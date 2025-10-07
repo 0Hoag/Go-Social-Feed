@@ -1,12 +1,18 @@
 package http
 
 import (
+	"regexp"
 	"time"
 
 	"github.com/hoag/go-social-feed/internal/models"
 	"github.com/hoag/go-social-feed/internal/users"
 	"github.com/hoag/go-social-feed/pkg/paginator"
+	"github.com/hoag/go-social-feed/pkg/response"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+const (
+	AvatarDefault = "https://res.cloudinary.com/ddclol9ih/image/upload/v1759822057/n86sj5uthpcrdits9tsy.png"
 )
 
 type createReq struct {
@@ -19,13 +25,30 @@ type createReq struct {
 func (r createReq) toInput() users.CreateInput {
 	return users.CreateInput{
 		UserName:     r.Username,
+		AvatarURL:    AvatarDefault,
 		Phone:        r.Phone,
 		PasswordHash: r.Password,
 		Birthday:     r.Birthday,
+		Roles:        []string{"user"},
 	}
 }
 
 func (r createReq) validate() error {
+	if len(r.Username) < 3 {
+		return errWrongBody
+	}
+
+	if matched, _ := regexp.MatchString(`^\d{9,11}$`, r.Phone); !matched {
+		return errWrongBody
+	}
+
+	if len(r.Password) < 6 {
+		return errWrongBody
+	}
+
+	if r.Birthday.After(time.Now()) {
+		return errWrongBody
+	}
 
 	return nil
 }
@@ -86,7 +109,12 @@ func (r updateReq) validate() error {
 
 func (h handler) newusersDataResp(p models.User) usersDataResp {
 	return usersDataResp{
-		ID: p.ID.Hex(),
+		ID:        p.ID.Hex(),
+		Username:  p.Username,
+		Phone:     p.Phone,
+		AvatarURL: p.AvatarURL,
+		CreatedAt: response.DateTime(p.CreatedAt),
+		UpdatedAt: response.DateTime(p.UpdatedAt),
 	}
 }
 
@@ -101,10 +129,12 @@ func (h handler) newDetailResp(p models.User) detailResp {
 }
 
 type usersDataResp struct {
-	ID        string `json:"id"`
-	Username  string `json:"username"`
-	Phone     string `json:"phone"`
-	AvatarURL string `json:"avatar_url"`
+	ID        string            `json:"id"`
+	Username  string            `json:"username"`
+	Phone     string            `json:"phone"`
+	AvatarURL string            `json:"avatar_url"`
+	CreatedAt response.DateTime `json:"created_at"`
+	UpdatedAt response.DateTime `json:"updated_at"`
 }
 
 type usersItem struct {

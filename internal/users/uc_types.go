@@ -10,9 +10,12 @@ import (
 // Post
 type CreateInput struct {
 	UserName     string
+	AvatarURL    string
 	Phone        string
 	PasswordHash string
 	Birthday     time.Time
+	Roles        []string
+	Permissions  []string
 }
 
 type Filter struct {

@@ -9,29 +9,21 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (h handler) processCreateRequest(c *gin.Context) (createReq, models.Scope, error) {
+func (h handler) processCreateRequest(c *gin.Context) (createReq, error) {
 	ctx := c.Request.Context()
-
-	payload, ok := jwt.GetPayloadFromContext(ctx)
-	if !ok {
-		h.l.Errorf(ctx, "post.delivery.http.processCreateRequest.GetPayloadFromContext: unauthorized")
-		return createReq{}, models.Scope{}, pkgErrors.NewUnauthorizedHTTPError()
-	}
 
 	var req createReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.l.Errorf(ctx, "post.delivery.http.processCreateRequest.ShouldBindJSON: %v", err)
-		return createReq{}, models.Scope{}, errWrongBody
+		return createReq{}, errWrongBody
 	}
 
 	if err := req.validate(); err != nil {
 		h.l.Errorf(ctx, "post.delivery.http.processCreateRequest.Validate: %v", err)
-		return createReq{}, models.Scope{}, errWrongBody
+		return createReq{}, errWrongBody
 	}
 
-	sc := jwt.NewScope(payload)
-
-	return req, sc, nil
+	return req, nil
 }
 
 func (h handler) processDetailRequest(c *gin.Context) (string, models.Scope, error) {
