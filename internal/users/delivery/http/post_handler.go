@@ -42,6 +42,42 @@ func (h handler) Create(c *gin.Context) {
 	response.OK(c, h.newDetailResp(e))
 }
 
+// @Summary Get my info
+// @Schemes
+// @Description Get my info
+// @Param Access-Control-Allow-Origin header string false "Access-Control-Allow-Origin" default(*)
+// @Param User-Agent header string false "User-Agent" default(Swagger-Codegen/1.0.0/go)
+// @Param Authorization header string true "Bearer JWT token" default(Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vcC50YW5jYS52bi9hcGkvdjQvYXV0aC9zaWduaW4tdjIiLCJpYXQiOjE3MTY1ODUyNDAsIm5iZiI6MTcxNjU4NTI0MCwianRpIjoidFBJMldUa0JldThYdnJMZiIsInN1YiI6Ik5pdEpwZUp1dkF4M1pjYXdKIiwicHJ2IjoiMWM1NTIwZjcwYmFhNjU1ZGRjNTc0NmE2NzY0ZjM3MmExYjY1NWFhNiIsInNob3BfaWQiOiI1YzIwYTE5YzBiMDg4ODBmNTk0ZmM0NjgiLCJzaG9wX3VzZXJuYW1lIjoicmF2ZSIsInNob3BfcHJlZml4IjoidCIsInR5cGUiOiJhcGkifQ.DnxirM5IXQY3B9Vcc6Qco7c9f0ABGjoeLu_1LfHiRjE)"
+// @Param lang header string false "Language" default(en)
+// @Param id path string true "ID"
+// @Produce json
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Success 200 {object} detailResp
+// @Failure 400 {object} response.Resp "Bad Request"
+// @Router /news-feed/user/myinfo [GET]
+func (h handler) MyInfo(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	sc, err := h.processMyInfoRequest(c)
+	if err != nil {
+		h.l.Errorf(ctx, "user.delivery.http.MyInfo.processMyInfoRequest: %v", err)
+		response.Error(c, err)
+		return
+	}
+
+	p, err := h.uc.GetSessionUser(ctx, sc)
+	if err != nil {
+		h.l.Errorf(ctx, "user.delivery.http.MyInfo.GetSessionUser: %v", err)
+		mapErr := h.mapError(err)
+		response.Error(c, mapErr)
+		return
+	}
+
+	response.OK(c, h.newDetailResp(p))
+}
+
 // @Summary Get user detail
 // @Schemes
 // @Description Get user detail

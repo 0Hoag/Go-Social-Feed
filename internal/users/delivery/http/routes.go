@@ -11,6 +11,7 @@ func MapRoutes(r *gin.RouterGroup, h Handler, mw middleware.Middleware) {
 	authGroup := r.Group("")
 	authGroup.Use(mw.Auth())
 	{
+		authGroup.GET("/myinfo", h.MyInfo)
 		authGroup.GET("/:id", h.Detail)
 		authGroup.GET("", h.Get)
 		authGroup.PUT("", h.Update)

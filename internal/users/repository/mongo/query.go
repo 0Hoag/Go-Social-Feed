@@ -37,10 +37,12 @@ func (repo impleRepository) buildGetOneQuery(ctx context.Context, f repository.F
 
 	filter = mongo.BuildQueryWithSoftDelete(filter)
 
-	filter["_id"], err = primitive.ObjectIDFromHex(f.ID)
-	if err != nil {
-		repo.l.Errorf(ctx, "post.mongo.buildDetailQuery.BuildQueryWithSoftDelete: %v", err)
-		return bson.M{}, err
+	if f.ID != "" {
+		filter["_id"], err = primitive.ObjectIDFromHex(f.ID)
+		if err != nil {
+			repo.l.Errorf(ctx, "post.mongo.buildDetailQuery.BuildQueryWithSoftDelete: %v", err)
+			return bson.M{}, err
+		}
 	}
 
 	if f.UserName != "" {

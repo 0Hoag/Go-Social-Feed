@@ -1,4 +1,16 @@
 definitions:
+  http.authResp:
+    properties:
+      token:
+        type: string
+    type: object
+  http.loginReq:
+    properties:
+      password:
+        type: string
+      phone:
+        type: string
+    type: object
   http.postItem:
     properties:
       content:
@@ -16,64 +28,7 @@ definitions:
           type: string
         type: array
     type: object
-  internal_auth_delivery_http.createReq:
-    properties:
-      birthday:
-        type: string
-      password:
-        type: string
-      phone:
-        type: string
-      username:
-        type: string
-    type: object
-  internal_auth_delivery_http.detailResp:
-    properties:
-      avatar_url:
-        type: string
-      created_at:
-        type: string
-      id:
-        type: string
-      phone:
-        type: string
-      updated_at:
-        type: string
-      username:
-        type: string
-    type: object
-  internal_auth_delivery_http.getMetaResponse:
-    properties:
-      count:
-        type: integer
-      current_page:
-        type: integer
-      per_page:
-        type: integer
-      total:
-        type: integer
-      total_pages:
-        type: integer
-    type: object
-  internal_auth_delivery_http.getResp:
-    properties:
-      items:
-        items:
-          $ref: '#/definitions/internal_auth_delivery_http.usersItem'
-        type: array
-      meta:
-        $ref: '#/definitions/internal_auth_delivery_http.getMetaResponse'
-    type: object
-  internal_auth_delivery_http.updateReq:
-    properties:
-      avatar_url:
-        type: string
-      id:
-        type: string
-      username:
-        type: string
-    type: object
-  internal_auth_delivery_http.usersItem:
+  http.usersItem:
     properties:
       avatar_url:
         type: string
@@ -200,7 +155,7 @@ definitions:
     properties:
       items:
         items:
-          $ref: '#/definitions/internal_users_delivery_http.usersItem'
+          $ref: '#/definitions/http.usersItem'
         type: array
       meta:
         $ref: '#/definitions/internal_users_delivery_http.getMetaResponse'
@@ -210,21 +165,6 @@ definitions:
       avatar_url:
         type: string
       id:
-        type: string
-      username:
-        type: string
-    type: object
-  internal_users_delivery_http.usersItem:
-    properties:
-      avatar_url:
-        type: string
-      created_at:
-        type: string
-      id:
-        type: string
-      phone:
-        type: string
-      updated_at:
         type: string
       username:
         type: string
@@ -462,6 +402,54 @@ paths:
       summary: Get post detail
       tags:
       - Posts
+  /news-feed/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login
+      parameters:
+      - default: '*'
+        description: Access-Control-Allow-Origin
+        in: header
+        name: Access-Control-Allow-Origin
+        type: string
+      - default: Swagger-Codegen/1.0.0/go
+        description: User-Agent
+        in: header
+        name: User-Agent
+        type: string
+      - default: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vcC50YW5jYS52bi9hcGkvdjQvYXV0aC9zaWduaW4tdjIiLCJpYXQiOjE3MTY1ODUyNDAsIm5iZiI6MTcxNjU4NTI0MCwianRpIjoidFBJMldUa0JldThYdnJMZiIsInN1YiI6Ik5pdEpwZUp1dkF4M1pjYXdKIiwicHJ2IjoiMWM1NTIwZjcwYmFhNjU1ZGRjNTc0NmE2NzY0ZjM3MmExYjY1NWFhNiIsInNob3BfaWQiOiI1YzIwYTE5YzBiMDg4ODBmNTk0ZmM0NjgiLCJzaG9wX3VzZXJuYW1lIjoicmF2ZSIsInNob3BfcHJlZml4IjoidCIsInR5cGUiOiJhcGkifQ.DnxirM5IXQY3B9Vcc6Qco7c9f0ABGjoeLu_1LfHiRjE
+        description: Bearer JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - default: en
+        description: Language
+        in: header
+        name: lang
+        type: string
+      - description: Body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/http.loginReq'
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.authResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Resp'
+      summary: Login
+      tags:
+      - Users
   /news-feed/posts:
     post:
       consumes:
@@ -776,6 +764,53 @@ paths:
           schema:
             $ref: '#/definitions/response.Resp'
       summary: Get user detail
+      tags:
+      - Users
+  /news-feed/user/myinfo:
+    get:
+      consumes:
+      - application/json
+      description: Get my info
+      parameters:
+      - default: '*'
+        description: Access-Control-Allow-Origin
+        in: header
+        name: Access-Control-Allow-Origin
+        type: string
+      - default: Swagger-Codegen/1.0.0/go
+        description: User-Agent
+        in: header
+        name: User-Agent
+        type: string
+      - default: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vcC50YW5jYS52bi9hcGkvdjQvYXV0aC9zaWduaW4tdjIiLCJpYXQiOjE3MTY1ODUyNDAsIm5iZiI6MTcxNjU4NTI0MCwianRpIjoidFBJMldUa0JldThYdnJMZiIsInN1YiI6Ik5pdEpwZUp1dkF4M1pjYXdKIiwicHJ2IjoiMWM1NTIwZjcwYmFhNjU1ZGRjNTc0NmE2NzY0ZjM3MmExYjY1NWFhNiIsInNob3BfaWQiOiI1YzIwYTE5YzBiMDg4ODBmNTk0ZmM0NjgiLCJzaG9wX3VzZXJuYW1lIjoicmF2ZSIsInNob3BfcHJlZml4IjoidCIsInR5cGUiOiJhcGkifQ.DnxirM5IXQY3B9Vcc6Qco7c9f0ABGjoeLu_1LfHiRjE
+        description: Bearer JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - default: en
+        description: Language
+        in: header
+        name: lang
+        type: string
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_users_delivery_http.detailResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Resp'
+      summary: Get my info
       tags:
       - Users
 swagger: "2.0"

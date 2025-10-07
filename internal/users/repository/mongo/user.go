@@ -119,7 +119,7 @@ func (repo impleRepository) Get(ctx context.Context, sc models.Scope, opts repos
 	}
 
 	var ms []models.User
-	err = cur.All(ctx, ms)
+	err = cur.All(ctx, &ms)
 	if err != nil {
 		repo.l.Errorf(ctx, "users.mongo.Get.All: %v", err)
 		return []models.User{}, paginator.Paginator{}, err

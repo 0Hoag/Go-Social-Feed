@@ -46,6 +46,20 @@ func (h handler) processDetailRequest(c *gin.Context) (string, models.Scope, err
 	return id, sc, nil
 }
 
+func (h handler) processMyInfoRequest(c *gin.Context) (models.Scope, error) {
+	ctx := c.Request.Context()
+
+	payload, ok := jwt.GetPayloadFromContext(ctx)
+	if !ok {
+		h.l.Errorf(ctx, "post.delivery.http.processMyInfoRequest.GetPayloadFromContext: unauthorized")
+		return models.Scope{}, pkgErrors.NewUnauthorizedHTTPError()
+	}
+
+	sc := jwt.NewScope(payload)
+
+	return sc, nil
+}
+
 func (h handler) processGetRequest(c *gin.Context) (getReq, paginator.PaginatorQuery, models.Scope, error) {
 	ctx := c.Request.Context()
 
