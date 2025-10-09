@@ -87,4 +87,3 @@ go run ./cmd/app
 API Base URL: http://localhost:8080/api/v1
 Swagger UI: http://localhost:8080/swagger/index.html
 ```
-...
