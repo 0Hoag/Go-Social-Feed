@@ -60,7 +60,7 @@ go-social-feed/
 ├── go.sum
 ├── Dockerfile
 └── README.md
-...
+```
 
 ## ⚙️ Installation & Setup
 
