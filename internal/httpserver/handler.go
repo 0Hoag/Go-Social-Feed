@@ -16,6 +16,10 @@ import (
 	reactionMongo "github.com/hoag/go-social-feed/internal/reaction/repository/mongo"
 	reactionUC "github.com/hoag/go-social-feed/internal/reaction/usecase"
 
+	followHTTP "github.com/hoag/go-social-feed/internal/follow/delivery/http"
+	followMongo "github.com/hoag/go-social-feed/internal/follow/repository/mongo"
+	followUC "github.com/hoag/go-social-feed/internal/follow/usecase"
+
 	userHTTP "github.com/hoag/go-social-feed/internal/users/delivery/http"
 	userMongo "github.com/hoag/go-social-feed/internal/users/repository/mongo"
 	userUC "github.com/hoag/go-social-feed/internal/users/usecase"
@@ -36,17 +40,20 @@ func (srv HTTPServer) mapHandlers() error {
 	// Repositories
 	postRepo := postMongo.New(srv.l, srv.db)
 	reactionRepo := reactionMongo.New(srv.l, srv.db)
+	followRepo := followMongo.New(srv.l, srv.db)
 	userRepo := userMongo.New(srv.l, srv.db)
 
 	// Usecases
 	postUC := postUC.New(srv.l, postRepo)
 	reactionUC := reactionUC.New(srv.l, postUC, reactionRepo)
 	userUC := userUC.New(srv.l, userRepo)
+	followUC := followUC.New(srv.l, userUC, followRepo)
 	authUC := authUC.New(srv.l, cfg, userUC)
 
 	// Handlers
 	postH := postHTTP.New(srv.l, postUC)
 	reactionH := reactionHTTP.New(srv.l, reactionUC)
+	followH := followHTTP.New(srv.l, followUC)
 	userH := userHTTP.New(srv.l, userUC)
 	authH := authHTTP.New(srv.l, authUC)
 
@@ -62,6 +69,7 @@ func (srv HTTPServer) mapHandlers() error {
 	authHTTP.MapRoutes(newsFeedGroup.Group("/auth"), authH, mw)
 	postHTTP.MapRoutes(newsFeedGroup.Group("/posts"), postH, mw)
 	reactionHTTP.MapRoutes(newsFeedGroup.Group("/reaction"), reactionH, mw)
+	followHTTP.MapRoutes(newsFeedGroup.Group("/follow"), followH, mw)
 	userHTTP.MapRoutes(newsFeedGroup.Group("/user"), userH, mw)
 
 	return nil
