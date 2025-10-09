@@ -10,7 +10,14 @@ type Reaction struct {
 	ID     primitive.ObjectID `bson:"_id,omitempty"`
 	PostID primitive.ObjectID `bson:"post_id"`
 	UserID primitive.ObjectID `bson:"user_id"`
-	Type   string             `bson:"type"`
+	Type   ReactionType       `bson:"type"`
 
 	CreatedAt time.Time `bson:"created_at"`
 }
+
+type ReactionType string
+
+const (
+	LikeReaction ReactionType = "like"
+	LoveReaction ReactionType = "love"
+)

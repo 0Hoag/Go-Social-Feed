@@ -13,6 +13,7 @@ import (
 
 const (
 	AvatarDefault = "https://res.cloudinary.com/ddclol9ih/image/upload/v1759822057/n86sj5uthpcrdits9tsy.png"
+	RoleDefault   = "user"
 )
 
 type createReq struct {
@@ -29,7 +30,7 @@ func (r createReq) toInput() users.CreateInput {
 		Phone:        r.Phone,
 		PasswordHash: r.Password,
 		Birthday:     r.Birthday,
-		Roles:        []string{"user"},
+		Roles:        []string{RoleDefault},
 	}
 }
 
