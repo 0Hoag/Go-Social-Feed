@@ -68,6 +68,7 @@ go-social-feed/
 ```bash
 git clone https://github.com/0Hoag/go-social-feed.git
 cd go-social-feed
+```
 
 ### 2️⃣ Create an .env file
 ```bash
@@ -75,6 +76,7 @@ PORT=8080
 MONGO_URI=mongodb://localhost:27017
 MONGO_DB=social_feed
 RABBITMQ_URI=amqp://guest:guest@localhost:5672/
+```
 
 ### 3️⃣ Run with Docker
 ```bash
@@ -82,8 +84,11 @@ docker-compose up --build
 Or run locally:
 go mod tidy
 go run ./cmd/app
+```
 
 ### 4️⃣ Access
 ```bash
 API Base URL: http://localhost:8080/api/v1
 Swagger UI: http://localhost:8080/swagger/index.html
+```
+...
