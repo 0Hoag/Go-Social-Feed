@@ -37,29 +37,25 @@ This project demonstrates practical backend skills: **Clean Architecture**, **Sw
 
 ```bash
 go-social-feed/
-├── cmd/
-│   └── server/
-│       └── main.go
+├── cmd/api/               # Application entrypoint
+├── config/                # Configuration setup
+├── docs/                  # Swagger documentation
 ├── internal/
-│   ├── domain/
-│   │   └── post.go
-│   ├── usecase/
-│   │   └── post_usecase.go
-│   ├── repository/
-│   │   └── post_mongo.go
-│   ├── delivery/
-│   │   └── http/
-│   │       └── post_handler.go
-│   └── queue/
-│       └── rabbitmq.go
-├── configs/
-│   └── config.go
-├── docker/
-│   └── docker-compose.yml
+│   ├── appconfig/         # App & Mongo configuration
+│   ├── auth/              # Authentication module
+│   ├── follow/            # Follow feature
+│   ├── httpserver/        # HTTP server setup & handlers
+│   ├── middleware/        # Middlewares (auth, locale, permission...)
+│   ├── models/            # Domain models
+│   ├── post/              # Post module (delivery, repo, usecase)
+│   ├── reaction/          # Reaction module
+│   └── users/             # User module
+├── pkg/                   # Shared utilities / helpers
+├── vendor/                # External dependencies
+├── .env                   # Environment variables
 ├── go.mod
 ├── go.sum
-├── Dockerfile
-└── README.md
+└── Makefile
 ```
 
 ## ⚙️ Installation & Setup
