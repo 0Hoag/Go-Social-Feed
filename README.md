@@ -43,7 +43,7 @@ go-social-feed/
 ├── internal/
 │   ├── appconfig/         # App & Mongo configuration
 │   ├── auth/              # Authentication module
-│   ├── follow/            # Follow feature
+│   ├── follow/            # Follow module
 │   ├── httpserver/        # HTTP server setup & handlers
 │   ├── middleware/        # Middlewares (auth, locale, permission...)
 │   ├── models/            # Domain models

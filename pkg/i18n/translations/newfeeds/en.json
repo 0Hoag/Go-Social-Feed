@@ -1,0 +1,7 @@
+{
+    "noti.newsfeed_header": "NewsFeed",
+    "noti.post_created": "{{if .PostTitle}}{{.TaggerName}} has created a post '{{.PostTitle}}'.{{else if .PostImage}}{{.TaggerName}} has created an image post.{{end}}",
+    "noti.react_post": "{{if .PostTitle}}{{.TaggerName}} has reacted to your post '{{.PostTitle}}'.{{else if .PostImage}}{{.TaggerName}} has reacted to your image post.{{end}}",
+    "noti.tag_user": "{{if .PostTitle}}{{.TaggerName}} has tagged you in the post '{{.PostTitle}}'.{{else if .PostImage}}{{.TaggerName}} has tagged you in this image post.{{end}}",
+    "noti.tag_comment": "{{if .PostTitle}}{{.TaggerName}} has mentioned you in the post '{{.PostTitle}}'.{{else if .PostImage}}{{.TaggerName}} has mentioned you in this image post.{{end}}"
+}

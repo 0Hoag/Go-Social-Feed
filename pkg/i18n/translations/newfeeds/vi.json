@@ -1,0 +1,7 @@
+{
+    "noti.newsfeed_header": "Bảng tin",
+    "noti.post_created": "{{if .PostTitle}}{{.TaggerName}} đã đăng một bài viết '{{.PostTitle}}'.{{else if .PostImage}}{{.TaggerName}} đã đăng một bài viết ảnh này.{{end}}",
+    "noti.react_post": "{{if .PostTitle}}{{.TaggerName}} đã thả cảm xúc vào bài viết '{{.PostTitle}}' của bạn.{{else if .PostImage}}{{.TaggerName}} đã thả cảm xúc vào bài viết ảnh này của bạn.{{end}}",
+    "noti.tag_user": "{{if .PostTitle}}{{.TaggerName}} đã gắn thẻ bạn trong bài viết '{{.PostTitle}}'.{{else if .PostImage}}{{.TaggerName}} đã gắn thẻ bạn trong bài viết ảnh này.{{end}}",
+    "noti.tag_comment": "{{if .PostTitle}}{{.TaggerName}} đã đề cập bạn trong bài viết '{{.PostTitle}}'.{{else if .PostImage}}{{.TaggerName}} đã đề cập bạn trong bài viết ảnh này.{{end}}"
+}
