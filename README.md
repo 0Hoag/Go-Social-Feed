@@ -35,6 +35,7 @@ This project demonstrates practical backend skills: **Clean Architecture**, **Sw
 
 ## 🧩 Project Structure
 
+```bash
 go-social-feed/
 ├── cmd/
 │   └── server/
@@ -59,7 +60,7 @@ go-social-feed/
 ├── go.sum
 ├── Dockerfile
 └── README.md
-
+...
 
 ## ⚙️ Installation & Setup
 
