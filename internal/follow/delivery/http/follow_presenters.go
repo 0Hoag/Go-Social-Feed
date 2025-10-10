@@ -9,22 +9,16 @@ import (
 )
 
 type createReq struct {
-	FollowerID string `json:"follower_id"`
 	FolloweeID string `json:"followee_id"`
 }
 
 func (r createReq) toInput() follow.CreateInput {
 	return follow.CreateInput{
-		FollowerID: r.FollowerID,
 		FolloweeID: r.FolloweeID,
 	}
 }
 
 func (r createReq) validate() error {
-	if _, err := primitive.ObjectIDFromHex(r.FollowerID); err != nil {
-		return errWrongBody
-	}
-
 	if _, err := primitive.ObjectIDFromHex(r.FolloweeID); err != nil {
 		return errWrongBody
 	}
@@ -35,7 +29,7 @@ func (r createReq) validate() error {
 type getReq struct {
 	ID         string   `form:"id"`
 	IDs        []string `form:"ids[]"`
-	FollowerID string   `form:"follower_id"`
+	AuthorID   string   `form:"author_id"`
 	FolloweeID string   `form:"followee_id"`
 }
 
@@ -54,8 +48,8 @@ func (r getReq) validate() error {
 		}
 	}
 
-	if r.FollowerID != "" {
-		if _, err := primitive.ObjectIDFromHex(r.FollowerID); err != nil {
+	if r.AuthorID != "" {
+		if _, err := primitive.ObjectIDFromHex(r.AuthorID); err != nil {
 			return errWrongQuery
 		}
 	}
@@ -73,7 +67,7 @@ func (r getReq) toFilter() follow.Filter {
 	return follow.Filter{
 		ID:         r.ID,
 		IDs:        r.IDs,
-		FollowerID: r.FollowerID,
+		AuthorID:   r.AuthorID,
 		FolloweeID: r.FolloweeID,
 	}
 }
@@ -81,7 +75,7 @@ func (r getReq) toFilter() follow.Filter {
 func (h handler) newFollowDataResp(r models.Follow) followDataResp {
 	return followDataResp{
 		ID:         r.ID.Hex(),
-		FollowerID: r.FollowerID.Hex(),
+		AuthorID:   r.AuthorID.Hex(),
 		FolloweeID: r.FolloweeID.Hex(),
 		CreatedAt:  response.DateTime(r.CreatedAt),
 	}
@@ -99,7 +93,7 @@ func (h handler) newDetailResp(m models.Follow) detailResp {
 
 type followDataResp struct {
 	ID         string            `json:"id"`
-	FollowerID string            `json:"follower_id"`
+	AuthorID   string            `json:"author_id"`
 	FolloweeID string            `json:"followee_id"`
 	CreatedAt  response.DateTime `json:"created_at"`
 }

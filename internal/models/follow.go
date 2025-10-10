@@ -8,7 +8,7 @@ import (
 
 type Follow struct {
 	ID         primitive.ObjectID `bson:"_id,omitempty"`
-	FollowerID primitive.ObjectID `bson:"follower_id"`
+	AuthorID   primitive.ObjectID `bson:"author_id"`
 	FolloweeID primitive.ObjectID `bson:"followee_id"`
 
 	CreatedAt time.Time  `bson:"created_at"`

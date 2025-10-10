@@ -9,13 +9,7 @@ import (
 )
 
 func (uc impleUsecase) Create(ctx context.Context, sc models.Scope, input follow.CreateInput) (models.Follow, error) {
-	_, err := uc.userUC.Detail(ctx, sc, input.FollowerID)
-	if err != nil {
-		uc.l.Errorf(ctx, "follow.usecase.Create.Detail: %v", err)
-		return models.Follow{}, err
-	}
-
-	_, err = uc.userUC.Detail(ctx, sc, input.FolloweeID)
+	_, err := uc.userUC.Detail(ctx, sc, input.FolloweeID)
 	if err != nil {
 		uc.l.Errorf(ctx, "follow.usecase.Create.Detail: %v", err)
 		return models.Follow{}, err
@@ -44,7 +38,7 @@ func (uc impleUsecase) List(ctx context.Context, sc models.Scope, input follow.L
 		Filter: repository.Filter{
 			ID:         input.ID,
 			IDs:        input.IDs,
-			FollowerID: input.FollowerID,
+			AuthorID:   input.AuthorID,
 			FolloweeID: input.FolloweeID,
 		},
 	})
@@ -60,7 +54,7 @@ func (uc impleUsecase) Get(ctx context.Context, sc models.Scope, input follow.Ge
 		Filter: repository.Filter{
 			ID:         input.ID,
 			IDs:        input.IDs,
-			FollowerID: input.FollowerID,
+			AuthorID:   input.AuthorID,
 			FolloweeID: input.FolloweeID,
 		},
 		PagQuery: input.PagQuery,

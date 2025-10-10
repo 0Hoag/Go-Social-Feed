@@ -58,8 +58,8 @@ func (repo impleRepository) buildListQuery(ctx context.Context, sc models.Scope,
 		filter["_id"] = bson.M{"$in": mIDs}
 	}
 
-	if opts.Filter.FollowerID != "" {
-		filter["follower_id"], err = primitive.ObjectIDFromHex(opts.FollowerID)
+	if opts.Filter.AuthorID != "" {
+		filter["author_id"], err = primitive.ObjectIDFromHex(opts.AuthorID)
 		if err != nil {
 			repo.l.Errorf(ctx, "follow.mongo.buildListQuery.ObjectIDFromHex: %v", err)
 			return bson.M{}, err
@@ -107,8 +107,8 @@ func (repo impleRepository) buildGetQuery(ctx context.Context, sc models.Scope, 
 		filter["_id"] = bson.M{"$in": mIDs}
 	}
 
-	if opts.Filter.FollowerID != "" {
-		filter["follower_id"], err = primitive.ObjectIDFromHex(opts.FollowerID)
+	if opts.Filter.AuthorID != "" {
+		filter["author_id"], err = primitive.ObjectIDFromHex(opts.AuthorID)
 		if err != nil {
 			repo.l.Errorf(ctx, "follow.mongo.buildGetQuery.ObjectIDFromHex: %v", err)
 			return bson.M{}, err

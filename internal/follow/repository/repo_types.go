@@ -6,14 +6,13 @@ import (
 
 // Post
 type CreateOptions struct {
-	FollowerID string
 	FolloweeID string
 }
 
 type Filter struct {
 	ID         string
 	IDs        []string
-	FollowerID string
+	AuthorID   string
 	FolloweeID string
 }
 

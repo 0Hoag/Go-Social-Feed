@@ -11,7 +11,7 @@ import (
 func (repo impleRepository) buildModels(ctx context.Context, sc models.Scope, opts repository.CreateOptions) (models.Follow, error) {
 	now := repo.clock()
 
-	followerID, err := primitive.ObjectIDFromHex(opts.FollowerID)
+	authorID, err := primitive.ObjectIDFromHex(sc.UserID)
 	if err != nil {
 		repo.l.Errorf(ctx, "reaction.repository.buildModels.ObjectIDFromHex: %v", err)
 		return models.Follow{}, err
@@ -25,7 +25,7 @@ func (repo impleRepository) buildModels(ctx context.Context, sc models.Scope, op
 
 	follow := models.Follow{
 		ID:         repo.db.NewObjectID(),
-		FollowerID: followerID,
+		AuthorID:   authorID,
 		FolloweeID: followeeID,
 		CreatedAt:  now,
 	}
