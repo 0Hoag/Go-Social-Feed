@@ -1,7 +1,6 @@
 {
     "noti.newsfeed_header": "ニュースフィード",
-    "noti.post_created": "{{if .PostTitle}}{{.TaggerName}}が「{{.PostTitle}}」という投稿を作成しました。{{else if .PostImage}}{{.TaggerName}}が画像投稿を作成しました。{{end}}",
-    "noti.react_post": "{{if .PostTitle}}{{.TaggerName}}があなたの投稿「{{.PostTitle}}」にリアクションしました。{{else if .PostImage}}{{.TaggerName}}があなたの画像投稿にリアクションしました。{{end}}",
-    "noti.tag_user": "{{if .PostTitle}}{{.TaggerName}}が投稿「{{.PostTitle}}」であなたをタグ付けしました。{{else if .PostImage}}{{.TaggerName}}がこの画像投稿であなたをタグ付けしました。{{end}}",
-    "noti.tag_comment": "{{if .PostTitle}}{{.TaggerName}}が投稿「{{.PostTitle}}」であなたをコメントしました。{{else if .PostImage}}{{.TaggerName}}がこの画像投稿であなたをコメントしました。{{end}}"
+    "noti.post_created": "{{if .PostTitle}}{{.TaggerName}}が「{{.PostTitle}}」という投稿を作成しました。{{end}}",
+    "noti.react_post": "{{if .PostTitle}}{{.TaggerName}}があなたの投稿「{{.PostTitle}}」にリアクションしました。{{end}}",
+    "noti.tag_user": "{{if .PostTitle}}{{.TaggerName}}が投稿「{{.PostTitle}}」であなたをタグ付けしました。{{end}}"
 }
