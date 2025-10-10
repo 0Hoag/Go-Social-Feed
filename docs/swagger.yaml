@@ -1,7 +1,42 @@
 definitions:
+  http.attachments:
+    properties:
+      type:
+        type: string
+      url:
+        type: string
+    type: object
   http.authResp:
     properties:
       token:
+        type: string
+    type: object
+  http.commentItem:
+    properties:
+      attachments:
+        items:
+          $ref: '#/definitions/http.attachments'
+        type: array
+      author_id:
+        type: string
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      post_id:
+        type: string
+    type: object
+  http.followItem:
+    properties:
+      created_at:
+        type: string
+      followee_id:
+        type: string
+      follower_id:
+        type: string
+      id:
         type: string
     type: object
   http.loginReq:
@@ -28,6 +63,21 @@ definitions:
           type: string
         type: array
     type: object
+  http.reactionItem:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      post_id:
+        type: string
+      type:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
   http.usersItem:
     properties:
       avatar_url:
@@ -42,6 +92,107 @@ definitions:
         type: string
       username:
         type: string
+    type: object
+  internal_comment_delivery_http.createReq:
+    properties:
+      attachments:
+        items:
+          $ref: '#/definitions/http.attachments'
+        type: array
+      content:
+        type: string
+      post_id:
+        type: string
+    type: object
+  internal_comment_delivery_http.detailResp:
+    properties:
+      attachments:
+        items:
+          $ref: '#/definitions/http.attachments'
+        type: array
+      author_id:
+        type: string
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      post_id:
+        type: string
+    type: object
+  internal_comment_delivery_http.getMetaResponse:
+    properties:
+      count:
+        type: integer
+      current_page:
+        type: integer
+      per_page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  internal_comment_delivery_http.getResp:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/http.commentItem'
+        type: array
+      meta:
+        $ref: '#/definitions/internal_comment_delivery_http.getMetaResponse'
+    type: object
+  internal_comment_delivery_http.updateReq:
+    properties:
+      attachments:
+        items:
+          $ref: '#/definitions/http.attachments'
+        type: array
+      content:
+        type: string
+      post_id:
+        type: string
+    type: object
+  internal_follow_delivery_http.createReq:
+    properties:
+      followee_id:
+        type: string
+      follower_id:
+        type: string
+    type: object
+  internal_follow_delivery_http.detailResp:
+    properties:
+      created_at:
+        type: string
+      followee_id:
+        type: string
+      follower_id:
+        type: string
+      id:
+        type: string
+    type: object
+  internal_follow_delivery_http.getMetaResponse:
+    properties:
+      count:
+        type: integer
+      current_page:
+        type: integer
+      per_page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  internal_follow_delivery_http.getResp:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/http.followItem'
+        type: array
+      meta:
+        $ref: '#/definitions/internal_follow_delivery_http.getMetaResponse'
     type: object
   internal_post_delivery_http.createReq:
     properties:
@@ -111,6 +262,50 @@ definitions:
         items:
           type: string
         type: array
+    type: object
+  internal_reaction_delivery_http.createReq:
+    properties:
+      post_id:
+        type: string
+      type:
+        type: string
+    type: object
+  internal_reaction_delivery_http.detailResp:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      post_id:
+        type: string
+      type:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  internal_reaction_delivery_http.getMetaResponse:
+    properties:
+      count:
+        type: integer
+      current_page:
+        type: integer
+      per_page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  internal_reaction_delivery_http.getResp:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/http.reactionItem'
+        type: array
+      meta:
+        $ref: '#/definitions/internal_reaction_delivery_http.getMetaResponse'
     type: object
   internal_users_delivery_http.createReq:
     properties:
@@ -450,6 +645,485 @@ paths:
       summary: Login
       tags:
       - Users
+  /news-feed/comment:
+    get:
+      consumes:
+      - application/json
+      description: Get Comment with filter
+      parameters:
+      - default: '*'
+        description: Access-Control-Allow-Origin
+        in: header
+        name: Access-Control-Allow-Origin
+        type: string
+      - default: Swagger-Codegen/1.0.0/go
+        description: User-Agent
+        in: header
+        name: User-Agent
+        type: string
+      - default: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vcC50YW5jYS52bi9hcGkvdjQvYXV0aC9zaWduaW4tdjIiLCJpYXQiOjE3MTY1ODUyNDAsIm5iZiI6MTcxNjU4NTI0MCwianRpIjoidFBJMldUa0JldThYdnJMZiIsInN1YiI6Ik5pdEpwZUp1dkF4M1pjYXdKIiwicHJvIjoiMWM1NTIwZjcwYmFhNjU1ZGRjNTc0NmE2NzY0ZjM3MmExYjY1NWFhNiIsInNob3BfaWQiOiI1YzIwYTE5YzBiMDg4ODBmNTk0ZmM0NjgiLCJzaG9wX3VzZXJuYW1lIjoicmF2ZSIsInNob3BfcHJlZml4IjoidCIsInR5cGUiOiJhcGkifQ.DnxirM5IXQY3B9Vcc6Qco7c9f0ABGjoeLu_1LfHiRjE
+        description: Bearer JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - default: en
+        description: Language
+        in: header
+        name: lang
+        type: string
+      - description: ID
+        in: query
+        name: id
+        type: string
+      - collectionFormat: csv
+        description: IDs
+        in: query
+        items:
+          type: string
+        name: ids
+        type: array
+      - description: Type
+        enum:
+        - company
+        - self
+        in: query
+        name: type
+        type: string
+      - description: Status
+        enum:
+        - approved
+        - pending
+        - rejected
+        - pending_update
+        in: query
+        name: status
+        type: string
+      - description: Pin
+        in: query
+        name: pin
+        type: boolean
+      - description: User ID
+        in: query
+        name: user_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_comment_delivery_http.getResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Resp'
+      summary: Get Comment
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Create Comment
+      parameters:
+      - default: '*'
+        description: Access-Control-Allow-Origin
+        in: header
+        name: Access-Control-Allow-Origin
+        type: string
+      - default: Swagger-Codegen/1.0.0/go
+        description: User-Agent
+        in: header
+        name: User-Agent
+        type: string
+      - default: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vcC50YW5jYS52bi9hcGkvdjQvYXV0aC9zaWduaW4tdjIiLCJpYXQiOjE3MTY1ODUyNDAsIm5iZiI6MTcxNjU4NTI0MCwianRpIjoidFBJMldUa0JldThYdnJMZiIsInN1YiI6Ik5pdEpwZUp1dkF4M1pjYXdKIiwicHJ2IjoiMWM1NTIwZjcwYmFhNjU1ZGRjNTc0NmE2NzY0ZjM3MmExYjY1NWFhNiIsInNob3BfaWQiOiI1YzIwYTE5YzBiMDg4ODBmNTk0ZmM0NjgiLCJzaG9wX3VzZXJuYW1lIjoicmF2ZSIsInNob3BfcHJlZml4IjoidCIsInR5cGUiOiJhcGkifQ.DnxirM5IXQY3B9Vcc6Qco7c9f0ABGjoeLu_1LfHiRjE
+        description: Bearer JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - default: en
+        description: Language
+        in: header
+        name: lang
+        type: string
+      - description: Body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_comment_delivery_http.createReq'
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_comment_delivery_http.detailResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Resp'
+      summary: Create Comment
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: Update Comment
+      parameters:
+      - default: '*'
+        description: Access-Control-Allow-Origin
+        in: header
+        name: Access-Control-Allow-Origin
+        type: string
+      - default: Swagger-Codegen/1.0.0/go
+        description: User-Agent
+        in: header
+        name: User-Agent
+        type: string
+      - default: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vcC50YW5jYS52bi9hcGkvdjQvYXV0aC9zaWduaW4tdjIiLCJpYXQiOjE3MTY1ODUyNDAsIm5iZiI6MTcxNjU4NTI0MCwianRpIjoidFBJMldUa0JldThYdnJMZiIsInN1YiI6Ik5pdEpwZUp1dkF4M1pjYXdKIiwicHJ2IjoiMWM1NTIwZjcwYmFhNjU1ZGRjNTc0NmE2NzY0ZjM3MmExYjY1NWFhNiIsInNob3BfaWQiOiI1YzIwYTE5YzBiMDg4ODBmNTk0ZmM0NjgiLCJzaG9wX3VzZXJuYW1lIjoicmF2ZSIsInNob3BfcHJlZml4IjoidCIsInR5cGUiOiJhcGkifQ.DnxirM5IXQY3B9Vcc6Qco7c9f0ABGjoeLu_1LfHiRjE
+        description: Bearer JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - default: en
+        description: Language
+        in: header
+        name: lang
+        type: string
+      - description: Body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_comment_delivery_http.updateReq'
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_comment_delivery_http.detailResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Resp'
+      summary: Update Comment
+      tags:
+      - Users
+  /news-feed/comment/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete Comment
+      parameters:
+      - default: '*'
+        description: Access-Control-Allow-Origin
+        in: header
+        name: Access-Control-Allow-Origin
+        type: string
+      - default: Swagger-Codegen/1.0.0/go
+        description: User-Agent
+        in: header
+        name: User-Agent
+        type: string
+      - default: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vcC50YW5jYS52bi9hcGkvdjQvYXV0aC9zaWduaW4tdjIiLCJpYXQiOjE3MTY1ODUyNDAsIm5iZiI6MTcxNjU4NTI0MCwianRpIjoidFBJMldUa0JldThYdnJMZiIsInN1YiI6Ik5pdEpwZUp1dkF4M1pjYXdKIiwicHJ2IjoiMWM1NTIwZjcwYmFhNjU1ZGRjNTc0NmE2NzY0ZjM3MmExYjY1NWFhNiIsInNob3BfaWQiOiI1YzIwYTE5YzBiMDg4ODBmNTk0ZmM0NjgiLCJzaG9wX3VzZXJuYW1lIjoicmF2ZSIsInNob3BfcHJlZml4IjoidCIsInR5cGUiOiJhcGkifQ.DnxirM5IXQY3B9Vcc6Qco7c9f0ABGjoeLu_1LfHiRjE
+        description: Bearer JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - default: en
+        description: Language
+        in: header
+        name: lang
+        type: string
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_comment_delivery_http.detailResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Resp'
+      summary: Delete Comment
+      tags:
+      - Users
+    get:
+      consumes:
+      - application/json
+      description: Get Comment detail
+      parameters:
+      - default: '*'
+        description: Access-Control-Allow-Origin
+        in: header
+        name: Access-Control-Allow-Origin
+        type: string
+      - default: Swagger-Codegen/1.0.0/go
+        description: User-Agent
+        in: header
+        name: User-Agent
+        type: string
+      - default: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vcC50YW5jYS52bi9hcGkvdjQvYXV0aC9zaWduaW4tdjIiLCJpYXQiOjE3MTY1ODUyNDAsIm5iZiI6MTcxNjU4NTI0MCwianRpIjoidFBJMldUa0JldThYdnJMZiIsInN1YiI6Ik5pdEpwZUp1dkF4M1pjYXdKIiwicHJ2IjoiMWM1NTIwZjcwYmFhNjU1ZGRjNTc0NmE2NzY0ZjM3MmExYjY1NWFhNiIsInNob3BfaWQiOiI1YzIwYTE5YzBiMDg4ODBmNTk0ZmM0NjgiLCJzaG9wX3VzZXJuYW1lIjoicmF2ZSIsInNob3BfcHJlZml4IjoidCIsInR5cGUiOiJhcGkifQ.DnxirM5IXQY3B9Vcc6Qco7c9f0ABGjoeLu_1LfHiRjE
+        description: Bearer JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - default: en
+        description: Language
+        in: header
+        name: lang
+        type: string
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_comment_delivery_http.detailResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Resp'
+      summary: Get Comment detail
+      tags:
+      - Users
+  /news-feed/follow:
+    get:
+      consumes:
+      - application/json
+      description: Get Follow with filter
+      parameters:
+      - default: '*'
+        description: Access-Control-Allow-Origin
+        in: header
+        name: Access-Control-Allow-Origin
+        type: string
+      - default: Swagger-Codegen/1.0.0/go
+        description: User-Agent
+        in: header
+        name: User-Agent
+        type: string
+      - default: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vcC50YW5jYS52bi9hcGkvdjQvYXV0aC9zaWduaW4tdjIiLCJpYXQiOjE3MTY1ODUyNDAsIm5iZiI6MTcxNjU4NTI0MCwianRpIjoidFBJMldUa0JldThYdnJMZiIsInN1YiI6Ik5pdEpwZUp1dkF4M1pjYXdKIiwicHJvIjoiMWM1NTIwZjcwYmFhNjU1ZGRjNTc0NmE2NzY0ZjM3MmExYjY1NWFhNiIsInNob3BfaWQiOiI1YzIwYTE5YzBiMDg4ODBmNTk0ZmM0NjgiLCJzaG9wX3VzZXJuYW1lIjoicmF2ZSIsInNob3BfcHJlZml4IjoidCIsInR5cGUiOiJhcGkifQ.DnxirM5IXQY3B9Vcc6Qco7c9f0ABGjoeLu_1LfHiRjE
+        description: Bearer JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - default: en
+        description: Language
+        in: header
+        name: lang
+        type: string
+      - description: ID
+        in: query
+        name: id
+        type: string
+      - collectionFormat: csv
+        description: IDs
+        in: query
+        items:
+          type: string
+        name: ids
+        type: array
+      - description: Type
+        enum:
+        - company
+        - self
+        in: query
+        name: type
+        type: string
+      - description: Status
+        enum:
+        - approved
+        - pending
+        - rejected
+        - pending_update
+        in: query
+        name: status
+        type: string
+      - description: Pin
+        in: query
+        name: pin
+        type: boolean
+      - description: User ID
+        in: query
+        name: user_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_follow_delivery_http.getResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Resp'
+      summary: Get Follow
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Create Follow
+      parameters:
+      - default: '*'
+        description: Access-Control-Allow-Origin
+        in: header
+        name: Access-Control-Allow-Origin
+        type: string
+      - default: Swagger-Codegen/1.0.0/go
+        description: User-Agent
+        in: header
+        name: User-Agent
+        type: string
+      - default: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vcC50YW5jYS52bi9hcGkvdjQvYXV0aC9zaWduaW4tdjIiLCJpYXQiOjE3MTY1ODUyNDAsIm5iZiI6MTcxNjU4NTI0MCwianRpIjoidFBJMldUa0JldThYdnJMZiIsInN1YiI6Ik5pdEpwZUp1dkF4M1pjYXdKIiwicHJ2IjoiMWM1NTIwZjcwYmFhNjU1ZGRjNTc0NmE2NzY0ZjM3MmExYjY1NWFhNiIsInNob3BfaWQiOiI1YzIwYTE5YzBiMDg4ODBmNTk0ZmM0NjgiLCJzaG9wX3VzZXJuYW1lIjoicmF2ZSIsInNob3BfcHJlZml4IjoidCIsInR5cGUiOiJhcGkifQ.DnxirM5IXQY3B9Vcc6Qco7c9f0ABGjoeLu_1LfHiRjE
+        description: Bearer JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - default: en
+        description: Language
+        in: header
+        name: lang
+        type: string
+      - description: Body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_follow_delivery_http.createReq'
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_follow_delivery_http.detailResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Resp'
+      summary: Create Follow
+      tags:
+      - Users
+  /news-feed/follow/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete Follow
+      parameters:
+      - default: '*'
+        description: Access-Control-Allow-Origin
+        in: header
+        name: Access-Control-Allow-Origin
+        type: string
+      - default: Swagger-Codegen/1.0.0/go
+        description: User-Agent
+        in: header
+        name: User-Agent
+        type: string
+      - default: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vcC50YW5jYS52bi9hcGkvdjQvYXV0aC9zaWduaW4tdjIiLCJpYXQiOjE3MTY1ODUyNDAsIm5iZiI6MTcxNjU4NTI0MCwianRpIjoidFBJMldUa0JldThYdnJMZiIsInN1YiI6Ik5pdEpwZUp1dkF4M1pjYXdKIiwicHJ2IjoiMWM1NTIwZjcwYmFhNjU1ZGRjNTc0NmE2NzY0ZjM3MmExYjY1NWFhNiIsInNob3BfaWQiOiI1YzIwYTE5YzBiMDg4ODBmNTk0ZmM0NjgiLCJzaG9wX3VzZXJuYW1lIjoicmF2ZSIsInNob3BfcHJlZml4IjoidCIsInR5cGUiOiJhcGkifQ.DnxirM5IXQY3B9Vcc6Qco7c9f0ABGjoeLu_1LfHiRjE
+        description: Bearer JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - default: en
+        description: Language
+        in: header
+        name: lang
+        type: string
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_follow_delivery_http.detailResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Resp'
+      summary: Delete Follow
+      tags:
+      - Users
+    get:
+      consumes:
+      - application/json
+      description: Get Follow detail
+      parameters:
+      - default: '*'
+        description: Access-Control-Allow-Origin
+        in: header
+        name: Access-Control-Allow-Origin
+        type: string
+      - default: Swagger-Codegen/1.0.0/go
+        description: User-Agent
+        in: header
+        name: User-Agent
+        type: string
+      - default: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vcC50YW5jYS52bi9hcGkvdjQvYXV0aC9zaWduaW4tdjIiLCJpYXQiOjE3MTY1ODUyNDAsIm5iZiI6MTcxNjU4NTI0MCwianRpIjoidFBJMldUa0JldThYdnJMZiIsInN1YiI6Ik5pdEpwZUp1dkF4M1pjYXdKIiwicHJ2IjoiMWM1NTIwZjcwYmFhNjU1ZGRjNTc0NmE2NzY0ZjM3MmExYjY1NWFhNiIsInNob3BfaWQiOiI1YzIwYTE5YzBiMDg4ODBmNTk0ZmM0NjgiLCJzaG9wX3VzZXJuYW1lIjoicmF2ZSIsInNob3BfcHJlZml4IjoidCIsInR5cGUiOiJhcGkifQ.DnxirM5IXQY3B9Vcc6Qco7c9f0ABGjoeLu_1LfHiRjE
+        description: Bearer JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - default: en
+        description: Language
+        in: header
+        name: lang
+        type: string
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_follow_delivery_http.detailResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Resp'
+      summary: Get Follow detail
+      tags:
+      - Users
   /news-feed/posts:
     post:
       consumes:
@@ -498,6 +1172,222 @@ paths:
       summary: Create post
       tags:
       - Posts
+  /news-feed/reaction:
+    get:
+      consumes:
+      - application/json
+      description: Get reaction with filter
+      parameters:
+      - default: '*'
+        description: Access-Control-Allow-Origin
+        in: header
+        name: Access-Control-Allow-Origin
+        type: string
+      - default: Swagger-Codegen/1.0.0/go
+        description: User-Agent
+        in: header
+        name: User-Agent
+        type: string
+      - default: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vcC50YW5jYS52bi9hcGkvdjQvYXV0aC9zaWduaW4tdjIiLCJpYXQiOjE3MTY1ODUyNDAsIm5iZiI6MTcxNjU4NTI0MCwianRpIjoidFBJMldUa0JldThYdnJMZiIsInN1YiI6Ik5pdEpwZUp1dkF4M1pjYXdKIiwicHJvIjoiMWM1NTIwZjcwYmFhNjU1ZGRjNTc0NmE2NzY0ZjM3MmExYjY1NWFhNiIsInNob3BfaWQiOiI1YzIwYTE5YzBiMDg4ODBmNTk0ZmM0NjgiLCJzaG9wX3VzZXJuYW1lIjoicmF2ZSIsInNob3BfcHJlZml4IjoidCIsInR5cGUiOiJhcGkifQ.DnxirM5IXQY3B9Vcc6Qco7c9f0ABGjoeLu_1LfHiRjE
+        description: Bearer JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - default: en
+        description: Language
+        in: header
+        name: lang
+        type: string
+      - description: ID
+        in: query
+        name: id
+        type: string
+      - collectionFormat: csv
+        description: IDs
+        in: query
+        items:
+          type: string
+        name: ids
+        type: array
+      - description: Type
+        enum:
+        - company
+        - self
+        in: query
+        name: type
+        type: string
+      - description: Status
+        enum:
+        - approved
+        - pending
+        - rejected
+        - pending_update
+        in: query
+        name: status
+        type: string
+      - description: Pin
+        in: query
+        name: pin
+        type: boolean
+      - description: User ID
+        in: query
+        name: user_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_reaction_delivery_http.getResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Resp'
+      summary: Get reaction
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Create reaction
+      parameters:
+      - default: '*'
+        description: Access-Control-Allow-Origin
+        in: header
+        name: Access-Control-Allow-Origin
+        type: string
+      - default: Swagger-Codegen/1.0.0/go
+        description: User-Agent
+        in: header
+        name: User-Agent
+        type: string
+      - default: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vcC50YW5jYS52bi9hcGkvdjQvYXV0aC9zaWduaW4tdjIiLCJpYXQiOjE3MTY1ODUyNDAsIm5iZiI6MTcxNjU4NTI0MCwianRpIjoidFBJMldUa0JldThYdnJMZiIsInN1YiI6Ik5pdEpwZUp1dkF4M1pjYXdKIiwicHJ2IjoiMWM1NTIwZjcwYmFhNjU1ZGRjNTc0NmE2NzY0ZjM3MmExYjY1NWFhNiIsInNob3BfaWQiOiI1YzIwYTE5YzBiMDg4ODBmNTk0ZmM0NjgiLCJzaG9wX3VzZXJuYW1lIjoicmF2ZSIsInNob3BfcHJlZml4IjoidCIsInR5cGUiOiJhcGkifQ.DnxirM5IXQY3B9Vcc6Qco7c9f0ABGjoeLu_1LfHiRjE
+        description: Bearer JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - default: en
+        description: Language
+        in: header
+        name: lang
+        type: string
+      - description: Body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_reaction_delivery_http.createReq'
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_reaction_delivery_http.detailResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Resp'
+      summary: Create reaction
+      tags:
+      - Users
+  /news-feed/reaction/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete reaction
+      parameters:
+      - default: '*'
+        description: Access-Control-Allow-Origin
+        in: header
+        name: Access-Control-Allow-Origin
+        type: string
+      - default: Swagger-Codegen/1.0.0/go
+        description: User-Agent
+        in: header
+        name: User-Agent
+        type: string
+      - default: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vcC50YW5jYS52bi9hcGkvdjQvYXV0aC9zaWduaW4tdjIiLCJpYXQiOjE3MTY1ODUyNDAsIm5iZiI6MTcxNjU4NTI0MCwianRpIjoidFBJMldUa0JldThYdnJMZiIsInN1YiI6Ik5pdEpwZUp1dkF4M1pjYXdKIiwicHJ2IjoiMWM1NTIwZjcwYmFhNjU1ZGRjNTc0NmE2NzY0ZjM3MmExYjY1NWFhNiIsInNob3BfaWQiOiI1YzIwYTE5YzBiMDg4ODBmNTk0ZmM0NjgiLCJzaG9wX3VzZXJuYW1lIjoicmF2ZSIsInNob3BfcHJlZml4IjoidCIsInR5cGUiOiJhcGkifQ.DnxirM5IXQY3B9Vcc6Qco7c9f0ABGjoeLu_1LfHiRjE
+        description: Bearer JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - default: en
+        description: Language
+        in: header
+        name: lang
+        type: string
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_reaction_delivery_http.detailResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Resp'
+      summary: Delete reaction
+      tags:
+      - Users
+    get:
+      consumes:
+      - application/json
+      description: Get reaction detail
+      parameters:
+      - default: '*'
+        description: Access-Control-Allow-Origin
+        in: header
+        name: Access-Control-Allow-Origin
+        type: string
+      - default: Swagger-Codegen/1.0.0/go
+        description: User-Agent
+        in: header
+        name: User-Agent
+        type: string
+      - default: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vcC50YW5jYS52bi9hcGkvdjQvYXV0aC9zaWduaW4tdjIiLCJpYXQiOjE3MTY1ODUyNDAsIm5iZiI6MTcxNjU4NTI0MCwianRpIjoidFBJMldUa0JldThYdnJMZiIsInN1YiI6Ik5pdEpwZUp1dkF4M1pjYXdKIiwicHJ2IjoiMWM1NTIwZjcwYmFhNjU1ZGRjNTc0NmE2NzY0ZjM3MmExYjY1NWFhNiIsInNob3BfaWQiOiI1YzIwYTE5YzBiMDg4ODBmNTk0ZmM0NjgiLCJzaG9wX3VzZXJuYW1lIjoicmF2ZSIsInNob3BfcHJlZml4IjoidCIsInR5cGUiOiJhcGkifQ.DnxirM5IXQY3B9Vcc6Qco7c9f0ABGjoeLu_1LfHiRjE
+        description: Bearer JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - default: en
+        description: Language
+        in: header
+        name: lang
+        type: string
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_reaction_delivery_http.detailResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Resp'
+      summary: Get reaction detail
+      tags:
+      - Users
   /news-feed/user:
     get:
       consumes:

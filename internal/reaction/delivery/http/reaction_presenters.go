@@ -71,7 +71,7 @@ func (r getReq) toFilter() reaction.Filter {
 func (h handler) newReactionDataResp(r models.Reaction) reactionDataResp {
 	return reactionDataResp{
 		ID:        r.ID.Hex(),
-		UserID:    r.UserID.Hex(),
+		AuthorID:  r.AuthorID.Hex(),
 		PostID:    r.PostID.Hex(),
 		Type:      string(r.Type),
 		CreatedAt: response.DateTime(r.CreatedAt),
@@ -90,7 +90,7 @@ func (h handler) newDetailResp(p models.Reaction) detailResp {
 
 type reactionDataResp struct {
 	ID        string            `json:"id"`
-	UserID    string            `json:"user_id"`
+	AuthorID  string            `json:"author_id"`
 	PostID    string            `json:"post_id"`
 	Type      string            `json:"type"`
 	CreatedAt response.DateTime `json:"created_at"`

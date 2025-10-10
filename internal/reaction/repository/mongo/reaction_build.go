@@ -21,7 +21,7 @@ func (repo impleRepository) buildModels(ctx context.Context, sc models.Scope, op
 	reaction := models.Reaction{
 		ID:        repo.db.NewObjectID(),
 		PostID:    postID,
-		UserID:    mongo.ObjectIDFromHexOrNil(sc.UserID),
+		AuthorID:  mongo.ObjectIDFromHexOrNil(sc.UserID),
 		CreatedAt: now,
 	}
 

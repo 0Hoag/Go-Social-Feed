@@ -58,7 +58,7 @@ func (repo impleRepository) Detail(ctx context.Context, sc models.Scope, id stri
 func (repo impleRepository) GetOne(ctx context.Context, sc models.Scope, opts repository.GetOneOptions) (models.Comment, error) {
 	col := repo.getCommentCollection()
 
-	filter, err := repo.buildGetOneQuery(ctx, opts.Filter)
+	filter, err := repo.buildGetOneQuery(ctx, sc, opts.Filter)
 	if err != nil {
 		repo.l.Errorf(ctx, "comments.mongo.Detail.buildDetailQuery: %v", err)
 		return models.Comment{}, err
@@ -77,7 +77,7 @@ func (repo impleRepository) GetOne(ctx context.Context, sc models.Scope, opts re
 func (repo impleRepository) List(ctx context.Context, sc models.Scope, opts repository.ListOptions) ([]models.Comment, error) {
 	col := repo.getCommentCollection()
 
-	filter, err := repo.buildListQuery(ctx, opts)
+	filter, err := repo.buildListQuery(ctx, sc, opts)
 	if err != nil {
 		repo.l.Errorf(ctx, "comments.mongo.List.buildListQuery: %v", err)
 		return []models.Comment{}, err

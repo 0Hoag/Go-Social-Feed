@@ -5,6 +5,8 @@ import (
 	"math"
 	"time"
 
+	"github.com/hoag/go-social-feed/internal/models"
+	"github.com/hoag/go-social-feed/pkg/log"
 	"github.com/hoag/go-social-feed/pkg/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -41,8 +43,17 @@ func BuildQueryWithSoftDelete(query bson.M) bson.M {
 	return query
 }
 
-func BuildScopeQuery(ctx context.Context) (bson.M, error) {
+func BuildScopeQuery(ctx context.Context, l log.Logger, sc models.Scope) (bson.M, error) {
 	filter := bson.M{}
+
+	if sc.UserID != "" {
+		UserID, err := primitive.ObjectIDFromHex(sc.UserID)
+		if err != nil {
+			l.Errorf(ctx, "pkgmongo.BuildScopeQuery: %v", err)
+			return nil, err
+		}
+		filter["author_id"] = UserID
+	}
 
 	return filter, nil
 }

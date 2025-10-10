@@ -11,7 +11,7 @@ import (
 )
 
 func (repo impleRepository) buildDetailQuery(ctx context.Context, sc models.Scope, id string) (bson.M, error) {
-	filter, err := mongo.BuildScopeQuery(ctx)
+	filter, err := mongo.BuildScopeQuery(ctx, repo.l, sc)
 	if err != nil {
 		repo.l.Errorf(ctx, "post.mongo.buildDetailQuery.BuildScopeQuery: %v", err)
 		return bson.M{}, err
@@ -29,20 +29,17 @@ func (repo impleRepository) buildDetailQuery(ctx context.Context, sc models.Scop
 }
 
 func (repo impleRepository) buildGetOneQuery(ctx context.Context, f repository.Filter) (bson.M, error) {
-	filter, err := mongo.BuildScopeQuery(ctx)
-	if err != nil {
-		repo.l.Errorf(ctx, "post.mongo.buildDetailQuery.BuildScopeQuery: %v", err)
-		return bson.M{}, err
-	}
+	filter := bson.M{}
 
 	filter = mongo.BuildQueryWithSoftDelete(filter)
 
 	if f.ID != "" {
-		filter["_id"], err = primitive.ObjectIDFromHex(f.ID)
+		id, err := primitive.ObjectIDFromHex(f.ID)
 		if err != nil {
 			repo.l.Errorf(ctx, "post.mongo.buildDetailQuery.BuildQueryWithSoftDelete: %v", err)
 			return bson.M{}, err
 		}
+		filter["_id"] = id
 	}
 
 	if f.UserName != "" {
@@ -57,7 +54,7 @@ func (repo impleRepository) buildGetOneQuery(ctx context.Context, f repository.F
 }
 
 func (repo impleRepository) buildListQuery(ctx context.Context, sc models.Scope, opts repository.ListOptions) (bson.M, error) {
-	filter, err := mongo.BuildScopeQuery(ctx)
+	filter, err := mongo.BuildScopeQuery(ctx, repo.l, sc)
 	if err != nil {
 		repo.l.Errorf(ctx, "post.mongo.buildListQuery.BuildScopeQuery: %v", err)
 		return bson.M{}, err
@@ -94,7 +91,7 @@ func (repo impleRepository) buildListQuery(ctx context.Context, sc models.Scope,
 }
 
 func (repo impleRepository) buildGetQuery(ctx context.Context, sc models.Scope, opts repository.GetOptions) (bson.M, error) {
-	filter, err := mongo.BuildScopeQuery(ctx)
+	filter, err := mongo.BuildScopeQuery(ctx, repo.l, sc)
 	if err != nil {
 		repo.l.Errorf(ctx, "post.mongo.buildListQuery.buildGetQuery: %v", err)
 		return bson.M{}, err
