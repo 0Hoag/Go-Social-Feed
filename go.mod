@@ -16,6 +16,8 @@ require (
 	go.uber.org/zap v1.27.0
 )
 
+require github.com/streadway/amqp v1.1.0 // indirect
+
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/bytedance/sonic v1.11.6 // indirect

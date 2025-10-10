@@ -43,3 +43,12 @@ type UpdateInput struct {
 	TaggedTarget []string
 	Permission   string
 }
+
+// Message
+type DeleteCommentMsgInput struct {
+	PostID string
+}
+
+type DeleteReactionMsgInput struct {
+	PostID string
+}

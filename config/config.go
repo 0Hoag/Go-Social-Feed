@@ -3,15 +3,20 @@ package config
 import "github.com/caarlos0/env/v9"
 
 type Config struct {
-	HTTPServer HTTPServerConfig
-	Logger     LoggerConfig
-	JWT        JWTConfig
-	Mongo      MongoConfig
-	Encrypter  EncrypterConfig
+	HTTPServer   HTTPServerConfig
+	Logger       LoggerConfig
+	JWT          JWTConfig
+	RabbitConfig RabbitConfig
+	Mongo        MongoConfig
+	Encrypter    EncrypterConfig
 }
 
 type JWTConfig struct {
 	SecretKey string `env:"JWT_SECRET"`
+}
+
+type RabbitConfig struct {
+	URL string `env:"RABBITMQ_URL"`
 }
 
 type HTTPServerConfig struct {

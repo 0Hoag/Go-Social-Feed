@@ -5,6 +5,7 @@ import (
 	pkgCrt "github.com/hoag/go-social-feed/pkg/encrypter"
 	pkgLog "github.com/hoag/go-social-feed/pkg/log"
 	pkgMongo "github.com/hoag/go-social-feed/pkg/mongo"
+	"github.com/hoag/go-social-feed/pkg/rabbitmq"
 )
 
 const productionMode = "production"
@@ -16,6 +17,7 @@ type HTTPServer struct {
 	l            pkgLog.Logger
 	port         int
 	db           pkgMongo.Database
+	amqpConn     rabbitmq.Connection
 	jwtSecretKey string
 	mode         string
 	hoagConfig   HoagConfig
@@ -28,6 +30,7 @@ type Config struct {
 	Port         int
 	JWTSecretKey string
 	DB           pkgMongo.Database
+	AMQPConn     rabbitmq.Connection
 	Mode         string
 	HoagConfig   HoagConfig
 	InternalKey  string
@@ -55,6 +58,7 @@ func New(l pkgLog.Logger, cfg Config) *HTTPServer {
 		gin:          gin.Default(),
 		port:         cfg.Port,
 		db:           cfg.DB,
+		amqpConn:     cfg.AMQPConn,
 		jwtSecretKey: cfg.JWTSecretKey,
 		mode:         cfg.Mode,
 		hoagConfig:   cfg.HoagConfig,

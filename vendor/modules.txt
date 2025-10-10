@@ -158,6 +158,9 @@ github.com/pmezard/go-difflib/difflib
 # github.com/rabbitmq/amqp091-go v1.10.0
 ## explicit; go 1.20
 github.com/rabbitmq/amqp091-go
+# github.com/streadway/amqp v1.1.0
+## explicit; go 1.10
+github.com/streadway/amqp
 # github.com/stretchr/objx v0.5.2
 ## explicit; go 1.20
 github.com/stretchr/objx

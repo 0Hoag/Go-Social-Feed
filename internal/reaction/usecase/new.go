@@ -15,7 +15,7 @@ type impleUsecase struct {
 
 func New(
 	l log.Logger,
-	postUC post.PostUC,
+	postUC post.UseCase,
 	repo repository.Repository,
 ) reaction.UseCase {
 	return &impleUsecase{

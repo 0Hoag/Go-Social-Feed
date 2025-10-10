@@ -7,6 +7,7 @@ import (
 	"github.com/hoag/go-social-feed/internal/appconfig/mongo"
 	pkgCrt "github.com/hoag/go-social-feed/pkg/encrypter"
 	pkgLog "github.com/hoag/go-social-feed/pkg/log"
+	"github.com/hoag/go-social-feed/pkg/rabbitmq"
 )
 
 func main() {
@@ -31,9 +32,16 @@ func main() {
 		Encoding: cfg.Logger.Encoding,
 	})
 
+	amqpConn, err := rabbitmq.Dial(cfg.RabbitConfig.URL, true)
+	if err != nil {
+		panic(err)
+	}
+	defer amqpConn.Close()
+
 	srv := httpserver.New(l, httpserver.Config{
 		Port:         cfg.HTTPServer.Port,
 		DB:           db,
+		AMQPConn:     amqpConn,
 		JWTSecretKey: cfg.JWT.SecretKey,
 		Mode:         cfg.HTTPServer.Mode,
 		Encrypter:    crp,

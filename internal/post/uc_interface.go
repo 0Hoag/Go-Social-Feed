@@ -9,7 +9,7 @@ import (
 //go:generate mockery --name=Usecase
 type UseCase interface {
 	PostUC
-	PostReactionUC
+	Consumer
 }
 
 type PostUC interface {
@@ -21,5 +21,7 @@ type PostUC interface {
 	Delete(ctx context.Context, sc models.Scope, id string) error
 }
 
-type PostReactionUC interface {
+type Consumer interface {
+	ProcessDeleteCommentMsg(ctx context.Context, sc models.Scope, input DeleteCommentMsgInput) error
+	ProcessDeleteReactionMsg(ctx context.Context, sc models.Scope, input DeleteReactionMsgInput) error
 }

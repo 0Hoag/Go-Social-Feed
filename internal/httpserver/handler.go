@@ -3,6 +3,7 @@ package httpserver
 import (
 	"github.com/hoag/go-social-feed/config"
 	_ "github.com/hoag/go-social-feed/docs"
+	prod "github.com/hoag/go-social-feed/internal/feed/delivery/rabbitmq/producer"
 	"github.com/hoag/go-social-feed/pkg/jwt"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -41,6 +42,12 @@ func (srv HTTPServer) mapHandlers() error {
 
 	cfg, _ := config.Load()
 
+	// Producer
+	postProd := prod.New(srv.l, srv.amqpConn)
+	if err := postProd.Run(); err != nil {
+		return err
+	}
+
 	// Repositories
 	postRepo := postMongo.New(srv.l, srv.db)
 	reactionRepo := reactionMongo.New(srv.l, srv.db)
@@ -49,7 +56,7 @@ func (srv HTTPServer) mapHandlers() error {
 	userRepo := userMongo.New(srv.l, srv.db)
 
 	// Usecases
-	postUC := postUC.New(srv.l, postRepo)
+	postUC := postUC.New(srv.l, postProd, postRepo)
 	reactionUC := reactionUC.New(srv.l, postUC, reactionRepo)
 	userUC := userUC.New(srv.l, userRepo)
 	followUC := followUC.New(srv.l, userUC, followRepo)
