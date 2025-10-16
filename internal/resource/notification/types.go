@@ -30,5 +30,5 @@ type GetNotiContentInput struct {
 	From       SourceType
 	Lang       string
 	TaggerName string
-	PostTitle  string
+	Content    string
 }

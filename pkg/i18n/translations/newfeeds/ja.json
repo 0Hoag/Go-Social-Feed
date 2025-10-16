@@ -1,6 +1,6 @@
 {
     "noti.newsfeed_header": "ニュースフィード",
-    "noti.post_created": "{{if .PostTitle}}{{.TaggerName}}が「{{.PostTitle}}」という投稿を作成しました。{{end}}",
-    "noti.react_post": "{{if .PostTitle}}{{.TaggerName}}があなたの投稿「{{.PostTitle}}」にリアクションしました。{{end}}",
-    "noti.tag_user": "{{if .PostTitle}}{{.TaggerName}}が投稿「{{.PostTitle}}」であなたをタグ付けしました。{{end}}"
+    "noti.post_created": "{{.TaggerName}}が「{{.PostTitle}}」という投稿を作成しました。",
+    "noti.react_post": "{{.TaggerName}}があなたの投稿「{{.PostTitle}}」にリアクションしました。",
+    "noti.tag_user": "{{.TaggerName}}が投稿「{{.PostTitle}}」であなたをタグ付けしました。"
 }

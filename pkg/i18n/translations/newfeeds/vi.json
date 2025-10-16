@@ -1,6 +1,6 @@
 {
     "noti.newsfeed_header": "Bảng tin",
-    "noti.post_created": "{{if .PostTitle}}{{.TaggerName}} đã đăng một bài viết '{{.PostTitle}}'.{{end}}",
-    "noti.react_post": "{{if .PostTitle}}{{.TaggerName}} đã thả cảm xúc vào bài viết '{{.PostTitle}}' của bạn.{{end}}",
-    "noti.tag_user": "{{if .PostTitle}}{{.TaggerName}} đã gắn thẻ bạn trong bài viết '{{.PostTitle}}'.{{end}}"
+    "noti.post_created": "{{.TaggerName}} đã đăng một bài viết '{{.Content}}'.",
+    "noti.react_post": "{{.TaggerName}} đã thả cảm xúc vào bài viết '{{.Content}}' của bạn.",
+    "noti.tag_user": "{{.TaggerName}} đã gắn thẻ bạn trong bài viết '{{.Content}}'."
 }

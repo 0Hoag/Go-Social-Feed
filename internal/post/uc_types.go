@@ -2,6 +2,7 @@ package post
 
 import (
 	"github.com/hoag/go-social-feed/internal/models"
+	"github.com/hoag/go-social-feed/internal/resource/notification"
 	"github.com/hoag/go-social-feed/pkg/paginator"
 )
 
@@ -42,6 +43,23 @@ type UpdateInput struct {
 	FileIDs      []string
 	TaggedTarget []string
 	Permission   string
+}
+
+// Notification
+type PublishNotiPostInput struct {
+	PostID     string                  `json:"post_id"`
+	ReceiverID string                  `json:"receiver_id,omitempty"`
+	Type       notification.SourceType `json:"type"`
+}
+
+type NotificationInput struct {
+	Post         models.Post
+	TaggedTarget []string
+}
+
+type NotificationOutput struct {
+	Users       []models.User
+	SessionUser models.User
 }
 
 // Message

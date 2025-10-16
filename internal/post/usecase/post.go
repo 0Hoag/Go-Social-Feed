@@ -21,6 +21,14 @@ func (uc impleUsecase) Create(ctx context.Context, sc models.Scope, input post.C
 		return models.Post{}, err
 	}
 
+	if len(post.TaggedTarget) > 0 {
+		err = uc.handleCreatePostNotification(ctx, sc, post)
+		if err != nil {
+			uc.l.Errorf(ctx, "post.usecase.Create.handleCreatePostNotification : %v", err)
+			return models.Post{}, nil
+		}
+	}
+
 	return post, nil
 }
 

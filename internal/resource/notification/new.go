@@ -40,17 +40,17 @@ var GetNotiContent = func(ctx context.Context, input GetNotiContentInput) (strin
 	case SourcePostCreate:
 		return localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "noti.post_created", TemplateData: map[string]interface{}{
 			"TaggerName": input.TaggerName,
-			"PostTitle":  input.PostTitle,
+			"Content":    input.Content,
 		}}), nil
 	case SourcePostReactPost:
 		return localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "noti.react_post", TemplateData: map[string]interface{}{
 			"TaggerName": input.TaggerName,
-			"PostTitle":  input.PostTitle,
+			"Content":    input.Content,
 		}}), nil
 	case SourceTagUser:
 		return localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "noti.tag_user", TemplateData: map[string]interface{}{
 			"TaggerName": input.TaggerName,
-			"PostTitle":  input.PostTitle,
+			"Content":    input.Content,
 		}}), nil
 	}
 
