@@ -1,6 +1,6 @@
 # 🧩 Go-Social-Feed
 
-**Go-Social-Feed** is a personal backend project developed in **Go** after my internship at **Tanca**.  
+**Go-Social-Feed** is a personal backend project developed in **Go**.  
 It’s inspired by the internal social feed system I worked on — a micro social network for employees to share posts, interact, and stay updated.
 
 This project demonstrates practical backend skills: **Clean Architecture**, **Swagger**, **unit tests**, **RabbitMQ**, and **Docker** integration.
