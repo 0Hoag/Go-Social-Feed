@@ -58,7 +58,7 @@ func (repo impleRepository) buildModels(ctx context.Context, sc models.Scope, op
 	return post, nil
 }
 
-func (repo impleRepository) buildUpdateModels(ctx context.Context, sc models.Scope, opts repository.UpdateOptions) (bson.M, error) {
+func (repo impleRepository) buildUpdateModels(ctx context.Context, opts repository.UpdateOptions) (bson.M, error) {
 	now := repo.clock()
 
 	set := bson.M{}
@@ -92,6 +92,10 @@ func (repo impleRepository) buildUpdateModels(ctx context.Context, sc models.Sco
 		set["content"] = opts.Content
 	}
 
+	if opts.Pin {
+		set["pin"] = opts.Pin
+	}
+
 	if len(fileIDs) > 0 {
 		set["file_ids"] = fileIDs
 	}
@@ -100,8 +104,8 @@ func (repo impleRepository) buildUpdateModels(ctx context.Context, sc models.Sco
 		set["tagged_target"] = taggedIDs
 	}
 
-	if opts.Pin {
-		set["pin"] = opts.Pin
+	if opts.Permission != "" {
+		set["permission"] = opts.Permission
 	}
 
 	set["updated_at"] = now

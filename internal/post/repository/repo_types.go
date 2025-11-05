@@ -32,8 +32,9 @@ type GetOptions struct {
 
 type UpdateOptions struct {
 	Post         models.Post
+	Pin          bool
 	Content      string
 	FileIDs      []string
-	Pin          bool
 	TaggedTarget []string
+	Permission   string
 }

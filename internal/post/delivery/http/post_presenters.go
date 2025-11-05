@@ -13,6 +13,7 @@ type createReq struct {
 	Content      string   `json:"content"`
 	FileIDs      []string `json:"file_ids"`
 	TaggedTarget []string `json:"tagged_target"`
+	Permission   string   `json:"permission"`
 }
 
 func (r createReq) toInput() post.CreateInput {
@@ -21,6 +22,7 @@ func (r createReq) toInput() post.CreateInput {
 		Content:      r.Content,
 		FileIDs:      r.FileIDs,
 		TaggedTarget: r.TaggedTarget,
+		Permission:   r.Permission,
 	}
 }
 
@@ -44,6 +46,13 @@ func (r createReq) validate() error {
 				return errWrongBody
 			}
 		}
+	}
+
+	switch r.Permission {
+	case string(models.PrivacyTypePrivate), string(models.PrivacyTypePublic):
+		break
+	default:
+		return errWrongBody
 	}
 
 	return nil
@@ -86,6 +95,7 @@ type updateReq struct {
 	Content      string   `json:"content"`
 	FileIDs      []string `json:"file_ids"`
 	TaggedTarget []string `json:"tagged_target"`
+	Permission   string   `json:"permission"`
 }
 
 func (r updateReq) toInput() post.UpdateInput {
@@ -99,6 +109,7 @@ func (r updateReq) toInput() post.UpdateInput {
 		Content:      r.Content,
 		FileIDs:      r.FileIDs,
 		TaggedTarget: taggedTarget,
+		Permission:   r.Permission,
 	}
 }
 
@@ -128,6 +139,13 @@ func (r updateReq) validate() error {
 				return errWrongBody
 			}
 		}
+	}
+
+	switch r.Permission {
+	case string(models.PrivacyTypePrivate), string(models.PrivacyTypePublic):
+		break
+	default:
+		return errWrongBody
 	}
 
 	return nil

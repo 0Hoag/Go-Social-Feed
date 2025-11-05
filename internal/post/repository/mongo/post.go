@@ -129,7 +129,7 @@ func (repo impleRepository) Update(ctx context.Context, sc models.Scope, opts re
 		return err
 	}
 
-	update, err := repo.buildUpdateModels(ctx, sc, opts)
+	update, err := repo.buildUpdateModels(ctx, opts)
 	if err != nil {
 		repo.l.Errorf(ctx, "post.mongo.Update.buildUpdateModels: %v", err)
 		return err

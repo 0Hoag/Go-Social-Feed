@@ -86,10 +86,11 @@ func (uc impleUsecase) Update(ctx context.Context, sc models.Scope, input post.U
 
 	err = uc.repo.Update(ctx, sc, repository.UpdateOptions{
 		Post:         post,
+		Pin:          input.Pin,
 		Content:      input.Content,
 		FileIDs:      input.FileIDs,
-		Pin:          input.Pin,
 		TaggedTarget: input.TaggedTarget,
+		Permission:   input.Permission,
 	})
 	if err != nil {
 		uc.l.Errorf(ctx, "post.usecase.Update.Update: %v", err)
