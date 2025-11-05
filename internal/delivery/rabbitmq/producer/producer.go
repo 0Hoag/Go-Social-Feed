@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	rabb "github.com/hoag/go-social-feed/internal/feed/delivery/rabbitmq"
+	rabb "github.com/hoag/go-social-feed/internal/delivery/rabbitmq"
 	"github.com/hoag/go-social-feed/pkg/rabbitmq"
 )
 

@@ -7,11 +7,18 @@ import (
 )
 
 type Handler interface {
+	// Post handler
 	Create(c *gin.Context)
 	Detail(c *gin.Context)
 	Get(c *gin.Context)
 	Update(c *gin.Context)
 	Delete(c *gin.Context)
+
+	// Reaction handler
+	CreateReaction(c *gin.Context)
+	DetailReaction(c *gin.Context)
+	GetReaction(c *gin.Context)
+	DeleteReaction(c *gin.Context)
 }
 
 type handler struct {

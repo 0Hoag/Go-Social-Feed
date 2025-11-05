@@ -13,9 +13,12 @@ var (
 	// Post errors
 	errPostVersionNotFound = pkgErrors.NewHTTPError(143004, "Post version not found")
 	errPostNotFound        = pkgErrors.NewHTTPError(143005, "Post not found")
-	errEmotionNotFound     = pkgErrors.NewHTTPError(143006, "Emotion not found")
-	errPostEmotionNotFound = pkgErrors.NewHTTPError(143007, "Post emotion not found")
-	errEmotionExists       = pkgErrors.NewHTTPError(143008, "Emotion exists")
+
+	// Reaction errors
+	errReactionNotFound = pkgErrors.NewHTTPError(143006, "Reaction not found")
+
+	// Comment errors
+	errCommentNotFound = pkgErrors.NewHTTPError(143007, "Comment not found")
 )
 
 func (h handler) mapError(err error) error {
@@ -24,12 +27,10 @@ func (h handler) mapError(err error) error {
 		return errPostNotFound
 	case post.ErrPostVersionNotFound:
 		return errPostVersionNotFound
-	case post.ErrEmotionNotFound:
-		return errEmotionNotFound
-	case post.ErrPostEmotionNotFound:
-		return errPostEmotionNotFound
-	case post.ErrEmotionExists:
-		return errEmotionExists
+	case post.ErrReactionNotFound:
+		return errReactionNotFound
+	case post.ErrCommentNotFound:
+		return errCommentNotFound
 	default:
 		panic(err)
 	}

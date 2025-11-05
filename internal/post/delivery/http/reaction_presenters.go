@@ -2,25 +2,24 @@ package http
 
 import (
 	"github.com/hoag/go-social-feed/internal/models"
-	"github.com/hoag/go-social-feed/internal/reaction"
-	"github.com/hoag/go-social-feed/pkg/paginator"
+	"github.com/hoag/go-social-feed/internal/post"
 	"github.com/hoag/go-social-feed/pkg/response"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type createReq struct {
+type createReactionReq struct {
 	PostID string `json:"post_id"`
 	Type   string `json:"type"`
 }
 
-func (r createReq) toInput() reaction.CreateInput {
-	return reaction.CreateInput{
+func (r createReactionReq) toInput() post.CreateReactionInput {
+	return post.CreateReactionInput{
 		PostID: r.PostID,
 		Type:   models.ReactionType(r.Type),
 	}
 }
 
-func (r createReq) validate() error {
+func (r createReactionReq) validate() error {
 	if _, err := primitive.ObjectIDFromHex(r.PostID); err != nil {
 		return errWrongBody
 	}
@@ -28,14 +27,14 @@ func (r createReq) validate() error {
 	return nil
 }
 
-type getReq struct {
+type getReactionReq struct {
 	ID     string   `form:"id"`
 	IDs    []string `form:"ids[]"`
 	UserID string   `form:"user_id"`
 	Type   string   `form:"type"`
 }
 
-func (r getReq) validate() error {
+func (r getReactionReq) validate() error {
 	if len(r.IDs) > 0 {
 		for _, id := range r.IDs {
 			if _, err := primitive.ObjectIDFromHex(id); err != nil {
@@ -59,8 +58,8 @@ func (r getReq) validate() error {
 	return nil
 }
 
-func (r getReq) toFilter() reaction.Filter {
-	return reaction.Filter{
+func (r getReactionReq) toFilter() post.FilterReaction {
+	return post.FilterReaction{
 		ID:     r.ID,
 		IDs:    r.IDs,
 		UserID: r.UserID,
@@ -78,12 +77,12 @@ func (h handler) newReactionDataResp(r models.Reaction) reactionDataResp {
 	}
 }
 
-type detailResp struct {
+type detailReactionResp struct {
 	reactionDataResp
 }
 
-func (h handler) newDetailResp(p models.Reaction) detailResp {
-	return detailResp{
+func (h handler) newDetailReactionResp(p models.Reaction) detailReactionResp {
+	return detailReactionResp{
 		reactionDataResp: h.newReactionDataResp(p),
 	}
 }
@@ -101,16 +100,12 @@ type reactionItem struct {
 	reactionDataResp
 }
 
-type getMetaResponse struct {
-	paginator.PaginatorResponse
-}
-
-type getResp struct {
+type getReactionResp struct {
 	Items []reactionItem  `json:"items"`
 	Meta  getMetaResponse `json:"meta"`
 }
 
-func (h handler) newGetResp(out reaction.GetOutput) getResp {
+func (h handler) newGetReactionResp(out post.GetReactionOutput) getReactionResp {
 	items := make([]reactionItem, 0, len(out.Reactions))
 
 	for _, p := range out.Reactions {
@@ -121,7 +116,7 @@ func (h handler) newGetResp(out reaction.GetOutput) getResp {
 		items = append(items, item)
 	}
 
-	return getResp{
+	return getReactionResp{
 		Items: items,
 		Meta: getMetaResponse{
 			PaginatorResponse: out.Paginator.ToResponse(),

@@ -2,7 +2,7 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/hoag/go-social-feed/internal/reaction"
+	"github.com/hoag/go-social-feed/internal/post"
 	"github.com/hoag/go-social-feed/pkg/response"
 )
 
@@ -20,26 +20,26 @@ import (
 // @Produce json
 // @Success 200 {object} detailResp
 // @Failure 400 {object} response.Resp "Bad Request"
-// @Router /news-feed/reaction [POST]
-func (h handler) Create(c *gin.Context) {
+// @Router /news-feed/post/reaction [POST]
+func (h handler) CreateReaction(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	req, sc, err := h.processCreateRequest(c)
+	req, sc, err := h.processCreateReactionRequest(c)
 	if err != nil {
-		h.l.Errorf(ctx, "reaction.delivery.http.Create.processCreateRequest: %v", err)
+		h.l.Errorf(ctx, "post.delivery.http.CreateReaction.processCreateReactionRequest: %v", err)
 		response.Error(c, err)
 		return
 	}
 
-	e, err := h.uc.Create(ctx, sc, req.toInput())
+	e, err := h.uc.CreateReaction(ctx, sc, req.toInput())
 	if err != nil {
-		h.l.Errorf(ctx, "reaction.delivery.http.Create.Create: %v", err)
+		h.l.Errorf(ctx, "post.delivery.http.CreateReaction.CreateReaction: %v", err)
 		mapErr := h.mapError(err)
 		response.Error(c, mapErr)
 		return
 	}
 
-	response.OK(c, h.newDetailResp(e))
+	response.OK(c, h.newDetailReactionResp(e))
 }
 
 // @Summary Get reaction detail
@@ -56,26 +56,26 @@ func (h handler) Create(c *gin.Context) {
 // @Produce json
 // @Success 200 {object} detailResp
 // @Failure 400 {object} response.Resp "Bad Request"
-// @Router /news-feed/reaction/{id} [GET]
-func (h handler) Detail(c *gin.Context) {
+// @Router /news-feed/post/reaction/{id} [GET]
+func (h handler) DetailReaction(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	id, sc, err := h.processDetailRequest(c)
+	id, sc, err := h.processDetailReactionRequest(c)
 	if err != nil {
-		h.l.Errorf(ctx, "reaction.delivery.http.Detail.processDetailRequest: %v", err)
+		h.l.Errorf(ctx, "post.delivery.http.DetailReaction.processDetailReactionRequest: %v", err)
 		response.Error(c, err)
 		return
 	}
 
-	p, err := h.uc.Detail(ctx, sc, id)
+	p, err := h.uc.DetailReaction(ctx, sc, id)
 	if err != nil {
-		h.l.Errorf(ctx, "reaction.delivery.http.Detail.Detail: %v", err)
+		h.l.Errorf(ctx, "post.delivery.http.DetailReaction.DetailReaction: %v", err)
 		mapErr := h.mapError(err)
 		response.Error(c, mapErr)
 		return
 	}
 
-	response.OK(c, h.newDetailResp(p))
+	response.OK(c, h.newDetailReactionResp(p))
 }
 
 // @Summary Get reaction
@@ -96,31 +96,31 @@ func (h handler) Detail(c *gin.Context) {
 // @Accept json
 // @Success 200 {object} getResp
 // @Failure 400 {object} response.Resp "Bad Request"
-// @Router /news-feed/reaction [GET]
-func (h handler) Get(c *gin.Context) {
+// @Router /news-feed/post/reaction [GET]
+func (h handler) GetReaction(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	req, paq, sc, err := h.processGetRequest(c)
+	req, paq, sc, err := h.processGetReactionRequest(c)
 	if err != nil {
-		h.l.Errorf(ctx, "reaction.delivery.http.Get.processGetRequest: %v", err)
+		h.l.Errorf(ctx, "post.delivery.http.GetReaction.processGetRequest: %v", err)
 		response.Error(c, err)
 		return
 	}
 
-	var input reaction.GetInput
-	input.Filter = req.toFilter()
+	var input post.GetReactionInput
+	input.FilterReaction = req.toFilter()
 	paq.Adjust()
 	input.PagQuery = paq
 
-	e, err := h.uc.Get(ctx, sc, input)
+	e, err := h.uc.GetReaction(ctx, sc, input)
 	if err != nil {
-		h.l.Errorf(ctx, "reaction.delivery.http.Get.Get: %v", err)
+		h.l.Errorf(ctx, "post.delivery.http.GetReaction.GetReaction: %v", err)
 		mapErr := h.mapError(err)
 		response.Error(c, mapErr)
 		return
 	}
 
-	response.OK(c, h.newGetResp(e))
+	response.OK(c, h.newGetReactionResp(e))
 }
 
 // @Summary Delete reaction
@@ -137,20 +137,20 @@ func (h handler) Get(c *gin.Context) {
 // @Produce json
 // @Success 200 {object} detailResp
 // @Failure 400 {object} response.Resp "Bad Request"
-// @Router /news-feed/reaction/{id} [DELETE]
-func (h handler) Delete(c *gin.Context) {
+// @Router /news-feed/post/reaction/{id} [DELETE]
+func (h handler) DeleteReaction(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	id, sc, err := h.processDeleteRequest(c)
+	id, sc, err := h.processDeleteReactionRequest(c)
 	if err != nil {
-		h.l.Errorf(ctx, "reaction.delivery.http.Delete.processDeleteRequest: %v", err)
+		h.l.Errorf(ctx, "post.delivery.http.DeleteReaction.processDeleteRequest: %v", err)
 		response.Error(c, err)
 		return
 	}
 
-	err = h.uc.Delete(ctx, sc, id)
+	err = h.uc.DeleteReaction(ctx, sc, id)
 	if err != nil {
-		h.l.Errorf(ctx, "reaction.delivery.http.Delete.Delete: %v", err)
+		h.l.Errorf(ctx, "post.delivery.http.DeleteReaction.DeleteReaction: %v", err)
 		mapErr := h.mapError(err)
 		response.Error(c, mapErr)
 		return

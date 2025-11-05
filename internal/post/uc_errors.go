@@ -9,8 +9,6 @@ var wantErrors = []error{
 
 var (
 	// Post
-
-	// post
 	ErrPostNotFound                = errors.New("post not found")
 	ErrTypeNotFound                = errors.New("type not found")
 	ErrPermissionNotFound          = errors.New("permission not found")
@@ -24,9 +22,10 @@ var (
 	ErrPostVersionNotFound = errors.New("post version not found")
 
 	// emotion
-	ErrPostEmotionNotFound = errors.New("post emotion not found")
-	ErrEmotionNotFound     = errors.New("emotion not found")
-	ErrEmotionExists       = errors.New("user already has an emotion for this post")
+	ErrReactionNotFound = errors.New("reaction not found")
+
+	// comment
+	ErrCommentNotFound = errors.New("Comment not found")
 
 	ErrRequiredField = errors.New("required field")
 )

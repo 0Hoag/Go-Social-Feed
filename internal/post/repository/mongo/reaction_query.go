@@ -4,16 +4,16 @@ import (
 	"context"
 
 	"github.com/hoag/go-social-feed/internal/models"
-	"github.com/hoag/go-social-feed/internal/reaction/repository"
+	"github.com/hoag/go-social-feed/internal/post/repository"
 	"github.com/hoag/go-social-feed/pkg/mongo"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (repo impleRepository) buildDetailQuery(ctx context.Context, sc models.Scope, id string) (bson.M, error) {
+func (repo impleRepository) buildDetailReactionQuery(ctx context.Context, sc models.Scope, id string) (bson.M, error) {
 	filter, err := mongo.BuildScopeQuery(ctx, repo.l, sc)
 	if err != nil {
-		repo.l.Errorf(ctx, "reaction.mongo.buildDetailQuery.BuildScopeQuery: %v", err)
+		repo.l.Errorf(ctx, "post.mongo.buildDetailReactionQuery.BuildScopeQuery: %v", err)
 		return bson.M{}, err
 	}
 
@@ -21,17 +21,17 @@ func (repo impleRepository) buildDetailQuery(ctx context.Context, sc models.Scop
 
 	filter["_id"], err = primitive.ObjectIDFromHex(id)
 	if err != nil {
-		repo.l.Errorf(ctx, "reaction.mongo.buildDetailQuery.BuildQueryWithSoftDelete: %v", err)
+		repo.l.Errorf(ctx, "post.mongo.buildDetailReactionQuery.BuildQueryWithSoftDelete: %v", err)
 		return bson.M{}, err
 	}
 
 	return filter, nil
 }
 
-func (repo impleRepository) buildGetOneQuery(ctx context.Context, sc models.Scope, f repository.Filter) (bson.M, error) {
+func (repo impleRepository) buildGetOneReactionQuery(ctx context.Context, sc models.Scope, f repository.FilterReaction) (bson.M, error) {
 	filter, err := mongo.BuildScopeQuery(ctx, repo.l, sc)
 	if err != nil {
-		repo.l.Errorf(ctx, "reaction.mongo.buildDetailQuery.BuildScopeQuery: %v", err)
+		repo.l.Errorf(ctx, "post.mongo.buildGetOneReactionQuery.BuildScopeQuery: %v", err)
 		return bson.M{}, err
 	}
 
@@ -40,7 +40,7 @@ func (repo impleRepository) buildGetOneQuery(ctx context.Context, sc models.Scop
 	if f.ID != "" {
 		filter["_id"], err = primitive.ObjectIDFromHex(f.ID)
 		if err != nil {
-			repo.l.Errorf(ctx, "reaction.mongo.buildDetailQuery.BuildQueryWithSoftDelete: %v", err)
+			repo.l.Errorf(ctx, "post.mongo.buildGetOneReactionQuery.BuildQueryWithSoftDelete: %v", err)
 			return bson.M{}, err
 		}
 	}
@@ -48,7 +48,7 @@ func (repo impleRepository) buildGetOneQuery(ctx context.Context, sc models.Scop
 	if f.UserID != "" {
 		filter["user_id"], err = primitive.ObjectIDFromHex(f.UserID)
 		if err != nil {
-			repo.l.Errorf(ctx, "reaction.mongo.buildDetailQuery.ObjectIDFromHex: %v", err)
+			repo.l.Errorf(ctx, "reaction.mongo.buildGetOneReactionQuery.ObjectIDFromHex: %v", err)
 			return bson.M{}, err
 		}
 	}
@@ -60,10 +60,10 @@ func (repo impleRepository) buildGetOneQuery(ctx context.Context, sc models.Scop
 	return filter, nil
 }
 
-func (repo impleRepository) buildListQuery(ctx context.Context, sc models.Scope, opts repository.ListOptions) (bson.M, error) {
+func (repo impleRepository) buildListReactionQuery(ctx context.Context, sc models.Scope, opts repository.ListReactionOptions) (bson.M, error) {
 	filter, err := mongo.BuildScopeQuery(ctx, repo.l, sc)
 	if err != nil {
-		repo.l.Errorf(ctx, "reaction.mongo.buildListQuery.BuildScopeQuery: %v", err)
+		repo.l.Errorf(ctx, "reaction.mongo.buildListReactionQuery.BuildScopeQuery: %v", err)
 		return bson.M{}, err
 	}
 
@@ -72,7 +72,7 @@ func (repo impleRepository) buildListQuery(ctx context.Context, sc models.Scope,
 	if opts.ID != "" {
 		filter["_id"], err = primitive.ObjectIDFromHex(opts.ID)
 		if err != nil {
-			repo.l.Errorf(ctx, "reaction.mongo.buildListQuery.ObjectIDFromHex: %v", err)
+			repo.l.Errorf(ctx, "reaction.mongo.buildListReactionQuery.ObjectIDFromHex: %v", err)
 			return bson.M{}, err
 		}
 	}
@@ -82,7 +82,7 @@ func (repo impleRepository) buildListQuery(ctx context.Context, sc models.Scope,
 		for _, id := range opts.IDs {
 			mID, err := primitive.ObjectIDFromHex(id)
 			if err != nil {
-				repo.l.Errorf(ctx, "reaction.mongo.buildListQuery.ObjectIDFromHex: %v", err)
+				repo.l.Errorf(ctx, "reaction.mongo.buildListReactionQuery.ObjectIDFromHex: %v", err)
 				return bson.M{}, err
 			}
 			mIDs = append(mIDs, mID)
@@ -93,7 +93,7 @@ func (repo impleRepository) buildListQuery(ctx context.Context, sc models.Scope,
 	if opts.UserID != "" {
 		filter["user_id"], err = primitive.ObjectIDFromHex(opts.UserID)
 		if err != nil {
-			repo.l.Errorf(ctx, "reaction.mongo.buildListQuery.ObjectIDFromHex: %v", err)
+			repo.l.Errorf(ctx, "reaction.mongo.buildListReactionQuery.ObjectIDFromHex: %v", err)
 			return bson.M{}, err
 		}
 	}
@@ -105,10 +105,10 @@ func (repo impleRepository) buildListQuery(ctx context.Context, sc models.Scope,
 	return filter, nil
 }
 
-func (repo impleRepository) buildGetQuery(ctx context.Context, sc models.Scope, opts repository.GetOptions) (bson.M, error) {
+func (repo impleRepository) buildGetReactionQuery(ctx context.Context, sc models.Scope, opts repository.GetReactionOptions) (bson.M, error) {
 	filter, err := mongo.BuildScopeQuery(ctx, repo.l, sc)
 	if err != nil {
-		repo.l.Errorf(ctx, "reaction.mongo.buildListQuery.buildGetQuery: %v", err)
+		repo.l.Errorf(ctx, "reaction.mongo.buildGetReactionQuery.buildGetQuery: %v", err)
 		return bson.M{}, err
 	}
 
@@ -117,7 +117,7 @@ func (repo impleRepository) buildGetQuery(ctx context.Context, sc models.Scope, 
 	if opts.ID != "" {
 		filter["_id"], err = primitive.ObjectIDFromHex(opts.ID)
 		if err != nil {
-			repo.l.Errorf(ctx, "reaction.mongo.buildListQuery.ObjectIDFromHex: %v", err)
+			repo.l.Errorf(ctx, "reaction.mongo.buildGetReactionQuery.ObjectIDFromHex: %v", err)
 			return bson.M{}, err
 		}
 	}
@@ -127,7 +127,7 @@ func (repo impleRepository) buildGetQuery(ctx context.Context, sc models.Scope, 
 		for _, id := range opts.IDs {
 			mID, err := primitive.ObjectIDFromHex(id)
 			if err != nil {
-				repo.l.Errorf(ctx, "reaction.mongo.buildListQuery.ObjectIDFromHex: %v", err)
+				repo.l.Errorf(ctx, "reaction.mongo.buildGetReactionQuery.ObjectIDFromHex: %v", err)
 				return bson.M{}, err
 			}
 			mIDs = append(mIDs, mID)
@@ -138,7 +138,7 @@ func (repo impleRepository) buildGetQuery(ctx context.Context, sc models.Scope, 
 	if opts.UserID != "" {
 		filter["user_id"], err = primitive.ObjectIDFromHex(opts.UserID)
 		if err != nil {
-			repo.l.Errorf(ctx, "reaction.mongo.buildGetQuery.ObjectIDFromHex: %v", err)
+			repo.l.Errorf(ctx, "reaction.mongo.buildGetReactionQuery.ObjectIDFromHex: %v", err)
 			return bson.M{}, err
 		}
 	}

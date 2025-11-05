@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	"github.com/hoag/go-social-feed/internal/feed/delivery/rabbitmq/producer"
+	"github.com/hoag/go-social-feed/internal/delivery/rabbitmq/producer"
 	"github.com/hoag/go-social-feed/internal/post"
 	"github.com/hoag/go-social-feed/internal/post/repository"
 	"github.com/hoag/go-social-feed/internal/users"

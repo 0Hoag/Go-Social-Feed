@@ -38,3 +38,57 @@ type UpdateOptions struct {
 	TaggedTarget []string
 	Permission   string
 }
+
+// Reaction
+type CreateReactionOptions struct {
+	PostID string
+	Type   models.ReactionType
+}
+
+type FilterReaction struct {
+	ID     string
+	IDs    []string
+	UserID string
+	Type   models.ReactionType
+}
+
+type ListReactionOptions struct {
+	FilterReaction
+}
+
+type GetReactionOptions struct {
+	FilterReaction
+	PagQuery paginator.PaginatorQuery
+}
+
+// Comment
+type CreateCommentOptions struct {
+	PostID  string
+	Content string
+	Attach  []models.Attachment
+}
+
+type GetOneCommentOptions struct {
+	FilterComment
+}
+
+type FilterComment struct {
+	ID     string
+	IDs    []string
+	PostID string
+}
+
+type ListCommentOptions struct {
+	FilterComment
+}
+
+type GetCommentOptions struct {
+	FilterComment
+	PagQuery paginator.PaginatorQuery
+}
+
+type UpdateCommentOptions struct {
+	Comment models.Comment
+	Content string
+	Attach  []models.Attachment
+}

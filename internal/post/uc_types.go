@@ -45,6 +45,66 @@ type UpdateInput struct {
 	Permission   string
 }
 
+// reaction
+type CreateReactionInput struct {
+	PostID string
+	Type   models.ReactionType
+}
+
+type FilterReaction struct {
+	ID     string
+	IDs    []string
+	UserID string
+	Type   models.ReactionType
+}
+
+type ListReactionInput struct {
+	FilterReaction
+}
+
+type GetReactionInput struct {
+	FilterReaction
+	PagQuery paginator.PaginatorQuery
+}
+
+type GetReactionOutput struct {
+	Reactions []models.Reaction
+	Paginator paginator.Paginator
+}
+
+// Comment
+type CreateCommentInput struct {
+	PostID  string
+	Content string
+	Attach  []models.Attachment
+}
+
+type FilterComment struct {
+	ID     string
+	IDs    []string
+	PostID string
+}
+
+type ListCommentInput struct {
+	FilterComment
+}
+
+type GetCommentInput struct {
+	FilterComment
+	PagQuery paginator.PaginatorQuery
+}
+
+type GetCommentOutput struct {
+	Comments  []models.Comment
+	Paginator paginator.Paginator
+}
+
+type UpdateCommentInput struct {
+	PostID  string
+	Content string
+	Attach  []models.Attachment
+}
+
 // Notification
 type PublishNotiPostInput struct {
 	PostID     string                  `json:"post_id"`

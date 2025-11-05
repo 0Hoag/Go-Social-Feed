@@ -3,7 +3,7 @@ package producer
 import (
 	"fmt"
 
-	rabb "github.com/hoag/go-social-feed/internal/feed/delivery/rabbitmq"
+	rabb "github.com/hoag/go-social-feed/internal/delivery/rabbitmq"
 	rmqPkg "github.com/hoag/go-social-feed/pkg/rabbitmq"
 )
 

@@ -4,12 +4,12 @@ import (
 	"context"
 
 	"github.com/hoag/go-social-feed/internal/models"
-	"github.com/hoag/go-social-feed/internal/reaction/repository"
+	"github.com/hoag/go-social-feed/internal/post/repository"
 	"github.com/hoag/go-social-feed/pkg/mongo"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (repo impleRepository) buildModels(ctx context.Context, sc models.Scope, opts repository.CreateOptions) (models.Reaction, error) {
+func (repo impleRepository) buildReactionModels(ctx context.Context, sc models.Scope, opts repository.CreateReactionOptions) (models.Reaction, error) {
 	now := repo.clock()
 
 	postID, err := primitive.ObjectIDFromHex(opts.PostID)

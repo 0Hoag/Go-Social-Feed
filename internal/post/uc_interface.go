@@ -10,6 +10,7 @@ import (
 type UseCase interface {
 	PostUC
 	Consumer
+	ReactionUC
 }
 
 type PostUC interface {
@@ -19,6 +20,23 @@ type PostUC interface {
 	Get(ctx context.Context, sc models.Scope, input GetInput) (GetOutput, error)
 	Update(ctx context.Context, sc models.Scope, input UpdateInput) error
 	Delete(ctx context.Context, sc models.Scope, id string) error
+}
+
+type ReactionUC interface {
+	CreateReaction(ctx context.Context, sc models.Scope, input CreateReactionInput) (models.Reaction, error)
+	DetailReaction(ctx context.Context, sc models.Scope, id string) (models.Reaction, error)
+	ListReaction(ctx context.Context, sc models.Scope, input ListReactionInput) ([]models.Reaction, error)
+	GetReaction(ctx context.Context, sc models.Scope, input GetReactionInput) (GetReactionOutput, error)
+	DeleteReaction(ctx context.Context, sc models.Scope, id string) error
+}
+
+type CommentUC interface {
+	CreateComment(ctx context.Context, sc models.Scope, input CreateCommentInput) (models.Comment, error)
+	DetailComment(ctx context.Context, sc models.Scope, id string) (models.Comment, error)
+	ListComment(ctx context.Context, sc models.Scope, input ListCommentInput) ([]models.Comment, error)
+	GetComment(ctx context.Context, sc models.Scope, input GetCommentInput) (GetOutput, error)
+	UpdateComment(ctx context.Context, sc models.Scope, input UpdateCommentInput) (models.Comment, error)
+	DeleteComment(ctx context.Context, sc models.Scope, id string) error
 }
 
 type Consumer interface {

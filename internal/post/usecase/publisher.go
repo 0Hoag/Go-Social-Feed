@@ -3,7 +3,7 @@ package usecase
 import (
 	"context"
 
-	rabb "github.com/hoag/go-social-feed/internal/feed/delivery/rabbitmq"
+	rabb "github.com/hoag/go-social-feed/internal/delivery/rabbitmq"
 	"github.com/hoag/go-social-feed/internal/resource/notification"
 )
 

@@ -3,7 +3,7 @@ package consumer
 import (
 	"log"
 
-	"github.com/hoag/go-social-feed/internal/feed/delivery/rabbitmq"
+	"github.com/hoag/go-social-feed/internal/delivery/rabbitmq"
 )
 
 func (c Consumer) Consume() {

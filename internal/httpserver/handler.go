@@ -3,7 +3,7 @@ package httpserver
 import (
 	"github.com/hoag/go-social-feed/config"
 	_ "github.com/hoag/go-social-feed/docs"
-	prod "github.com/hoag/go-social-feed/internal/feed/delivery/rabbitmq/producer"
+	prod "github.com/hoag/go-social-feed/internal/delivery/rabbitmq/producer"
 	"github.com/hoag/go-social-feed/pkg/jwt"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -12,10 +12,6 @@ import (
 	postHTTP "github.com/hoag/go-social-feed/internal/post/delivery/http"
 	postMongo "github.com/hoag/go-social-feed/internal/post/repository/mongo"
 	postUC "github.com/hoag/go-social-feed/internal/post/usecase"
-
-	reactionHTTP "github.com/hoag/go-social-feed/internal/reaction/delivery/http"
-	reactionMongo "github.com/hoag/go-social-feed/internal/reaction/repository/mongo"
-	reactionUC "github.com/hoag/go-social-feed/internal/reaction/usecase"
 
 	followHTTP "github.com/hoag/go-social-feed/internal/follow/delivery/http"
 	followMongo "github.com/hoag/go-social-feed/internal/follow/repository/mongo"
@@ -49,26 +45,23 @@ func (srv HTTPServer) mapHandlers() error {
 	}
 
 	// Repositories
+	userRepo := userMongo.New(srv.l, srv.db)
 	postRepo := postMongo.New(srv.l, srv.db)
-	reactionRepo := reactionMongo.New(srv.l, srv.db)
 	followRepo := followMongo.New(srv.l, srv.db)
 	commentRepo := commentMongo.New(srv.l, srv.db)
-	userRepo := userMongo.New(srv.l, srv.db)
 
 	// Usecases
-	postUC := postUC.New(srv.l, postProd, postRepo)
-	reactionUC := reactionUC.New(srv.l, postUC, reactionRepo)
 	userUC := userUC.New(srv.l, userRepo)
+	postUC := postUC.New(srv.l, postProd, userUC, postRepo)
 	followUC := followUC.New(srv.l, userUC, followRepo)
 	commentUC := commentUC.New(srv.l, postUC, commentRepo)
 	authUC := authUC.New(srv.l, cfg, userUC)
 
 	// Handlers
+	userH := userHTTP.New(srv.l, userUC)
 	postH := postHTTP.New(srv.l, postUC)
-	reactionH := reactionHTTP.New(srv.l, reactionUC)
 	followH := followHTTP.New(srv.l, followUC)
 	commentH := commentHTTP.New(srv.l, commentUC)
-	userH := userHTTP.New(srv.l, userUC)
 	authH := authHTTP.New(srv.l, authUC)
 
 	// Middlewares
@@ -80,12 +73,11 @@ func (srv HTTPServer) mapHandlers() error {
 
 	// Routes
 	newsFeedGroup := api.Group("/news-feed")
+	userHTTP.MapRoutes(newsFeedGroup.Group("/user"), userH, mw)
 	authHTTP.MapRoutes(newsFeedGroup.Group("/auth"), authH, mw)
 	postHTTP.MapRoutes(newsFeedGroup.Group("/posts"), postH, mw)
-	reactionHTTP.MapRoutes(newsFeedGroup.Group("/reaction"), reactionH, mw)
 	followHTTP.MapRoutes(newsFeedGroup.Group("/follow"), followH, mw)
 	commentHTTP.MapRoutes(newsFeedGroup.Group("/comment"), commentH, mw)
-	userHTTP.MapRoutes(newsFeedGroup.Group("/user"), userH, mw)
 
 	return nil
 }
