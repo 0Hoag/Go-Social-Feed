@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"strconv"
 
@@ -37,7 +38,8 @@ func main() {
 
 	amqpConn, err := rabbitmq.Dial(cfg.RabbitConfig.URL, true)
 	if err != nil {
-		panic(err)
+		l.Warnf(context.Background(), "RabbitMQ not connected, running without queue...")
+		amqpConn = rabbitmq.Connection{}
 	}
 	defer amqpConn.Close()
 
