@@ -1,6 +1,9 @@
 package main
 
 import (
+	"os"
+	"strconv"
+
 	"github.com/hoag/go-social-feed/config"
 	httpserver "github.com/hoag/go-social-feed/internal/httpserver"
 
@@ -38,8 +41,17 @@ func main() {
 	}
 	defer amqpConn.Close()
 
+	portStr := os.Getenv("PORT")
+	if portStr == "" {
+		portStr = strconv.Itoa(cfg.HTTPServer.Port) // fallback when running locally
+	}
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		panic(err)
+	}
+
 	srv := httpserver.New(l, httpserver.Config{
-		Port:         cfg.HTTPServer.Port,
+		Port:         port,
 		DB:           db,
 		AMQPConn:     amqpConn,
 		JWTSecretKey: cfg.JWT.SecretKey,
