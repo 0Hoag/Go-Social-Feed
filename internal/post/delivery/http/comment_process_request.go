@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (h handler) processCreateRequest(c *gin.Context) (createReq, models.Scope, error) {
+func (h handler) processCommentCreateRequest(c *gin.Context) (createReq, models.Scope, error) {
 	ctx := c.Request.Context()
 
 	payload, ok := jwt.GetPayloadFromContext(ctx)
@@ -34,7 +34,7 @@ func (h handler) processCreateRequest(c *gin.Context) (createReq, models.Scope, 
 	return req, sc, nil
 }
 
-func (h handler) processDetailRequest(c *gin.Context) (string, models.Scope, error) {
+func (h handler) processCommentDetailRequest(c *gin.Context) (string, models.Scope, error) {
 	ctx := c.Request.Context()
 
 	payload, ok := jwt.GetPayloadFromContext(ctx)
@@ -54,7 +54,7 @@ func (h handler) processDetailRequest(c *gin.Context) (string, models.Scope, err
 	return id, sc, nil
 }
 
-func (h handler) processGetRequest(c *gin.Context) (getReq, paginator.PaginatorQuery, models.Scope, error) {
+func (h handler) processCommentGetRequest(c *gin.Context) (getReq, paginator.PaginatorQuery, models.Scope, error) {
 	ctx := c.Request.Context()
 
 	payload, ok := jwt.GetPayloadFromContext(ctx)
@@ -85,7 +85,7 @@ func (h handler) processGetRequest(c *gin.Context) (getReq, paginator.PaginatorQ
 	return req, pq, sc, nil
 }
 
-func (h handler) processUpdateRequest(c *gin.Context) (updateReq, models.Scope, error) {
+func (h handler) processCommentUpdateRequest(c *gin.Context) (updateReq, models.Scope, error) {
 	ctx := c.Request.Context()
 
 	payload, ok := jwt.GetPayloadFromContext(ctx)
@@ -110,7 +110,7 @@ func (h handler) processUpdateRequest(c *gin.Context) (updateReq, models.Scope, 
 	return req, sc, nil
 }
 
-func (h handler) processDeleteRequest(c *gin.Context) (string, models.Scope, error) {
+func (h handler) processCommentDeleteRequest(c *gin.Context) (string, models.Scope, error) {
 	ctx := c.Request.Context()
 
 	payload, ok := jwt.GetPayloadFromContext(ctx)

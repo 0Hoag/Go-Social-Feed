@@ -22,6 +22,23 @@ definitions:
       phone:
         type: string
     type: object
+  http.postItem:
+    properties:
+      content:
+        type: string
+      file_ids:
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      pin:
+        type: boolean
+      tagged_target:
+        items:
+          type: string
+        type: array
+    type: object
   http.usersItem:
     properties:
       avatar_url:
@@ -160,57 +177,39 @@ definitions:
       meta:
         $ref: '#/definitions/internal_follow_delivery_http.getMetaResponse'
     type: object
-  internal_post_delivery_http.attachments:
-    properties:
-      type:
-        type: string
-      url:
-        type: string
-    type: object
-  internal_post_delivery_http.commentItem:
-    properties:
-      attachments:
-        items:
-          $ref: '#/definitions/internal_post_delivery_http.attachments'
-        type: array
-      author_id:
-        type: string
-      content:
-        type: string
-      created_at:
-        type: string
-      id:
-        type: string
-      post_id:
-        type: string
-    type: object
   internal_post_delivery_http.createReq:
     properties:
-      attachments:
-        items:
-          $ref: '#/definitions/internal_post_delivery_http.attachments'
-        type: array
       content:
         type: string
-      post_id:
+      file_ids:
+        items:
+          type: string
+        type: array
+      permission:
         type: string
+      pin:
+        type: boolean
+      tagged_target:
+        items:
+          type: string
+        type: array
     type: object
   internal_post_delivery_http.detailResp:
     properties:
-      attachments:
-        items:
-          $ref: '#/definitions/internal_post_delivery_http.attachments'
-        type: array
-      author_id:
-        type: string
       content:
         type: string
-      created_at:
-        type: string
+      file_ids:
+        items:
+          type: string
+        type: array
       id:
         type: string
-      post_id:
-        type: string
+      pin:
+        type: boolean
+      tagged_target:
+        items:
+          type: string
+        type: array
     type: object
   internal_post_delivery_http.getMetaResponse:
     properties:
@@ -229,21 +228,27 @@ definitions:
     properties:
       items:
         items:
-          $ref: '#/definitions/internal_post_delivery_http.commentItem'
+          $ref: '#/definitions/http.postItem'
         type: array
       meta:
         $ref: '#/definitions/internal_post_delivery_http.getMetaResponse'
     type: object
   internal_post_delivery_http.updateReq:
     properties:
-      attachments:
-        items:
-          $ref: '#/definitions/internal_post_delivery_http.attachments'
-        type: array
       content:
         type: string
-      post_id:
+      file_ids:
+        items:
+          type: string
+        type: array
+      id:
         type: string
+      permission:
+        type: string
+      tagged_target:
+        items:
+          type: string
+        type: array
     type: object
   internal_users_delivery_http.createReq:
     properties:

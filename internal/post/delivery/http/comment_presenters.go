@@ -20,13 +20,13 @@ func (r attachments) toInput() models.Attachment {
 	}
 }
 
-type createReq struct {
+type createCommentReq struct {
 	PostID  string        `json:"post_id"`
 	Content string        `json:"content"`
 	Attach  []attachments `json:"attachments"`
 }
 
-func (r createReq) toInput() comment.CreateInput {
+func (r createCommentReq) toInput() comment.CreateInput {
 	var attach []models.Attachment
 	for _, at := range r.Attach {
 		attach = append(attach, at.toInput())
@@ -39,7 +39,7 @@ func (r createReq) toInput() comment.CreateInput {
 	}
 }
 
-func (r createReq) validate() error {
+func (r createCommentReq) validate() error {
 	if _, err := primitive.ObjectIDFromHex(r.PostID); err != nil {
 		return errWrongBody
 	}
@@ -47,13 +47,13 @@ func (r createReq) validate() error {
 	return nil
 }
 
-type updateReq struct {
+type updateCommentReq struct {
 	PostID  string        `json:"post_id"`
 	Content string        `json:"content"`
 	Attach  []attachments `json:"attachments"`
 }
 
-func (r updateReq) toInput() comment.UpdateInput {
+func (r updateCommentReq) toInput() comment.UpdateInput {
 	var attach []models.Attachment
 	for _, at := range r.Attach {
 		attach = append(attach, at.toInput())
@@ -66,7 +66,7 @@ func (r updateReq) toInput() comment.UpdateInput {
 	}
 }
 
-func (r updateReq) validate() error {
+func (r updateCommentReq) validate() error {
 	if _, err := primitive.ObjectIDFromHex(r.PostID); err != nil {
 		return errWrongBody
 	}
@@ -74,12 +74,12 @@ func (r updateReq) validate() error {
 	return nil
 }
 
-type getReq struct {
+type getCommentReq struct {
 	ID  string   `form:"id"`
 	IDs []string `form:"ids[]"`
 }
 
-func (r getReq) validate() error {
+func (r getCommentReq) validate() error {
 	if len(r.IDs) > 0 {
 		for _, id := range r.IDs {
 			if _, err := primitive.ObjectIDFromHex(id); err != nil {
@@ -97,7 +97,7 @@ func (r getReq) validate() error {
 	return nil
 }
 
-func (r getReq) toFilter() comment.Filter {
+func (r getCommentReq) toFilter() comment.Filter {
 	return comment.Filter{
 		ID:  r.ID,
 		IDs: r.IDs,
@@ -123,12 +123,12 @@ func (h handler) newCommentDataResp(r models.Comment) commentDataResp {
 	}
 }
 
-type detailResp struct {
+type detailCommentResp struct {
 	commentDataResp
 }
 
-func (h handler) newDetailResp(m models.Comment) detailResp {
-	return detailResp{
+func (h handler) newCommentDetailResp(m models.Comment) detailCommentResp {
+	return detailCommentResp{
 		commentDataResp: h.newCommentDataResp(m),
 	}
 }
@@ -146,16 +146,16 @@ type commentItem struct {
 	commentDataResp
 }
 
-type getMetaResponse struct {
+type getCommentMetaResponse struct {
 	paginator.PaginatorResponse
 }
 
-type getResp struct {
+type getCommentResp struct {
 	Items []commentItem   `json:"items"`
 	Meta  getMetaResponse `json:"meta"`
 }
 
-func (h handler) newGetResp(out comment.GetOutput) getResp {
+func (h handler) newGetCommentResp(out comment.GetOutput) getCommentResp {
 	items := make([]commentItem, 0, len(out.Comments))
 
 	for _, p := range out.Comments {
@@ -166,7 +166,7 @@ func (h handler) newGetResp(out comment.GetOutput) getResp {
 		items = append(items, item)
 	}
 
-	return getResp{
+	return getCommentResp{
 		Items: items,
 		Meta: getMetaResponse{
 			PaginatorResponse: out.Paginator.ToResponse(),
