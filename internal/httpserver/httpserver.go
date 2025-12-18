@@ -11,7 +11,7 @@ func (srv HTTPServer) Run() error {
 		return err
 	}
 
-	// ctx := context.Background()
+	ctx := context.Background()
 	// go func() {
 	// 	srv.gin.Run(fmt.Sprintf(":%d", srv.port))
 	// }()
@@ -22,12 +22,6 @@ func (srv HTTPServer) Run() error {
 	// srv.l.Info(ctx, <-ch)
 	// srv.l.Info(ctx, "Stopping API server.")
 
-	addr := fmt.Sprintf(":%d", srv.port)
-	srv.l.Infof(context.Background(), "Starting HTTP server on %s", addr)
-
-	if err := srv.gin.Run(addr); err != nil {
-		return err
-	}
-
-	return nil
+	srv.l.Infof(ctx, "Started server on :%d", srv.port)
+	return srv.gin.Run(fmt.Sprintf(":%d", srv.port))
 }
