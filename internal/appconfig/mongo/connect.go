@@ -2,8 +2,10 @@ package mongo
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hoag/go-social-feed/config"
@@ -15,53 +17,37 @@ const (
 	connectTimeout = 10 * time.Second
 )
 
-// Connect connects to the database
-func Connect(mongoConfig config.MongoConfig, encrypter pkgCrt.Encrypter) (mongo.Client, error) {
-	ctx, cancelFunc := context.WithTimeout(context.Background(), connectTimeout)
-	defer cancelFunc()
+func Connect(cfg config.MongoConfig, encrypter pkgCrt.Encrypter) (mongo.Client, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), connectTimeout)
+	defer cancel()
 
-	rawURI := mongoConfig.MONGODB_ENCODED_URI
-	if rawURI == "" {
-		return nil, fmt.Errorf("mongo uri is empty")
+	if cfg.URI == "" {
+		return nil, errors.New("mongo uri is empty")
 	}
 
-	uri := rawURI
-	if encrypter != nil {
-		if dec, err := encrypter.Decrypt(rawURI); err == nil && dec != "" {
+	uri := cfg.URI
+
+	// 🔐 CHỈ decrypt nếu KHÔNG phải Atlas
+	if encrypter != nil && !strings.HasPrefix(uri, "mongodb+srv://") {
+		if dec, err := encrypter.Decrypt(uri); err == nil && dec != "" {
 			uri = dec
 		} else {
-			log.Printf("warning: using plaintext Mongo URI (decrypt failed: %v)", err)
+			log.Printf("warning: mongo uri decrypt failed, using plaintext: %v", err)
 		}
 	}
 
-	opts := mongo.NewClientOptions().ApplyURI(uri)
-
-	if mongoConfig.ENABLE_MONITOR {
-		opts.SetMonitor(mongo.CommandMonitor{
-			Started: func(ctx context.Context, e *mongo.CommandStartedEvent) {
-				log.Printf("MongoDB command started: %v", e.Command)
-			},
-			Succeeded: func(ctx context.Context, e *mongo.CommandSucceededEvent) {
-				log.Printf("MongoDB command succeeded: %v", e.Reply)
-			},
-			Failure: func(ctx context.Context, e *mongo.CommandFailedEvent) {
-				log.Printf("MongoDB command failed: %v", e.Failure)
-			},
-		})
-	}
-
-	client, err := mongo.Connect(ctx, opts)
+	client, err := mongo.Connect(ctx, mongo.NewClientOptions().ApplyURI(uri))
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to media DB: %w", err)
+		return nil, err
 	}
 
+	// Atlas bắt buộc Primary
 	err = client.Ping(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to ping to media DB: %w", err)
 	}
 
-	log.Println("Connected to MongoDB!")
-
+	log.Println("✅ Connected to MongoDB")
 	return client, nil
 }
 
@@ -71,7 +57,7 @@ func Disconnect(mediaClient mongo.Client) {
 		return
 	}
 
-	err := mediaClient.Disconnect(context.TODO())
+	err := mediaClient.Disconnect(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}

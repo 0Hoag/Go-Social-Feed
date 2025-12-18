@@ -31,9 +31,9 @@ type LoggerConfig struct {
 }
 
 type MongoConfig struct {
-	Database            string `env:"MONGODB_DATABASE"`
-	MONGODB_ENCODED_URI string `env:"MONGODB_ENCODED_URI"`
-	ENABLE_MONITOR      bool   `env:"MONGODB_ENABLE_MONITORING" envDefault:"false"`
+	Database       string `env:"MONGODB_DATABASE"`
+	URI            string `env:"MONGODB_URI" env:"MONGODB_URI"`
+	ENABLE_MONITOR bool   `env:"MONGODB_ENABLE_MONITORING" envDefault:"false"`
 }
 
 type EncrypterConfig struct {
