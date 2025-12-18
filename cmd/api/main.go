@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strconv"
 
@@ -15,11 +16,14 @@ import (
 )
 
 func main() {
-	// Load config
+	fmt.Println("DEBUG: main started")
+
 	cfg, err := config.Load()
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Println("DEBUG: config loaded")
 
 	crp := pkgCrt.NewEncrypter(cfg.Encrypter.Key)
 	client, err := mongo.Connect(cfg.Mongo, crp)
@@ -63,6 +67,7 @@ func main() {
 			SecretKey: cfg.Encrypter.Key,
 		},
 	})
+	fmt.Println("DEBUG: before srv.Run()")
 	if err := srv.Run(); err != nil {
 		panic(err)
 	}
