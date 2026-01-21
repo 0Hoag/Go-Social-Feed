@@ -3,12 +3,40 @@ package usecase
 import (
 	"context"
 
+	"golang.org/x/sync/errgroup"
+
 	"github.com/hoag/go-social-feed/internal/models"
 	"github.com/hoag/go-social-feed/internal/post"
 	"github.com/hoag/go-social-feed/internal/post/repository"
 )
 
 func (uc impleUsecase) Create(ctx context.Context, sc models.Scope, input post.CreateInput) (models.Post, error) {
+	g, ctx := errgroup.WithContext(ctx)
+
+	// g.Go(func() error {
+	// 	_, err := uc.userUC.Detail(ctx, sc, id)
+	// 	if err != nil {
+	// 		uc.l.Errorf(ctx, "post.usecase.Create.Detail: %v", err)
+	// 		return err
+	// 	}
+	// 	return nil
+	// })
+
+	// for _, id := range input.FileIDs {
+	// 	g.Go(func() error {
+	// 		_, err := uc.fileUC.Detail(ctx, sc, id)
+	// 		if err != nil {
+	// 			uc.l.Errorf(ctx, "post.usecase.Create.Detail: %v", err)
+	// 			return err
+	// 		}
+	// 		return nil
+	// 	})
+	// }
+
+	// if err := g.Wait(); err != nil {
+	// 	return models.Post{}, err
+	// }
+
 	post, err := uc.repo.Create(ctx, sc, repository.CreateOptions{
 		Pin:          input.Pin,
 		Content:      input.Content,
