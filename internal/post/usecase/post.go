@@ -11,31 +11,7 @@ import (
 )
 
 func (uc impleUsecase) Create(ctx context.Context, sc models.Scope, input post.CreateInput) (models.Post, error) {
-	g, ctx := errgroup.WithContext(ctx)
-
-	// g.Go(func() error {
-	// 	_, err := uc.userUC.Detail(ctx, sc, id)
-	// 	if err != nil {
-	// 		uc.l.Errorf(ctx, "post.usecase.Create.Detail: %v", err)
-	// 		return err
-	// 	}
-	// 	return nil
-	// })
-
-	// for _, id := range input.FileIDs {
-	// 	g.Go(func() error {
-	// 		_, err := uc.fileUC.Detail(ctx, sc, id)
-	// 		if err != nil {
-	// 			uc.l.Errorf(ctx, "post.usecase.Create.Detail: %v", err)
-	// 			return err
-	// 		}
-	// 		return nil
-	// 	})
-	// }
-
-	// if err := g.Wait(); err != nil {
-	// 	return models.Post{}, err
-	// }
+	_, ctx = errgroup.WithContext(ctx)
 
 	post, err := uc.repo.Create(ctx, sc, repository.CreateOptions{
 		Pin:          input.Pin,
