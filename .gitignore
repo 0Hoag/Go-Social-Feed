@@ -1,0 +1,10 @@
+# Environment variables
+.env
+
+# Mockery generated files
+mocks/
+**/mocks/
+
+# Binaries
+main
+go-social-feed
