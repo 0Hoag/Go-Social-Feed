@@ -9,6 +9,11 @@ type Config struct {
 	RabbitConfig RabbitConfig
 	Mongo        MongoConfig
 	Encrypter    EncrypterConfig
+	Bot          BotConfig
+}
+
+type BotConfig struct {
+	UserID string `env:"BOT_USER_ID"`
 }
 
 type JWTConfig struct {
@@ -32,7 +37,7 @@ type LoggerConfig struct {
 
 type MongoConfig struct {
 	Database       string `env:"MONGODB_DATABASE"`
-	URI            string `env:"MONGODB_URI" env:"MONGODB_URI"`
+	URI            string `env:"MONGODB_URI"`
 	ENABLE_MONITOR bool   `env:"MONGODB_ENABLE_MONITORING" envDefault:"false"`
 }
 

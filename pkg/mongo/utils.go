@@ -52,7 +52,7 @@ func BuildScopeQuery(ctx context.Context, l log.Logger, sc models.Scope) (bson.M
 			l.Errorf(ctx, "pkgmongo.BuildScopeQuery: %v", err)
 			return nil, err
 		}
-		filter["author_id"] = UserID
+		filter["_id"] = UserID
 	}
 
 	return filter, nil

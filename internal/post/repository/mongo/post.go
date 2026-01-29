@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	postCollection = "post"
+	postCollection = "social_post"
 )
 
 func (repo impleRepository) getPostCollection() mongo.Collection {
