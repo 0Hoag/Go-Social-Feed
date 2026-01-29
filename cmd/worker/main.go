@@ -67,10 +67,6 @@ func main() {
 
 	// Producer
 	producer := prod.New(l, amqpConn)
-	// Optionally run producer loop if needed, though for just posting it might not be strictly required immediately
-	// but good practice. `producer.Run()` usually starts a listener for retries or something.
-	// Looking at `internal/delivery/rabbitmq/producer/new.go`, `Run` is part of interface.
-	// In handler.go it calls `postProd.Run()`.
 	if err := producer.Run(); err != nil {
 		l.Errorf(context.Background(), "Producer Run failed: %v", err)
 	}
@@ -89,14 +85,15 @@ func main() {
 	crawlMgr.Register(sites.NewCoindeskCrawler())
 	crawlMgr.Register(sites.NewCoinTelegraphCrawler())
 
-	// Init Gemini Processor
-	// We need a context for initialization, but main only has it inside job?
-	// Actually NewGeminiProcessor needs context for creating client once.
-	proc, err := processor.NewGeminiProcessor(context.Background(), l, cfg.Gemini.APIKey)
-	if err != nil {
-		l.Fatalf(context.Background(), "Failed to init Gemini Processor: %v", err)
-	}
-	defer proc.Close()
+	// Init Processor - Using Google Translate (FREE, no quota limits)
+	// Gemini is disabled due to API key quota restrictions
+	// proc, err := processor.NewGeminiProcessor(context.Background(), l, cfg.Gemini.APIKey)
+	// if err != nil {
+	// 	l.Fatalf(context.Background(), "Failed to init Gemini Processor: %v", err)
+	// }
+	// defer proc.Close()
+
+	proc := processor.NewSimpleProcessor(l) // Google Translate - FREE & UNLIMITED
 
 	// Init Telegram Bot
 	tgBot, err := telegram.NewTelegramClient(cfg.Telegram.BotToken, cfg.Telegram.ChatID, l)
@@ -182,9 +179,10 @@ func main() {
 				)
 
 				_, err = pUC.Create(ctx, scope, post.CreateInput{
-					Content:    content,
-					Permission: "public",
-					SourceURL:  processed.SourceURL,
+					Content:     content,         // AI summary for feed
+					FullContent: article.Content, // Full article text for detail page
+					Permission:  "public",
+					SourceURL:   processed.SourceURL,
 				})
 
 				if err != nil {
@@ -215,8 +213,8 @@ func main() {
 				}
 			}()
 
-			// Always sleep after each attempt (3 minutes to avoid spam)
-			time.Sleep(180 * time.Second)
+			// Always sleep after each attempt (6 minutes to avoid spam)
+			time.Sleep(740 * time.Second)
 		}
 	}
 

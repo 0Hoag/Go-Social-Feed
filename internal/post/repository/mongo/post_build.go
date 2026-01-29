@@ -47,6 +47,7 @@ func (repo impleRepository) buildModels(ctx context.Context, sc models.Scope, op
 		ID:           repo.db.NewObjectID(),
 		Pin:          opts.Pin,
 		Content:      opts.Content,
+		FullContent:  opts.FullContent,
 		FileIDs:      fileIDs,
 		TaggedTarget: tmpTagged,
 		Permission:   models.PrivacyType(opts.Permission),

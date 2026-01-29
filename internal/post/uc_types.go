@@ -14,6 +14,7 @@ type CreateInput struct {
 	TaggedTarget []string
 	Permission   string
 	SourceURL    string
+	FullContent  string
 }
 
 type Filter struct {

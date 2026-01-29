@@ -9,6 +9,7 @@ import (
 type CreateOptions struct {
 	Pin          bool
 	Content      string
+	FullContent  string
 	FileIDs      []string
 	TaggedTarget []string
 	Permission   string

@@ -59,12 +59,23 @@ func (c *CoindeskCrawler) Crawl(ctx context.Context) ([]crawler.Article, error) 
 				}
 			}
 
-			// Create detail collector to fetch image
+			// Create detail collector to fetch image and full content
 			detailCollector := collector.Clone()
 			var imageURL string
+			var fullContent strings.Builder
 
 			detailCollector.OnHTML("meta[property='og:image']", func(e *colly.HTMLElement) {
 				imageURL = e.Attr("content")
+			})
+
+			// Extract article body content
+			// CoinDesk uses various selectors, try multiple
+			detailCollector.OnHTML("article p, .article-body p, [data-module-name='article-body'] p", func(e *colly.HTMLElement) {
+				text := strings.TrimSpace(e.Text)
+				if text != "" && len(text) > 20 { // Filter out short/empty paragraphs
+					fullContent.WriteString(text)
+					fullContent.WriteString("\n\n")
+				}
 			})
 
 			detailCollector.Visit(link)
@@ -73,6 +84,7 @@ func (c *CoindeskCrawler) Crawl(ctx context.Context) ([]crawler.Article, error) 
 				Title:       title,
 				SourceURL:   link,
 				ImageURL:    imageURL,
+				Content:     strings.TrimSpace(fullContent.String()), // Full article text
 				Source:      "coindesk",
 				CrawledAt:   time.Now(),
 				PublishedAt: time.Now(),

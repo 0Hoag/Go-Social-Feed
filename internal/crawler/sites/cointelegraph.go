@@ -52,12 +52,30 @@ func (c *coiTelegraphCrawler) Crawl(ctx context.Context) ([]crawler.Article, err
 			publishedAt = time.Now()
 		}
 
+		// Visit article page to extract full content
+		detailCollector := c.c.Clone()
+		var fullContent strings.Builder
+
+		detailCollector.OnHTML(".post-content p, article p, .article__content p", func(e *colly.HTMLElement) {
+			text := strings.TrimSpace(e.Text)
+			if text != "" && len(text) > 20 {
+				fullContent.WriteString(text)
+				fullContent.WriteString("\n\n")
+			}
+		})
+
+		// Visit the article page
+		if link != "" {
+			detailCollector.Visit(link)
+		}
+
 		if title != "" && link != "" {
 			articles = append(articles, crawler.Article{
 				Title:       strings.TrimSpace(title),
 				Summary:     strings.TrimSpace(summary),
 				SourceURL:   strings.TrimSpace(link),
 				ImageURL:    imageURL,
+				Content:     strings.TrimSpace(fullContent.String()), // Full article text
 				Source:      "cointelegraph",
 				CrawledAt:   time.Now(),
 				PublishedAt: publishedAt,

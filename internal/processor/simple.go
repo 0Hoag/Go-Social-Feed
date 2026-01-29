@@ -2,6 +2,7 @@ package processor
 
 import (
 	"context"
+	"strings"
 
 	"github.com/bregydoc/gtranslate"
 	"github.com/hoag/go-social-feed/internal/crawler"
@@ -21,42 +22,54 @@ func (p *SimpleProcessor) Process(ctx context.Context, article crawler.Article) 
 	titleVi, err := gtranslate.TranslateWithParams(
 		article.Title,
 		gtranslate.TranslationParams{
-			From:  "en",
-			To:    "vi",
-			Delay: 50000,
+			From: "en",
+			To:   "vi",
 		},
 	)
 	if err != nil {
 		p.l.Errorf(ctx, "Failed to translate title: %v", err)
-		titleVi = article.Title // Fallback
+		p.l.Errorf(ctx, "processor.simple.Process.TranslateTitle: %v", err)
+		return ProcessedContent{}, err
 	}
 
-	// 2. "Summarize" (Truncate)
-	// Since we don't have a real LLM for free summarization, we just take the first 300 chars
-	// In a real crawl, 'article.Content' might be long HTML.
-	// Here we assume article.Title or article.Summary is passed.
-
-	rawSummary := article.Title // Often crawler only gets title + link
-	if len(article.Summary) > 0 {
-		rawSummary = article.Summary
+	// Extract first 2-3 sentences from content for summary
+	summary := article.Summary
+	if summary == "" && article.Content != "" {
+		// Take first 300 characters or first 2 sentences
+		content := article.Content
+		if len(content) > 300 {
+			content = content[:300]
+		}
+		// Find last period to avoid cutting mid-sentence
+		lastPeriod := strings.LastIndex(content, ".")
+		if lastPeriod > 100 { // Ensure we don't cut too short if no period is found early
+			content = content[:lastPeriod+1]
+		}
+		summary = content
 	}
 
+	// If still no summary, use title
+	if summary == "" {
+		summary = article.Title
+	}
+
+	// Translate summary
 	summaryVi, err := gtranslate.TranslateWithParams(
-		rawSummary,
+		summary,
 		gtranslate.TranslationParams{
 			From: "en",
 			To:   "vi",
 		},
 	)
 	if err != nil {
-		p.l.Errorf(ctx, "Failed to translate summary: %v", err)
-		summaryVi = rawSummary
+		p.l.Errorf(ctx, "processor.simple.Process.TranslateSummary: %v", err)
+		return ProcessedContent{}, err
 	}
 
 	return ProcessedContent{
 		OriginalTitle:     article.Title,
 		TranslatedTitle:   titleVi,
-		OriginalSummary:   rawSummary,
+		OriginalSummary:   summary,
 		TranslatedSummary: summaryVi,
 		SourceURL:         article.SourceURL,
 		ImageURL:          article.ImageURL,

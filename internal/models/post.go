@@ -15,6 +15,7 @@ type Post struct {
 	Permission   PrivacyType          `bson:"permission,omitempty"`
 	AuthorID     primitive.ObjectID   `bson:"author_id"`
 	SourceURL    string               `bson:"source_url,omitempty"`
+	FullContent  string               `bson:"full_content,omitempty"` // Complete article text
 
 	CreatedAt time.Time  `bson:"created_at"`
 	UpdatedAt time.Time  `bson:"updated_at"`

@@ -17,6 +17,7 @@ func (uc impleUsecase) Create(ctx context.Context, sc models.Scope, input post.C
 	post, err := uc.repo.Create(ctx, sc, repository.CreateOptions{
 		Pin:          input.Pin,
 		Content:      input.Content,
+		FullContent:  input.FullContent,
 		FileIDs:      input.FileIDs,
 		TaggedTarget: input.TaggedTarget,
 		Permission:   input.Permission,
