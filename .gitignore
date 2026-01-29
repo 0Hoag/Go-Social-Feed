@@ -8,3 +8,7 @@ mocks/
 # Binaries
 main
 go-social-feed
+
+# Dependency directories
+# Tránh add folder vendor của Golang hoặc các ngôn ngữ khác
+vendor/
