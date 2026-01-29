@@ -17,6 +17,6 @@ func (h handler) mapError(err error) error {
 	case users.ErrUserNotFound:
 		return errUserNotFound
 	default:
-		panic(err)
+		return err
 	}
 }

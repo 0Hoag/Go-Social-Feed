@@ -18,6 +18,8 @@ func (uc impleUsecase) Login(ctx context.Context, input auth.LoginInput) (auth.L
 		return auth.LoginResponse{}, err
 	}
 
+	uc.l.Debugf(ctx, "auth.usecase.user.Login.GetOne: %v", u)
+
 	if err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(input.Password)); err != nil {
 		uc.l.Errorf(ctx, "auth.usecase.user.Login.CompareHashAndPassword: %v", err)
 		return auth.LoginResponse{}, auth.ErrInvalidCreds
