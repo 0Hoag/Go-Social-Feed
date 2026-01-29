@@ -6,22 +6,44 @@ import (
 	"github.com/hoag/go-social-feed/internal/models"
 	"github.com/hoag/go-social-feed/internal/users/repository"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func (repo impleRepository) buildModels(ctx context.Context, opts repository.CreateOptions) (models.User, error) {
 	now := repo.clock()
 
+	roles := make([]primitive.ObjectID, len(opts.Roles))
+	for i, role := range opts.Roles {
+		id, err := primitive.ObjectIDFromHex(role)
+		if err != nil {
+			repo.l.Errorf(ctx, "users.repo.mongo.user_build.ObjectIDFromHex: %v", err)
+			return models.User{}, err
+		}
+		roles[i] = id
+	}
+
+	permissions := make([]primitive.ObjectID, len(opts.Permissions))
+	for i, permission := range opts.Permissions {
+		id, err := primitive.ObjectIDFromHex(permission)
+		if err != nil {
+			repo.l.Errorf(ctx, "users.repo.mongo.user_build.ObjectIDFromHex: %v", err)
+			return models.User{}, err
+		}
+
+		permissions[i] = id
+	}
+
 	user := models.User{
-		ID:           repo.db.NewObjectID(),
-		Username:     opts.UserName,
-		AvatarURL:    opts.AvatarURL,
-		Phone:        opts.Phone,
-		PasswordHash: opts.PasswordHash,
-		Birthday:     opts.Birthday,
-		Roles:        opts.Roles,
-		Permissions:  opts.Permissions,
-		CreatedAt:    now,
-		UpdatedAt:    now,
+		ID:          repo.db.NewObjectID(),
+		Username:    opts.UserName,
+		AvatarURL:   opts.AvatarURL,
+		Phone:       opts.Phone,
+		Password:    opts.Password,
+		Birthday:    opts.Birthday,
+		Roles:       roles,
+		Permissions: permissions,
+		CreatedAt:   now,
+		UpdatedAt:   now,
 	}
 
 	return user, nil

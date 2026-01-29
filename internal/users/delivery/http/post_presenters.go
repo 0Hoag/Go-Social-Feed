@@ -21,16 +21,17 @@ type createReq struct {
 	Phone    string    `json:"phone"`
 	Password string    `json:"password"`
 	Birthday time.Time `json:"birthday"`
+	Roles    string    `json:"roles"`
 }
 
 func (r createReq) toInput() users.CreateInput {
 	return users.CreateInput{
-		UserName:     r.Username,
-		AvatarURL:    AvatarDefault,
-		Phone:        r.Phone,
-		PasswordHash: r.Password,
-		Birthday:     r.Birthday,
-		Roles:        []string{RoleDefault},
+		UserName:  r.Username,
+		AvatarURL: AvatarDefault,
+		Phone:     r.Phone,
+		Password:  r.Password,
+		Birthday:  r.Birthday,
+		Roles:     []string{RoleDefault},
 	}
 }
 

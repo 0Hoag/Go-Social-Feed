@@ -7,18 +7,18 @@ import (
 )
 
 type User struct {
-	ID           primitive.ObjectID   `bson:"_id,omitempty"`
-	Username     string               `bson:"username"`
-	Phone        string               `bson:"phone,omitempty"`
-	PasswordHash string               `bson:"password_hash,omitempty"`
-	AvatarURL    string               `bson:"avatar_url,omitempty"`
-	Bio          string               `bson:"bio,omitempty"`
-	Birthday     time.Time            `bson:"birthday,omitempty"`
-	Roles        []primitive.ObjectID `bson:"roles,omitempty"`
-	Permissions  []primitive.ObjectID `bson:"permissions,omitempty"`
-	CreatedAt    time.Time            `bson:"created_at"`
-	UpdatedAt    time.Time            `bson:"updated_at"`
-	DeletedAt    *time.Time           `bson:"deleted_at,omitempty"`
+	ID          primitive.ObjectID   `bson:"_id,omitempty"`
+	Username    string               `bson:"username"`
+	Phone       string               `bson:"phone,omitempty"`
+	Password    string               `bson:"password,omitempty"`
+	AvatarURL   string               `bson:"avatar_url,omitempty"`
+	Bio         string               `bson:"bio,omitempty"`
+	Birthday    time.Time            `bson:"birthday,omitempty"`
+	Roles       []primitive.ObjectID `bson:"roles,omitempty"`
+	Permissions []primitive.ObjectID `bson:"permissions,omitempty"`
+	CreatedAt   time.Time            `bson:"created_at"`
+	UpdatedAt   time.Time            `bson:"updated_at"`
+	DeletedAt   *time.Time           `bson:"deleted_at,omitempty"`
 }
 
 type Role string

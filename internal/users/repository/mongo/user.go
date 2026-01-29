@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	userCollection = "users"
+	userCollection = "social_user"
 )
 
 func (repo impleRepository) getUserCollection() mongo.Collection {

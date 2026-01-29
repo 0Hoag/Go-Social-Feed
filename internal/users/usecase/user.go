@@ -10,20 +10,20 @@ import (
 )
 
 func (uc impleUsecase) Create(ctx context.Context, input users.CreateInput) (models.User, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.PasswordHash), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
 		uc.l.Errorf(ctx, "users.usecase.Create.HashPassword: %v", err)
 		return models.User{}, err
 	}
 
 	users, err := uc.repo.Create(ctx, repository.CreateOptions{
-		UserName:     input.UserName,
-		AvatarURL:    input.AvatarURL,
-		Phone:        input.Phone,
-		PasswordHash: string(hashedPassword),
-		Birthday:     input.Birthday,
-		Roles:        input.Roles,
-		Permissions:  input.Permissions,
+		UserName:    input.UserName,
+		AvatarURL:   input.AvatarURL,
+		Phone:       input.Phone,
+		Password:    string(hashedPassword),
+		Birthday:    input.Birthday,
+		Roles:       input.Roles,
+		Permissions: input.Permissions,
 	})
 	if err != nil {
 		uc.l.Errorf(ctx, "users.usecase.Create.Create: %v", err)
