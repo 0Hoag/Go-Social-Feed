@@ -2,19 +2,26 @@ package config
 
 import "github.com/caarlos0/env/v9"
 
+// Config represents the application configuration
 type Config struct {
-	HTTPServer   HTTPServerConfig
 	Logger       LoggerConfig
-	JWT          JWTConfig
-	RabbitConfig RabbitConfig
+	HTTPServer   HTTPServerConfig
 	Mongo        MongoConfig
+	RabbitConfig RabbitConfig
+	JWT          JWTConfig
 	Encrypter    EncrypterConfig
 	Bot          BotConfig
 	Gemini       GeminiConfig
+	Telegram     TelegramConfig
 }
 
 type GeminiConfig struct {
 	APIKey string `env:"GEMINI_API_KEY"`
+}
+
+type TelegramConfig struct {
+	BotToken string `env:"TELEGRAM_BOT_TOKEN"`
+	ChatID   int64  `env:"TELEGRAM_CHAT_ID"`
 }
 
 type BotConfig struct {

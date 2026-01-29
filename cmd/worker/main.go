@@ -19,6 +19,7 @@ import (
 	postMongo "github.com/hoag/go-social-feed/internal/post/repository/mongo"
 	postUC "github.com/hoag/go-social-feed/internal/post/usecase"
 	"github.com/hoag/go-social-feed/internal/processor"
+	"github.com/hoag/go-social-feed/internal/telegram"
 	userMongo "github.com/hoag/go-social-feed/internal/users/repository/mongo"
 	userUC "github.com/hoag/go-social-feed/internal/users/usecase"
 	pkgCrt "github.com/hoag/go-social-feed/pkg/encrypter"
@@ -97,6 +98,13 @@ func main() {
 	}
 	defer proc.Close()
 
+	// Init Telegram Bot
+	tgBot, err := telegram.NewTelegramClient(cfg.Telegram.BotToken, cfg.Telegram.ChatID, l)
+	if err != nil {
+		l.Errorf(context.Background(), "Failed to init Telegram Bot: %v", err)
+		// Don't fatal, proceed without telegram
+	}
+
 	// 5. Job Definition
 	job := func() {
 		ctx := context.Background()
@@ -110,6 +118,12 @@ func main() {
 		}
 
 		l.Infof(ctx, "Worker: Fetched %d articles. Processing...", len(articles))
+
+		// Limit to 10 most recent articles to avoid spam
+		if len(articles) > 10 {
+			articles = articles[:10]
+			l.Infof(ctx, "Worker: Limited to 10 articles to avoid spam")
+		}
 
 		// Define scope for the job
 		scope := models.Scope{
@@ -134,8 +148,6 @@ func main() {
 					return
 				}
 
-				l.Infof(ctx, "🔄 Processing: %s", article.Title)
-
 				// Retry Loop for Gemini
 				var processed processor.ProcessedContent
 				var processErr error
@@ -148,7 +160,6 @@ func main() {
 					}
 
 					if strings.Contains(processErr.Error(), "429") {
-						l.Infof(ctx, "⏳ Gemini Rate Limit (429) hit. Retry %d/%d in 60s...", i+1, maxRetries)
 						time.Sleep(60 * time.Second) // Heavy penalty wait
 						continue
 					} else {
@@ -179,14 +190,33 @@ func main() {
 				if err != nil {
 					l.Errorf(ctx, "Worker: Failed to create post: %v", err)
 				} else {
-					// This is the main log user wants to see
-					l.Infof(ctx, "✅ Created post: %s", processed.TranslatedTitle)
+					l.Infof(ctx, "\n"+
+						"✅ POST CREATED SUCCESSFULLY\n"+
+						"📝 Title   : %s\n"+
+						"🔗 Source  : %s\n"+
+						"🖼️ Image   : %s\n"+
+						"📜 Content : %s\n"+
+						"==================================================",
+						processed.TranslatedTitle,
+						processed.SourceURL,
+						processed.ImageURL,
+						processed.TranslatedSummary,
+					)
+
+					// Send Notification to Telegram
+					if tgBot != nil {
+						err := tgBot.SendPost(processed.TranslatedTitle, processed.TranslatedSummary, processed.ImageURL, processed.SourceURL)
+						if err != nil {
+							l.Errorf(ctx, "Worker: Failed to send Telegram: %v", err)
+						} else {
+							l.Infof(ctx, "📨 Sent to Telegram")
+						}
+					}
 				}
 			}()
 
-			// Always sleep after each attempt
-			l.Info(ctx, "Worker: Sleeping 30s (AI Rate Limit)...")
-			time.Sleep(30 * time.Second)
+			// Always sleep after each attempt (3 minutes to avoid spam)
+			time.Sleep(180 * time.Second)
 		}
 	}
 
