@@ -8,6 +8,7 @@ import (
 	"github.com/hoag/go-social-feed/internal/post/repository"
 	"github.com/hoag/go-social-feed/pkg/mongo"
 	"github.com/hoag/go-social-feed/pkg/paginator"
+	driverMongo "go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -156,7 +157,9 @@ func (repo impleRepository) GetOne(ctx context.Context, sc models.Scope, opts re
 	var m models.Post
 	err = col.FindOne(ctx, filter).Decode(&m)
 	if err != nil {
-		repo.l.Errorf(ctx, "post.mongo.GetOne.FindOne: %v", err)
+		if err != driverMongo.ErrNoDocuments {
+			repo.l.Errorf(ctx, "post.mongo.GetOne.FindOne: %v", err)
+		}
 		return models.Post{}, err
 	}
 

@@ -23,7 +23,7 @@ func NewGeminiProcessor(ctx context.Context, l log.Logger, apiKey string) (*Gemi
 		return nil, err
 	}
 
-	model := client.GenerativeModel("gemini-1.5-flash")
+	model := client.GenerativeModel("gemini-flash-latest")
 	model.SetTemperature(0.7) // Creative but focused
 
 	return &GeminiProcessor{
@@ -53,7 +53,9 @@ func (p *GeminiProcessor) Process(ctx context.Context, article crawler.Article) 
 
 	resp, err := p.model.GenerateContent(ctx, genai.Text(prompt))
 	if err != nil {
-		p.l.Errorf(ctx, "Gemini GenerateContent failed: %v", err)
+		if !strings.Contains(err.Error(), "429") {
+			p.l.Errorf(ctx, "Gemini GenerateContent failed: %v", err)
+		}
 		return ProcessedContent{}, err
 	}
 

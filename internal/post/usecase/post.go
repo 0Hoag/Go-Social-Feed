@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"strings"
 
 	"golang.org/x/sync/errgroup"
 
@@ -73,7 +74,9 @@ func (uc impleUsecase) GetOne(ctx context.Context, sc models.Scope, input post.G
 		},
 	})
 	if err != nil {
-		uc.l.Errorf(ctx, "post.usecase.GetOne.GetOne: %v", err)
+		if !strings.Contains(err.Error(), "no documents") {
+			uc.l.Errorf(ctx, "post.usecase.GetOne.GetOne: %v", err)
+		}
 		return models.Post{}, err
 	}
 	return p, nil

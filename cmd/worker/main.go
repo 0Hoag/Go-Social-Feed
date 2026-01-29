@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
+	"time"
 
 	"github.com/hoag/go-social-feed/config"
 	appMongo "github.com/hoag/go-social-feed/internal/appconfig/mongo"
@@ -116,45 +118,75 @@ func main() {
 		}
 
 		for _, article := range articles {
-			// Check duplicate EARLY to save AI cost
-			_, err = pUC.GetOne(ctx, scope, post.GetOneInput{
-				Filter: post.Filter{
-					SourceURL: article.SourceURL,
-				},
-			})
-			if err == nil {
-				l.Infof(ctx, "Worker: Skipping duplicate article (Pre-Check): %s", article.SourceURL)
-				continue
-			}
+			// Rate Limit: Sleep at start of loop (except first? No, simple is fine)
+			// Actually sleep at end is better, but we need to ensure it runs.
+			// Let's use a closure to handle the "continue" logic cleanly.
 
-			// B. Process (Using Gemini)
-			processed, err := proc.Process(ctx, article)
-			if err != nil {
-				l.Errorf(ctx, "Worker: Process failed for %s: %v", article.Title, err)
-				continue
-			}
+			func() {
+				// Check duplicate EARLY to save AI cost
+				_, err = pUC.GetOne(ctx, scope, post.GetOneInput{
+					Filter: post.Filter{
+						SourceURL: article.SourceURL,
+					},
+				})
+				if err == nil {
+					l.Infof(ctx, "Worker: Skipping duplicate article (Pre-Check): %s", article.SourceURL)
+					return
+				}
 
-			// Double check duplicate might be redundant but safe
+				l.Infof(ctx, "🔄 Processing: %s", article.Title)
 
-			// C. Create Post
-			content := fmt.Sprintf("![Image](%s)\n\n**%s**\n\n%s\n\nNguồn: %s",
-				processed.ImageURL,
-				processed.TranslatedTitle,
-				processed.TranslatedSummary,
-				processed.SourceURL,
-			)
+				// Retry Loop for Gemini
+				var processed processor.ProcessedContent
+				var processErr error
+				maxRetries := 3
 
-			_, err = pUC.Create(ctx, scope, post.CreateInput{
-				Content:    content,
-				Permission: "public",
-				SourceURL:  processed.SourceURL,
-			})
+				for i := 0; i < maxRetries; i++ {
+					processed, processErr = proc.Process(ctx, article)
+					if processErr == nil {
+						break // Success!
+					}
 
-			if err != nil {
-				l.Errorf(ctx, "Worker: Failed to create post: %v", err)
-			} else {
-				l.Infof(ctx, "Worker: Created post for '%s'", processed.TranslatedTitle)
-			}
+					if strings.Contains(processErr.Error(), "429") {
+						l.Infof(ctx, "⏳ Gemini Rate Limit (429) hit. Retry %d/%d in 60s...", i+1, maxRetries)
+						time.Sleep(60 * time.Second) // Heavy penalty wait
+						continue
+					} else {
+						// Other error, abort
+						break
+					}
+				}
+
+				if processErr != nil {
+					l.Errorf(ctx, "Worker: Process failed for %s after retries: %v", article.Title, processErr)
+					return
+				}
+
+				// C. Create Post
+				content := fmt.Sprintf("![Image](%s)\n\n**%s**\n\n%s\n\nNguồn: %s",
+					processed.ImageURL,
+					processed.TranslatedTitle,
+					processed.TranslatedSummary,
+					processed.SourceURL,
+				)
+
+				_, err = pUC.Create(ctx, scope, post.CreateInput{
+					Content:    content,
+					Permission: "public",
+					SourceURL:  processed.SourceURL,
+				})
+
+				if err != nil {
+					l.Errorf(ctx, "Worker: Failed to create post: %v", err)
+				} else {
+					// This is the main log user wants to see
+					l.Infof(ctx, "✅ Created post: %s", processed.TranslatedTitle)
+				}
+			}()
+
+			// Always sleep after each attempt
+			l.Info(ctx, "Worker: Sleeping 30s (AI Rate Limit)...")
+			time.Sleep(30 * time.Second)
 		}
 	}
 
