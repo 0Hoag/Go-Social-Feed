@@ -19,6 +19,7 @@ type PostRepo interface {
 	Detail(ctx context.Context, sc models.Scope, id string) (models.Post, error)
 	List(ctx context.Context, sc models.Scope, opts ListOptions) ([]models.Post, error)
 	Get(ctx context.Context, sc models.Scope, opts GetOptions) ([]models.Post, paginator.Paginator, error)
+	GetOne(ctx context.Context, sc models.Scope, opts GetOneOptions) (models.Post, error)
 	Update(ctx context.Context, sc models.Scope, opts UpdateOptions) error
 	Delete(ctx context.Context, sc models.Scope, id string) error
 }

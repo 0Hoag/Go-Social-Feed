@@ -19,6 +19,7 @@ func (uc impleUsecase) Create(ctx context.Context, sc models.Scope, input post.C
 		FileIDs:      input.FileIDs,
 		TaggedTarget: input.TaggedTarget,
 		Permission:   input.Permission,
+		SourceURL:    input.SourceURL,
 	})
 	if err != nil {
 		uc.l.Errorf(ctx, "post.usecase.Create.Create: %v", err)
@@ -59,6 +60,23 @@ func (uc impleUsecase) List(ctx context.Context, sc models.Scope, input post.Lis
 		return []models.Post{}, err
 	}
 	return posts, nil
+}
+
+func (uc impleUsecase) GetOne(ctx context.Context, sc models.Scope, input post.GetOneInput) (models.Post, error) {
+	p, err := uc.repo.GetOne(ctx, sc, repository.GetOneOptions{
+		Filter: repository.Filter{
+			ID:        input.ID,
+			IDs:       input.IDs,
+			Pin:       input.Pin,
+			AuthorID:  input.AuthorID,
+			SourceURL: input.SourceURL,
+		},
+	})
+	if err != nil {
+		uc.l.Errorf(ctx, "post.usecase.GetOne.GetOne: %v", err)
+		return models.Post{}, err
+	}
+	return p, nil
 }
 
 func (uc impleUsecase) Get(ctx context.Context, sc models.Scope, input post.GetInput) (post.GetOutput, error) {

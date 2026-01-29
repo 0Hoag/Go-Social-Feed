@@ -2,7 +2,6 @@ package sites
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
@@ -24,6 +23,7 @@ func (c *CoindeskCrawler) Name() string {
 func (c *CoindeskCrawler) Crawl(ctx context.Context) ([]crawler.Article, error) {
 	var articles []crawler.Article
 
+	// Create collector by libary Colly
 	collector := colly.NewCollector(
 		colly.UserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36"),
 	)
@@ -59,19 +59,30 @@ func (c *CoindeskCrawler) Crawl(ctx context.Context) ([]crawler.Article, error) 
 				}
 			}
 
+			// Create detail collector to fetch image
+			detailCollector := collector.Clone()
+			var imageURL string
+
+			detailCollector.OnHTML("meta[property='og:image']", func(e *colly.HTMLElement) {
+				imageURL = e.Attr("content")
+			})
+
+			detailCollector.Visit(link)
+
 			articles = append(articles, crawler.Article{
 				Title:       title,
 				SourceURL:   link,
+				ImageURL:    imageURL,
 				Source:      "coindesk",
 				CrawledAt:   time.Now(),
-				PublishedAt: time.Now(), // Placeholder, real date requires parsing detail page
+				PublishedAt: time.Now(),
 			})
 		}
 	})
 
 	err := collector.Visit("https://www.coindesk.com/")
 	if err != nil {
-		return nil, fmt.Errorf("failed to visit coindesk: %w", err)
+		return nil, crawler.ErrCrawlFailed
 	}
 
 	return articles, nil

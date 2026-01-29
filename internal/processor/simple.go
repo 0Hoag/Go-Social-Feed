@@ -21,8 +21,9 @@ func (p *SimpleProcessor) Process(ctx context.Context, article crawler.Article) 
 	titleVi, err := gtranslate.TranslateWithParams(
 		article.Title,
 		gtranslate.TranslationParams{
-			From: "en",
-			To:   "vi",
+			From:  "en",
+			To:    "vi",
+			Delay: 50000,
 		},
 	)
 	if err != nil {

@@ -113,3 +113,35 @@ func (repo impleRepository) buildGetQuery(ctx context.Context, sc models.Scope, 
 
 	return filter, nil
 }
+
+func (repo impleRepository) buildGetOneQuery(ctx context.Context, sc models.Scope, opts repository.GetOneOptions) (bson.M, error) {
+	filter, err := mongo.BuildScopeQuery(ctx, repo.l, sc)
+	if err != nil {
+		repo.l.Errorf(ctx, "post.mongo.buildGetOneQuery.BuildScopeQuery: %v", err)
+		return bson.M{}, err
+	}
+
+	filter = mongo.BuildQueryWithSoftDelete(filter)
+
+	if opts.ID != "" {
+		filter["_id"], err = primitive.ObjectIDFromHex(opts.ID)
+		if err != nil {
+			repo.l.Errorf(ctx, "post.mongo.buildGetOneQuery.ObjectIDFromHex: %v", err)
+			return bson.M{}, err
+		}
+	}
+
+	if opts.AuthorID != "" {
+		filter["author_id"], err = primitive.ObjectIDFromHex(opts.AuthorID)
+		if err != nil {
+			repo.l.Errorf(ctx, "post.mongo.buildGetOneQuery.ObjectIDFromHex: %v", err)
+			return bson.M{}, err
+		}
+	}
+
+	if opts.SourceURL != "" {
+		filter["source_url"] = opts.SourceURL
+	}
+
+	return filter, nil
+}

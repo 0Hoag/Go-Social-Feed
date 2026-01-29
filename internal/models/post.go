@@ -14,6 +14,7 @@ type Post struct {
 	TaggedTarget []primitive.ObjectID `bson:"tagged_target,omitempty"`
 	Permission   PrivacyType          `bson:"permission,omitempty"`
 	AuthorID     primitive.ObjectID   `bson:"author_id"`
+	SourceURL    string               `bson:"source_url,omitempty"`
 
 	CreatedAt time.Time  `bson:"created_at"`
 	UpdatedAt time.Time  `bson:"updated_at"`

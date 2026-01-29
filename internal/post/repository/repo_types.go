@@ -12,13 +12,19 @@ type CreateOptions struct {
 	FileIDs      []string
 	TaggedTarget []string
 	Permission   string
+	SourceURL    string
 }
 
 type Filter struct {
-	ID       string
-	IDs      []string
-	Pin      bool
-	AuthorID string
+	ID        string
+	IDs       []string
+	Pin       bool
+	AuthorID  string
+	SourceURL string
+}
+
+type GetOneOptions struct {
+	Filter
 }
 
 type ListOptions struct {

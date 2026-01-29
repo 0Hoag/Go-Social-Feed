@@ -144,6 +144,25 @@ func (repo impleRepository) Update(ctx context.Context, sc models.Scope, opts re
 	return nil
 }
 
+func (repo impleRepository) GetOne(ctx context.Context, sc models.Scope, opts repository.GetOneOptions) (models.Post, error) {
+	col := repo.getPostCollection()
+
+	filter, err := repo.buildGetOneQuery(ctx, sc, opts)
+	if err != nil {
+		repo.l.Errorf(ctx, "post.mongo.GetOne.buildGetOneQuery: %v", err)
+		return models.Post{}, err
+	}
+
+	var m models.Post
+	err = col.FindOne(ctx, filter).Decode(&m)
+	if err != nil {
+		repo.l.Errorf(ctx, "post.mongo.GetOne.FindOne: %v", err)
+		return models.Post{}, err
+	}
+
+	return m, nil
+}
+
 func (repo impleRepository) Delete(ctx context.Context, sc models.Scope, id string) error {
 	col := repo.getPostCollection()
 

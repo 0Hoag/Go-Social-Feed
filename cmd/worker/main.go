@@ -109,26 +109,35 @@ func main() {
 				continue
 			}
 
-			// C. Create Post
-			content := fmt.Sprintf("**%s**\n\n%s\n\nNguồn: %s",
-				processed.TranslatedTitle,
-				processed.TranslatedSummary,
-				processed.SourceURL,
-			)
-
 			// Call Post UseCase
 			scope := models.Scope{
 				UserID: cfg.Bot.UserID,
 				Roles:  []string{"admin"}, // or bot
 			}
 
-			// Note: We might want to check if post already exists to avoid duplicates.
-			// Ideally we query by some unique field or check source URL in content.
-			// Since we don't have a dedicated source_url field in Post model yet, we skip check.
+			// Check duplicate
+			_, err = pUC.GetOne(ctx, scope, post.GetOneInput{
+				Filter: post.Filter{
+					SourceURL: processed.SourceURL,
+				},
+			})
+			if err == nil {
+				l.Infof(ctx, "Worker: Skipping duplicate article: %s", processed.SourceURL)
+				continue
+			}
+
+			// C. Create Post
+			content := fmt.Sprintf("![Image](%s)\n\n**%s**\n\n%s\n\nNguồn: %s",
+				processed.ImageURL,
+				processed.TranslatedTitle,
+				processed.TranslatedSummary,
+				processed.SourceURL,
+			)
 
 			_, err = pUC.Create(ctx, scope, post.CreateInput{
 				Content:    content,
 				Permission: "public",
+				SourceURL:  processed.SourceURL,
 			})
 
 			if err != nil {

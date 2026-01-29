@@ -13,13 +13,19 @@ type CreateInput struct {
 	FileIDs      []string
 	TaggedTarget []string
 	Permission   string
+	SourceURL    string
 }
 
 type Filter struct {
-	ID       string
-	IDs      []string
-	Pin      bool
-	AuthorID string
+	ID        string
+	IDs       []string
+	Pin       bool
+	AuthorID  string
+	SourceURL string
+}
+
+type GetOneInput struct {
+	Filter
 }
 
 type ListInput struct {

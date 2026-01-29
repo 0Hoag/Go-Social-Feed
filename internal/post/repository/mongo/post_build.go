@@ -51,6 +51,7 @@ func (repo impleRepository) buildModels(ctx context.Context, sc models.Scope, op
 		TaggedTarget: tmpTagged,
 		Permission:   models.PrivacyType(opts.Permission),
 		AuthorID:     authorID,
+		SourceURL:    opts.SourceURL,
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	}

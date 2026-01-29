@@ -19,13 +19,28 @@ func (p *implProducer) Run() error {
 	}
 
 	p.pushNotiWriter = ch
+
+	ch2, err := p.conn.Channel()
+	if err != nil {
+		return err
+	}
+	err = ch2.ExchangeDeclare(rabb.DeletePostRelationExchange)
+	if err != nil {
+		return err
+	}
+	p.deletePostRelationWriter = ch2
+
 	return nil
 }
 
 // Close closes the producer
 func (p *implProducer) Close() {
-	p.pushNotiWriter.Close()
-	p.deletePostRelationWriter.Close()
+	if p.pushNotiWriter != nil {
+		p.pushNotiWriter.Close()
+	}
+	if p.deletePostRelationWriter != nil {
+		p.deletePostRelationWriter.Close()
+	}
 }
 
 func (p implProducer) getWriter(exchange rmqPkg.ExchangeArgs) (*rmqPkg.Channel, error) {
