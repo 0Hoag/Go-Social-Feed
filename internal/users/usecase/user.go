@@ -126,3 +126,12 @@ func (uc impleUsecase) Delete(ctx context.Context, sc models.Scope, id string) e
 	}
 	return nil
 }
+
+func (uc impleUsecase) DetailRole(ctx context.Context, id string) (models.Roles, error) {
+	role, err := uc.repo.DetailRole(ctx, id)
+	if err != nil {
+		uc.l.Errorf(ctx, "users.usecase.DetailRole.DetailRole: %v", err)
+		return models.Roles{}, err
+	}
+	return role, nil
+}

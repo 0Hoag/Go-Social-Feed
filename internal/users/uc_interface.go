@@ -8,6 +8,7 @@ import (
 
 //go:generate mockery --name=Usecase
 type UseCase interface {
+	// User
 	Create(ctx context.Context, input CreateInput) (models.User, error)
 	GetSessionUser(ctx context.Context, sc models.Scope) (models.User, error)
 	Detail(ctx context.Context, sc models.Scope, id string) (models.User, error)
@@ -16,4 +17,7 @@ type UseCase interface {
 	Get(ctx context.Context, sc models.Scope, input GetInput) (GetOutput, error)
 	Update(ctx context.Context, sc models.Scope, input UpdateInput) error
 	Delete(ctx context.Context, sc models.Scope, id string) error
+
+	// Role
+	DetailRole(ctx context.Context, id string) (models.Roles, error)
 }

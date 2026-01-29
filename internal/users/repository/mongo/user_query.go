@@ -10,10 +10,10 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (repo impleRepository) buildDetailQuery(ctx context.Context, sc models.Scope, id string) (bson.M, error) {
+func (repo impleRepository) buildDetailUserQuery(ctx context.Context, sc models.Scope, id string) (bson.M, error) {
 	filter, err := mongo.BuildScopeQuery(ctx, repo.l, sc)
 	if err != nil {
-		repo.l.Errorf(ctx, "post.mongo.buildDetailQuery.BuildScopeQuery: %v", err)
+		repo.l.Errorf(ctx, "post.mongo.buildDetailUserQuery.BuildScopeQuery: %v", err)
 		return bson.M{}, err
 	}
 
@@ -21,7 +21,7 @@ func (repo impleRepository) buildDetailQuery(ctx context.Context, sc models.Scop
 
 	filter["_id"], err = primitive.ObjectIDFromHex(id)
 	if err != nil {
-		repo.l.Errorf(ctx, "post.mongo.buildDetailQuery.BuildQueryWithSoftDelete: %v", err)
+		repo.l.Errorf(ctx, "post.mongo.buildDetailUserQuery.BuildQueryWithSoftDelete: %v", err)
 		return bson.M{}, err
 	}
 
@@ -36,7 +36,7 @@ func (repo impleRepository) buildGetOneQuery(ctx context.Context, f repository.F
 	if f.ID != "" {
 		id, err := primitive.ObjectIDFromHex(f.ID)
 		if err != nil {
-			repo.l.Errorf(ctx, "post.mongo.buildDetailQuery.BuildQueryWithSoftDelete: %v", err)
+			repo.l.Errorf(ctx, "post.mongo.buildDetailUserQuery.BuildQueryWithSoftDelete: %v", err)
 			return bson.M{}, err
 		}
 		filter["_id"] = id

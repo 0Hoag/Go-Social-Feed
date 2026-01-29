@@ -41,9 +41,9 @@ func (repo impleRepository) Create(ctx context.Context, opts repository.CreateOp
 func (repo impleRepository) Detail(ctx context.Context, sc models.Scope, id string) (models.User, error) {
 	col := repo.getUserCollection()
 
-	filter, err := repo.buildDetailQuery(ctx, sc, id)
+	filter, err := repo.buildDetailUserQuery(ctx, sc, id)
 	if err != nil {
-		repo.l.Errorf(ctx, "users.mongo.Detail.buildDetailQuery: %v", err)
+		repo.l.Errorf(ctx, "users.mongo.Detail.buildDetailUserQuery: %v", err)
 		return models.User{}, err
 	}
 
@@ -142,9 +142,9 @@ func (repo impleRepository) Get(ctx context.Context, sc models.Scope, opts repos
 func (repo impleRepository) Update(ctx context.Context, sc models.Scope, opts repository.UpdateOptions) error {
 	col := repo.getUserCollection()
 
-	filter, err := repo.buildDetailQuery(ctx, sc, opts.User.ID.Hex())
+	filter, err := repo.buildDetailUserQuery(ctx, sc, opts.User.ID.Hex())
 	if err != nil {
-		repo.l.Errorf(ctx, "users.mongo.Update.buildUpdateModels: %v", err)
+		repo.l.Errorf(ctx, "users.mongo.Update.buildDetailUserQuery: %v", err)
 		return err
 	}
 
@@ -166,9 +166,9 @@ func (repo impleRepository) Update(ctx context.Context, sc models.Scope, opts re
 func (repo impleRepository) Delete(ctx context.Context, sc models.Scope, id string) error {
 	col := repo.getUserCollection()
 
-	filter, err := repo.buildDetailQuery(ctx, sc, id)
+	filter, err := repo.buildDetailUserQuery(ctx, sc, id)
 	if err != nil {
-		repo.l.Errorf(ctx, "users.mongo.Delete.buildDetailQuery: %v", err)
+		repo.l.Errorf(ctx, "users.mongo.Delete.buildDetailUserQuery: %v", err)
 		return err
 	}
 

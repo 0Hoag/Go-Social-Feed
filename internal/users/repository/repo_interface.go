@@ -9,6 +9,7 @@ import (
 
 //go:generate mockery --name=Repository
 type Repository interface {
+	// User
 	Create(ctx context.Context, opts CreateOptions) (models.User, error)
 	Detail(ctx context.Context, sc models.Scope, id string) (models.User, error)
 	GetOne(ctx context.Context, f Filter) (models.User, error)
@@ -16,4 +17,7 @@ type Repository interface {
 	Get(ctx context.Context, sc models.Scope, opts GetOptions) ([]models.User, paginator.Paginator, error)
 	Update(ctx context.Context, sc models.Scope, opts UpdateOptions) error
 	Delete(ctx context.Context, sc models.Scope, id string) error
+
+	// Role
+	DetailRole(ctx context.Context, id string) (models.Roles, error)
 }

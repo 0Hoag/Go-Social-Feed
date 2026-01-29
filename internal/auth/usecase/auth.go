@@ -18,8 +18,6 @@ func (uc impleUsecase) Login(ctx context.Context, input auth.LoginInput) (auth.L
 		return auth.LoginResponse{}, err
 	}
 
-	uc.l.Debugf(ctx, "auth.usecase.user.Login.GetOne: %v", u)
-
 	if err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(input.Password)); err != nil {
 		uc.l.Errorf(ctx, "auth.usecase.user.Login.CompareHashAndPassword: %v", err)
 		return auth.LoginResponse{}, auth.ErrInvalidCreds
@@ -27,7 +25,13 @@ func (uc impleUsecase) Login(ctx context.Context, input auth.LoginInput) (auth.L
 
 	jwtManager := jwt.NewManager(uc.cfg.JWT.SecretKey)
 
-	token, err := jwtManager.Generate(u.ID.Hex(), nil, nil)
+	roles, err := uc.userUC.DetailRole(ctx, u.Roles[0].Hex())
+	if err != nil {
+		uc.l.Errorf(ctx, "auth.usecase.user.Login.GetRoles: %v", err)
+		return auth.LoginResponse{}, err
+	}
+
+	token, err := jwtManager.Generate(u.ID.Hex(), []string{string(roles.Name)}, nil)
 	if err != nil {
 		uc.l.Errorf(ctx, "auth.usecase.user.Login.Login: %v", err)
 		return auth.LoginResponse{}, err
