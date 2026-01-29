@@ -84,8 +84,16 @@ func main() {
 	// Crawler & Processor
 	crawlMgr := crawler.NewManager(l)
 	crawlMgr.Register(sites.NewCoindeskCrawler())
+	crawlMgr.Register(sites.NewCoinTelegraphCrawler())
 
-	proc := processor.NewSimpleProcessor(l)
+	// Init Gemini Processor
+	// We need a context for initialization, but main only has it inside job?
+	// Actually NewGeminiProcessor needs context for creating client once.
+	proc, err := processor.NewGeminiProcessor(context.Background(), l, cfg.Gemini.APIKey)
+	if err != nil {
+		l.Fatalf(context.Background(), "Failed to init Gemini Processor: %v", err)
+	}
+	defer proc.Close()
 
 	// 5. Job Definition
 	job := func() {
@@ -101,30 +109,32 @@ func main() {
 
 		l.Infof(ctx, "Worker: Fetched %d articles. Processing...", len(articles))
 
+		// Define scope for the job
+		scope := models.Scope{
+			UserID: cfg.Bot.UserID,
+			Roles:  []string{"admin"}, // or bot
+		}
+
 		for _, article := range articles {
-			// B. Process
+			// Check duplicate EARLY to save AI cost
+			_, err = pUC.GetOne(ctx, scope, post.GetOneInput{
+				Filter: post.Filter{
+					SourceURL: article.SourceURL,
+				},
+			})
+			if err == nil {
+				l.Infof(ctx, "Worker: Skipping duplicate article (Pre-Check): %s", article.SourceURL)
+				continue
+			}
+
+			// B. Process (Using Gemini)
 			processed, err := proc.Process(ctx, article)
 			if err != nil {
 				l.Errorf(ctx, "Worker: Process failed for %s: %v", article.Title, err)
 				continue
 			}
 
-			// Call Post UseCase
-			scope := models.Scope{
-				UserID: cfg.Bot.UserID,
-				Roles:  []string{"admin"}, // or bot
-			}
-
-			// Check duplicate
-			_, err = pUC.GetOne(ctx, scope, post.GetOneInput{
-				Filter: post.Filter{
-					SourceURL: processed.SourceURL,
-				},
-			})
-			if err == nil {
-				l.Infof(ctx, "Worker: Skipping duplicate article: %s", processed.SourceURL)
-				continue
-			}
+			// Double check duplicate might be redundant but safe
 
 			// C. Create Post
 			content := fmt.Sprintf("![Image](%s)\n\n**%s**\n\n%s\n\nNguồn: %s",

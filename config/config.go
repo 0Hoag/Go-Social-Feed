@@ -10,6 +10,11 @@ type Config struct {
 	Mongo        MongoConfig
 	Encrypter    EncrypterConfig
 	Bot          BotConfig
+	Gemini       GeminiConfig
+}
+
+type GeminiConfig struct {
+	APIKey string `env:"GEMINI_API_KEY"`
 }
 
 type BotConfig struct {
