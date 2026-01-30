@@ -107,10 +107,14 @@ func (h handler) Get(c *gin.Context) {
 		return
 	}
 
+	h.l.Debugf(ctx, "post.delivery.http.Get.processGetRequest: %+v", req)
+
 	var input post.GetInput
 	input.Filter = req.toFilter()
 	paq.Adjust()
 	input.PagQuery = paq
+
+	h.l.Debugf(ctx, "post.delivery.http.Get.Get: %+v", input)
 
 	e, err := h.uc.Get(ctx, sc, input)
 	if err != nil {
@@ -119,6 +123,8 @@ func (h handler) Get(c *gin.Context) {
 		response.Error(c, mapErr)
 		return
 	}
+
+	h.l.Debugf(ctx, "post.delivery.http.Get.Get: %+v", e)
 
 	response.OK(c, h.newGetResp(e))
 }

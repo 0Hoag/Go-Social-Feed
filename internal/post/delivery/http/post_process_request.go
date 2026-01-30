@@ -38,9 +38,11 @@ func (h handler) processDetailRequest(c *gin.Context) (string, models.Scope, err
 	ctx := c.Request.Context()
 
 	payload, ok := jwt.GetPayloadFromContext(ctx)
-	if !ok {
-		h.l.Errorf(ctx, "post.delivery.http.processDetailRequest.GetPayloadFromContext: unauthorized")
-		return "", models.Scope{}, pkgErrors.NewUnauthorizedHTTPError()
+	var sc models.Scope
+	if ok {
+		sc = jwt.NewScope(payload)
+	} else {
+		sc = models.Scope{}
 	}
 
 	id := c.Param("id")
@@ -49,8 +51,6 @@ func (h handler) processDetailRequest(c *gin.Context) (string, models.Scope, err
 		return "", models.Scope{}, errWrongBody
 	}
 
-	sc := jwt.NewScope(payload)
-
 	return id, sc, nil
 }
 
@@ -58,9 +58,11 @@ func (h handler) processGetRequest(c *gin.Context) (getReq, paginator.PaginatorQ
 	ctx := c.Request.Context()
 
 	payload, ok := jwt.GetPayloadFromContext(ctx)
-	if !ok {
-		h.l.Errorf(ctx, "post.delivery.http.processGetRequest.GetPayloadFromContext: unauthorized")
-		return getReq{}, paginator.PaginatorQuery{}, models.Scope{}, pkgErrors.NewUnauthorizedHTTPError()
+	var sc models.Scope
+	if ok {
+		sc = jwt.NewScope(payload)
+	} else {
+		sc = models.Scope{}
 	}
 
 	var req getReq
@@ -79,8 +81,6 @@ func (h handler) processGetRequest(c *gin.Context) (getReq, paginator.PaginatorQ
 		h.l.Errorf(ctx, "post.delivery.http.processGetRequest.ShouldBindQuery: %v", errWrongQuery)
 		return getReq{}, paginator.PaginatorQuery{}, models.Scope{}, errWrongQuery
 	}
-
-	sc := jwt.NewScope(payload)
 
 	return req, pq, sc, nil
 }

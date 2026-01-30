@@ -11,38 +11,33 @@ import (
 )
 
 func (repo impleRepository) buildDetailQuery(ctx context.Context, sc models.Scope, id string) (bson.M, error) {
-	filter, err := mongo.BuildScopeQuery(ctx, repo.l, sc)
-	if err != nil {
-		repo.l.Errorf(ctx, "post.mongo.buildDetailQuery.BuildScopeQuery: %v", err)
-		return bson.M{}, err
-	}
+	filter := bson.M{}
 
 	filter = mongo.BuildQueryWithSoftDelete(filter)
 
-	filter["_id"], err = primitive.ObjectIDFromHex(id)
+	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		repo.l.Errorf(ctx, "post.mongo.buildDetailQuery.BuildQueryWithSoftDelete: %v", err)
+		repo.l.Errorf(ctx, "post.mongo.buildDetailQuery.ObjectIDFromHex: %v", err)
 		return bson.M{}, err
 	}
+
+	filter["_id"] = objectID
 
 	return filter, nil
 }
 
 func (repo impleRepository) buildListQuery(ctx context.Context, sc models.Scope, opts repository.ListOptions) (bson.M, error) {
-	filter, err := mongo.BuildScopeQuery(ctx, repo.l, sc)
-	if err != nil {
-		repo.l.Errorf(ctx, "post.mongo.buildListQuery.BuildScopeQuery: %v", err)
-		return bson.M{}, err
-	}
+	filter := bson.M{}
 
 	filter = mongo.BuildQueryWithSoftDelete(filter)
 
 	if opts.ID != "" {
-		filter["_id"], err = primitive.ObjectIDFromHex(opts.ID)
+		objectID, err := primitive.ObjectIDFromHex(opts.ID)
 		if err != nil {
 			repo.l.Errorf(ctx, "post.mongo.buildListQuery.ObjectIDFromHex: %v", err)
 			return bson.M{}, err
 		}
+		filter["_id"] = objectID
 	}
 
 	mIDs := make([]primitive.ObjectID, len(opts.IDs))
@@ -59,11 +54,12 @@ func (repo impleRepository) buildListQuery(ctx context.Context, sc models.Scope,
 	}
 
 	if opts.AuthorID != "" {
-		filter["author_id"], err = primitive.ObjectIDFromHex(opts.AuthorID)
+		objectID, err := primitive.ObjectIDFromHex(opts.AuthorID)
 		if err != nil {
 			repo.l.Errorf(ctx, "post.mongo.buildListQuery.ObjectIDFromHex: %v", err)
 			return bson.M{}, err
 		}
+		filter["author_id"] = objectID
 	}
 
 	filter["pin"] = opts.Pin
@@ -72,20 +68,17 @@ func (repo impleRepository) buildListQuery(ctx context.Context, sc models.Scope,
 }
 
 func (repo impleRepository) buildGetQuery(ctx context.Context, sc models.Scope, opts repository.GetOptions) (bson.M, error) {
-	filter, err := mongo.BuildScopeQuery(ctx, repo.l, sc)
-	if err != nil {
-		repo.l.Errorf(ctx, "post.mongo.buildListQuery.buildGetQuery: %v", err)
-		return bson.M{}, err
-	}
+	filter := bson.M{}
 
 	filter = mongo.BuildQueryWithSoftDelete(filter)
 
 	if opts.ID != "" {
-		filter["_id"], err = primitive.ObjectIDFromHex(opts.ID)
+		objectID, err := primitive.ObjectIDFromHex(opts.ID)
 		if err != nil {
 			repo.l.Errorf(ctx, "post.mongo.buildListQuery.ObjectIDFromHex: %v", err)
 			return bson.M{}, err
 		}
+		filter["_id"] = objectID
 	}
 
 	mIDs := make([]primitive.ObjectID, len(opts.IDs))
@@ -102,11 +95,12 @@ func (repo impleRepository) buildGetQuery(ctx context.Context, sc models.Scope, 
 	}
 
 	if opts.AuthorID != "" {
-		filter["author_id"], err = primitive.ObjectIDFromHex(opts.AuthorID)
+		objectID, err := primitive.ObjectIDFromHex(opts.AuthorID)
 		if err != nil {
 			repo.l.Errorf(ctx, "post.mongo.buildListQuery.ObjectIDFromHex: %v", err)
 			return bson.M{}, err
 		}
+		filter["author_id"] = objectID
 	}
 
 	filter["pin"] = opts.Pin
@@ -115,16 +109,17 @@ func (repo impleRepository) buildGetQuery(ctx context.Context, sc models.Scope, 
 }
 
 func (repo impleRepository) buildGetOneQuery(ctx context.Context, sc models.Scope, opts repository.GetOneOptions) (bson.M, error) {
-	filter, err := mongo.BuildScopeQuery(ctx, repo.l, sc)
-	if err != nil {
-		repo.l.Errorf(ctx, "post.mongo.buildGetOneQuery.BuildScopeQuery: %v", err)
-		return bson.M{}, err
-	}
+	filter := bson.M{}
 
 	filter = mongo.BuildQueryWithSoftDelete(filter)
 
 	if opts.ID != "" {
-		filter["_id"], err = primitive.ObjectIDFromHex(opts.ID)
+		objectID, err := primitive.ObjectIDFromHex(opts.ID)
+		if err != nil {
+			repo.l.Errorf(ctx, "post.mongo.buildGetOneQuery.ObjectIDFromHex: %v", err)
+			return bson.M{}, err
+		}
+		filter["_id"] = objectID
 		if err != nil {
 			repo.l.Errorf(ctx, "post.mongo.buildGetOneQuery.ObjectIDFromHex: %v", err)
 			return bson.M{}, err
@@ -132,11 +127,12 @@ func (repo impleRepository) buildGetOneQuery(ctx context.Context, sc models.Scop
 	}
 
 	if opts.AuthorID != "" {
-		filter["author_id"], err = primitive.ObjectIDFromHex(opts.AuthorID)
+		objectID, err := primitive.ObjectIDFromHex(opts.AuthorID)
 		if err != nil {
 			repo.l.Errorf(ctx, "post.mongo.buildGetOneQuery.ObjectIDFromHex: %v", err)
 			return bson.M{}, err
 		}
+		filter["author_id"] = objectID
 	}
 
 	if opts.SourceURL != "" {

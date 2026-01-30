@@ -13,10 +13,16 @@ import (
 	pkgCrt "github.com/hoag/go-social-feed/pkg/encrypter"
 	pkgLog "github.com/hoag/go-social-feed/pkg/log"
 	"github.com/hoag/go-social-feed/pkg/rabbitmq"
+	"github.com/joho/godotenv"
 )
 
 func main() {
 	fmt.Println("DEBUG: main started")
+
+	// Load .env file
+	if err := godotenv.Load(); err != nil {
+		fmt.Println("Warning: .env file not found, using environment variables")
+	}
 
 	cfg, err := config.Load()
 	if err != nil {

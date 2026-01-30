@@ -6,17 +6,18 @@ import (
 )
 
 func MapRoutes(r *gin.RouterGroup, h Handler, mw middleware.Middleware) {
-	r.Use(mw.Auth())
-	mapPostRoutes(r, h)
-	mapReactionRoutes(r, h)
-}
-
-func mapPostRoutes(r *gin.RouterGroup, h Handler) {
-	r.POST("", h.Create)
+	// Public routes (no auth required)
 	r.GET("/:id", h.Detail)
 	r.GET("", h.Get)
-	r.PUT("", h.Update)
-	r.DELETE("/:id", h.Delete)
+
+	// Protected routes (auth required)
+	authenticated := r.Group("")
+	authenticated.Use(mw.Auth())
+	authenticated.POST("", h.Create)
+	authenticated.PUT("", h.Update)
+	authenticated.DELETE("/:id", h.Delete)
+
+	mapReactionRoutes(r, h)
 }
 
 func mapReactionRoutes(r *gin.RouterGroup, h Handler) {

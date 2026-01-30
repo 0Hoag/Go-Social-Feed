@@ -1,6 +1,8 @@
 package http
 
 import (
+	"time"
+
 	"github.com/hoag/go-social-feed/internal/models"
 	"github.com/hoag/go-social-feed/internal/post"
 	"github.com/hoag/go-social-feed/pkg/paginator"
@@ -83,11 +85,16 @@ func (r getReq) validate() error {
 }
 
 func (r getReq) toFilter() post.Filter {
-	return post.Filter{
+	filter := post.Filter{
 		ID:  r.ID,
 		IDs: r.IDs,
-		Pin: *r.Pin,
 	}
+
+	if r.Pin != nil {
+		filter.Pin = *r.Pin
+	}
+
+	return filter
 }
 
 type updateReq struct {
@@ -158,6 +165,8 @@ func (h handler) newPostDataResp(p models.Post) postDataResp {
 		Pin:          p.Pin,
 		FileIDs:      util.ObjectIDsToHex(p.FileIDs),
 		TaggedTarget: util.ObjectIDsToHex(p.TaggedTarget),
+		CreatedAt:    p.CreatedAt,
+		UpdatedAt:    p.UpdatedAt,
 	}
 }
 
@@ -172,11 +181,13 @@ func (h handler) newDetailResp(p models.Post) detailResp {
 }
 
 type postDataResp struct {
-	ID           string   `json:"id"`
-	Content      string   `json:"content"`
-	FileIDs      []string `json:"file_ids"`
-	TaggedTarget []string `json:"tagged_target"`
-	Pin          bool     `json:"pin"`
+	ID           string    `json:"id"`
+	Content      string    `json:"content"`
+	FileIDs      []string  `json:"file_ids"`
+	TaggedTarget []string  `json:"tagged_target"`
+	Pin          bool      `json:"pin"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }
 
 type postItem struct {
