@@ -14,7 +14,8 @@ export default function Header() {
 
                 {/* Main Navigation */}
                 <nav className="flex items-center gap-8">
-                    <span className="text-sm font-medium text-white cursor-pointer transition-colors">News</span>
+                    <Link href="/" className="text-sm font-medium text-gray-400 hover:text-white cursor-pointer transition-colors">News</Link>
+                    <Link href="/analysis" className="text-sm font-medium text-white cursor-pointer transition-colors">Analysis</Link>
                     <span className="text-sm font-medium text-gray-400 hover:text-cyan-400 cursor-pointer transition-colors">Calendar</span>
                     <span className="text-sm font-medium text-gray-400 hover:text-cyan-400 cursor-pointer transition-colors">Options</span>
                     <span className="text-sm font-medium text-gray-400 hover:text-cyan-400 cursor-pointer transition-colors">On-chain</span>
