@@ -52,10 +52,7 @@ export default {
             fontFamily: {
                 sans: ["var(--font-inter)", "system-ui", "sans-serif"],
             },
-            animation: {
-                "fade-in": "fadeIn 0.5s ease-in",
-                shimmer: "shimmer 2s linear infinite",
-            },
+
             keyframes: {
                 fadeIn: {
                     from: { opacity: "0", transform: "translateY(10px)" },
@@ -65,6 +62,15 @@ export default {
                     from: { backgroundPosition: "0 0" },
                     to: { backgroundPosition: "-200% 0" },
                 },
+                marquee: {
+                    from: { transform: "translateX(0)" },
+                    to: { transform: "translateX(-100%)" },
+                },
+            },
+            animation: {
+                "fade-in": "fadeIn 0.5s ease-in",
+                shimmer: "shimmer 2s linear infinite",
+                marquee: "marquee 60s linear infinite",
             },
         },
     },

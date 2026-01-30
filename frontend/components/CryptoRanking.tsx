@@ -1,23 +1,63 @@
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown, Loader2 } from "lucide-react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
+
+interface CoinData {
+    rank: number;
+    symbol: string;
+    price: number;
+    change: number;
+}
 
 export default function CryptoRanking() {
-    const coins = [
-        { rank: 1, symbol: "BTC", price: 82473, change: -6.46, icon: "₿" },
-        { rank: 2, symbol: "ETH", price: 2718, change: -7.85, icon: "Ξ" },
-        { rank: 3, symbol: "BNB", price: 839.12, change: -6.64, icon: "BNB" },
-        { rank: 4, symbol: "XRP", price: 1.74, change: -7.74, icon: "✕" },
-        { rank: 5, symbol: "SOL", price: 113.54, change: -7.95, icon: "S" },
-        { rank: 6, symbol: "TRX", price: 0.2909, change: -1.19, icon: "T" },
-        { rank: 7, symbol: "DOGE", price: 0.1127, change: -7.41, icon: "Ð" },
-        { rank: 8, symbol: "ADA", price: 0.3213, change: -8.41, icon: "A" },
-        { rank: 9, symbol: "BCH", price: 540.49, change: -8.54, icon: "B" },
-        { rank: 10, symbol: "LINK", price: 10.70, change: -7.89, icon: "L" },
-    ];
+    const [coins, setCoins] = useState<CoinData[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    // Initial list to maintain order and selection
+    const trackedSymbols = ["BTC", "ETH", "BNB", "XRP", "SOL", "TRX", "DOGE", "ADA", "BCH", "LINK"];
+
+    useEffect(() => {
+        const fetchPrices = async () => {
+            try {
+                const res = await fetch("https://api.binance.com/api/v3/ticker/24hr");
+                const data = await res.json();
+
+                const updatedCoins = trackedSymbols.map((sym, index) => {
+                    const ticker = data.find((t: any) => t.symbol === `${sym}USDT`);
+                    return {
+                        rank: index + 1,
+                        symbol: sym,
+                        price: ticker ? parseFloat(ticker.lastPrice) : 0,
+                        change: ticker ? parseFloat(ticker.priceChangePercent) : 0,
+                    };
+                });
+
+                setCoins(updatedCoins);
+                setLoading(false);
+            } catch (error) {
+                console.error("Failed to fetch crypto ranking:", error);
+                setLoading(false);
+            }
+        };
+
+        fetchPrices();
+        // efficient polling every 30s
+        const interval = setInterval(fetchPrices, 30000);
+        return () => clearInterval(interval);
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="bg-[#111] border border-white/5 rounded-2xl p-5 min-h-[400px] flex items-center justify-center">
+                <Loader2 className="w-6 h-6 text-gray-600 animate-spin" />
+            </div>
+        );
+    }
 
     return (
         <div className="bg-[#111] border border-white/5 rounded-2xl p-5">
             <h3 className="text-gray-400 text-xs font-bold tracking-wider uppercase mb-5 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-gray-600"></span> Top 10 Crypto
+                <span className="w-2 h-2 rounded-full bg-gray-600"></span> Top 10 Crypto (Binance)
             </h3>
 
             <div className="space-y-4">
@@ -25,11 +65,14 @@ export default function CryptoRanking() {
                     <div key={coin.symbol} className="flex items-center justify-between group cursor-pointer">
                         <div className="flex items-center gap-3">
                             <span className="text-gray-600 text-xs font-mono w-4">{coin.rank}</span>
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${coin.symbol === 'BTC' ? 'bg-orange-500 text-white' :
-                                coin.symbol === 'ETH' ? 'bg-indigo-400 text-white' :
-                                    'bg-gray-800 text-gray-400'
-                                }`}>
-                                {coin.icon}
+                            <div className="relative w-6 h-6 rounded-full overflow-hidden bg-gray-800">
+                                <Image
+                                    src={`https://assets.coincap.io/assets/icons/${coin.symbol.toLowerCase()}@2x.png`}
+                                    alt={coin.symbol}
+                                    fill
+                                    className="object-cover"
+                                    unoptimized
+                                />
                             </div>
                             <span className="text-gray-300 font-bold text-xs group-hover:text-white transition-colors">
                                 {coin.symbol}
@@ -37,9 +80,11 @@ export default function CryptoRanking() {
                         </div>
 
                         <div className="text-right">
-                            <div className="text-white text-xs font-medium">${coin.price.toLocaleString()}</div>
+                            <div className="text-white text-xs font-medium">
+                                ${coin.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: coin.price < 1 ? 4 : 2 })}
+                            </div>
                             <div className={`text-[10px] flex items-center justify-end gap-1 ${coin.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                {coin.change}%
+                                {coin.change >= 0 ? '+' : ''}{coin.change.toFixed(2)}%
                             </div>
                         </div>
                     </div>

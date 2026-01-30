@@ -75,6 +75,21 @@
       transform: translateY(0);
     }
   }
+
+  /* Marquee Animation */
+  .animate-marquee-slow {
+    animation: marquee 120s linear infinite;
+  }
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+
+    to {
+      transform: translateX(-100%);
+    }
+  }
 }
 
 /* Custom scrollbar */

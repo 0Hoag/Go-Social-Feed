@@ -3,6 +3,9 @@ package telegram
 import (
 	"context"
 	"fmt"
+	"html"
+	"regexp"
+	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/hoag/go-social-feed/pkg/log"
@@ -36,14 +39,19 @@ func (t *TelegramClient) SendPost(ctx context.Context, title, summary, imageURL,
 		return nil // No-op if disabled
 	}
 
-	// Format processing
-	// Telegram Caption Limit is 1024 chars.
+	// Clean up summary (remove HTML tags)
+	cleanSummary := stripHTMLTags(summary)
+
+	// Format processing using HTML ParseMode to handle special chars safer
+	// Escape all dynamic content to avoid breaking HTML structure
 	caption := fmt.Sprintf(""+
-		"🚀 *NEW ARTICLE FOUND*\n"+
-		"📝 *Title*: %s\n"+
-		"🔗 *Source*: %s\n"+
-		"📜 *Content*: %s\n",
-		title, sourceURL, summary)
+		"🚀 <b>NEW ARTICLE FOUND</b>\n"+
+		"📝 <b>Title</b>: %s\n"+
+		"🔗 <b>Source</b>: %s\n"+
+		"📜 <b>Content</b>: %s\n",
+		html.EscapeString(title),
+		html.EscapeString(sourceURL),
+		html.EscapeString(cleanSummary))
 
 	if len(caption) > 1024 {
 		caption = caption[:1021] + "..."
@@ -56,11 +64,11 @@ func (t *TelegramClient) SendPost(ctx context.Context, title, summary, imageURL,
 		// Or just try. If failed, fallback to text.
 		photo := tgbotapi.NewPhoto(t.chatID, tgbotapi.FileURL(imageURL))
 		photo.Caption = caption
-		photo.ParseMode = "Markdown"
+		photo.ParseMode = "HTML"
 		msg = photo
 	} else {
 		txt := tgbotapi.NewMessage(t.chatID, caption)
-		txt.ParseMode = "Markdown"
+		txt.ParseMode = "HTML"
 		// Disable web page preview if you want, but likely we want it if no image
 		msg = txt
 	}
@@ -71,7 +79,7 @@ func (t *TelegramClient) SendPost(ctx context.Context, title, summary, imageURL,
 		if imageURL != "" {
 			t.l.Warnf(ctx, "Telegram: Failed to send photo, falling back to text: %v", err)
 			txt := tgbotapi.NewMessage(t.chatID, caption)
-			txt.ParseMode = "Markdown"
+			txt.ParseMode = "HTML"
 			_, err = t.bot.Send(txt)
 			return err
 		}
@@ -79,4 +87,10 @@ func (t *TelegramClient) SendPost(ctx context.Context, title, summary, imageURL,
 	}
 
 	return nil
+}
+
+// stripHTMLTags removes HTML tags from a string using regex
+func stripHTMLTags(s string) string {
+	re := regexp.MustCompile(`<[^>]*>`)
+	return strings.TrimSpace(re.ReplaceAllString(s, " "))
 }

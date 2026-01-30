@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
+import CryptoTicker from "@/components/CryptoTicker";
+import NewsTicker from "@/components/NewsTicker";
+import Footer from "@/components/Footer";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -31,7 +34,10 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans antialiased`}>
         <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
           <Header />
+          <CryptoTicker />
+          <NewsTicker />
           <main>{children}</main>
+          <Footer />
         </div>
       </body>
     </html>
