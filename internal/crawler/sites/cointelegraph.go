@@ -17,6 +17,13 @@ func NewCoinTelegraphCrawler() crawler.SiteCrawler {
 	c := colly.NewCollector(
 		colly.UserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36"),
 	)
+	// Add Headers to look like a real browser
+	c.OnRequest(func(r *colly.Request) {
+		r.Headers.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
+		r.Headers.Set("Accept-Language", "en-US,en;q=0.9")
+		r.Headers.Set("Referer", "https://google.com")
+		r.Headers.Set("Upgrade-Insecure-Requests", "1")
+	})
 	return &coiTelegraphCrawler{
 		c: c,
 	}
