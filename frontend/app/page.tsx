@@ -3,25 +3,27 @@
 import { useEffect, useState } from "react";
 import { getPosts } from "@/lib/api";
 import { Post } from "@/lib/types";
-import ArticleGrid from "@/components/ArticleGrid";
-import LoadingSpinner from "@/components/LoadingSpinner";
-import { Sparkles } from "lucide-react";
+import HeroPost from "@/components/HeroPost";
+import QuickHeadlines from "@/components/QuickHeadlines";
+import MarketWidgets from "@/components/MarketWidgets";
+import ArticleCard from "@/components/ArticleCard";
+import { Loader2 } from "lucide-react";
 
-export default function HomePage() {
+export default function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        setLoading(true);
-        setError(null);
-        const response = await getPosts({ page: 1, limit: 30 });
-        setPosts(response.posts);
+        const response = await getPosts();
+        let fetchedPosts = response.posts;
+
+        setPosts(fetchedPosts);
       } catch (err) {
-        setError("Failed to load articles. Please try again later.");
-        console.error("Error fetching posts:", err);
+        console.error("Failed to fetch posts:", err);
+        setError("Failed to load posts. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -30,57 +32,76 @@ export default function HomePage() {
     fetchPosts();
   }, []);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-cyan-500 animate-spin" />
+      </div>
+    );
+  }
+
+  // Data slicing strategy
+  const topStory = posts.length > 0 ? posts[0] : null;
+  const subStories = posts.length > 1 ? posts.slice(1, 4) : [];
+  const otherNews = posts.length > 4 ? posts.slice(4) : [];
+
+  // For Headlines, we use the sliced list. Exclude top story usually.
+  const recentHeadlines = posts.length > 1 ? posts.slice(1, 15) : [];
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Hero Section */}
-      <section className="mb-12 text-center">
-        <div className="inline-flex items-center space-x-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 px-4 py-2 mb-6">
-          <Sparkles className="h-4 w-4 text-cyan-400" />
-          <span className="text-sm font-medium text-cyan-300">
-            Live Crypto News
-          </span>
-        </div>
+    <main className="min-h-screen bg-[#050505] text-gray-200 font-sans selection:bg-cyan-500/20 selection:text-cyan-200">
+      <div className="max-w-[1600px] mx-auto px-4 py-8">
 
-        <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
-          Latest Crypto News
-        </h1>
+        {/* 3-Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 relative">
 
-        <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-          Stay ahead of the market with real-time cryptocurrency news from top sources
-        </p>
-      </section>
+          {/* LEFT COLUMN: Quick Headlines (2/12) - Sticky Sidebar */}
+          <div className="hidden xl:block col-span-2">
+            {recentHeadlines.length > 0 && <QuickHeadlines posts={recentHeadlines} />}
+          </div>
 
-      {/* Articles Section */}
-      <section className="animate-fade-in">
-        {loading ? (
-          <LoadingSpinner size="lg" />
-        ) : error ? (
-          <div className="text-center py-20">
-            <div className="rounded-2xl bg-red-500/10 border border-red-500/20 p-8 max-w-md mx-auto">
-              <p className="text-red-400 font-medium">{error}</p>
-              <button
-                onClick={() => window.location.reload()}
-                className="mt-4 px-6 py-2 rounded-lg bg-red-500/20 text-red-300 hover:bg-red-500/30 transition-colors"
-              >
-                Retry
-              </button>
+          {/* CENTER COLUMN: Main Content (7/12) */}
+          <div className="col-span-1 lg:col-span-8 xl:col-span-7 space-y-8">
+            {/* Top Story Hero */}
+            {topStory && <HeroPost post={topStory} />}
+
+            {/* Sub Stories Row */}
+            {subStories.length > 0 && (
+              <div>
+                <h2 className="text-white/90 text-sm font-bold mb-4 flex items-center gap-2 uppercase tracking-wider">
+                  <span className="text-cyan-500">⚡</span> Must Read
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {subStories.map(post => (
+                    <ArticleCard key={post.id} post={post} variant="compact" />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Other News Grid */}
+            {otherNews.length > 0 && (
+              <div>
+                <h2 className="text-white/90 text-sm font-bold mb-4 border-t border-white/5 pt-8 uppercase tracking-wider">
+                  Latest Stories
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {otherNews.map(post => (
+                    <ArticleCard key={post.id} post={post} variant="default" />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* RIGHT COLUMN: Widgets (3/12) - Sticky Sidebar */}
+          <div className="hidden lg:block col-span-4 xl:col-span-3">
+            <div className="sticky top-24">
+              <MarketWidgets />
             </div>
           </div>
-        ) : (
-          <>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">
-                Recent Articles
-                <span className="ml-3 text-sm font-normal text-gray-500">
-                  ({posts.length} articles)
-                </span>
-              </h2>
-            </div>
-
-            <ArticleGrid posts={posts} />
-          </>
-        )}
-      </section>
-    </div>
+        </div>
+      </div>
+    </main>
   );
 }
