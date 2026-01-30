@@ -9,6 +9,7 @@ import (
 // Post
 type CreateInput struct {
 	Pin          bool
+	Title        string
 	Content      string
 	FileIDs      []string
 	TaggedTarget []string

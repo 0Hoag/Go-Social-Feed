@@ -8,6 +8,7 @@ import (
 // Post
 type CreateOptions struct {
 	Pin          bool
+	Title        string
 	Content      string
 	FullContent  string
 	FileIDs      []string

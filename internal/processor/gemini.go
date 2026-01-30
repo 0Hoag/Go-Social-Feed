@@ -34,22 +34,36 @@ func NewGeminiProcessor(ctx context.Context, l log.Logger, apiKey string) (*Gemi
 }
 
 func (p *GeminiProcessor) Process(ctx context.Context, article crawler.Article) (ProcessedContent, error) {
-	// Prompt Engineering: merging translation and summarization
-	prompt := fmt.Sprintf(`
-	You are a professional crypto news editor for a Vietnamese audience.
-	Read the following article title and summary.
-	Task:
-	1. Translate the Title to Vietnamese (catchy, standard journalism style).
-	2. Summarize the main points into Vietnamese (2-3 sentences, clear and concise).
+	// Use full content if available, otherwise fall back to summary
+	contentToAnalyze := article.Content
+	if contentToAnalyze == "" {
+		contentToAnalyze = article.Summary
+	}
 
-	Input:
-	Title: %s
-	Summary: %s
+	// Limit content length to avoid token limits (approximately 10,000 chars = ~2,500 tokens)
+	// Gemini Flash has 1M token context, but we'll be conservative
+	maxContentLength := 10000
+	if len(contentToAnalyze) > maxContentLength {
+		contentToAnalyze = contentToAnalyze[:maxContentLength] + "..."
+	}
+
+	// Enhanced prompt: Generate 3 distinct outputs
+	prompt := fmt.Sprintf(`You are a Vietnamese crypto news editor. Read this English article and create Vietnamese content.
+
+	Article Title: %s
+	Full Content:
+	%s
+
+	Tasks:
+	1. Translate the Title to Vietnamese. IMPORTANT: Keep it SHORT and CONCISE, similar length to original English title. Do NOT summarize the article in the title.
+	2. Write a BRIEF Vietnamese summary for news feed (2-3 sentences maximum).
+	3. Translate the FULL article content to Vietnamese (natural journalism style).
 
 	Output Format (strict):
-	Title: [Vietnamese Title]
-	Summary: [Vietnamese Summary]
-	`, article.Title, article.Summary)
+	Title: [Short Vietnamese Title]
+	Summary: [Brief 2-3 sentence summary]
+	FullContent: [Complete Vietnamese translation of the article]
+	`, article.Title, contentToAnalyze)
 
 	resp, err := p.model.GenerateContent(ctx, genai.Text(prompt))
 	if err != nil {
@@ -65,36 +79,58 @@ func (p *GeminiProcessor) Process(ctx context.Context, article crawler.Article) 
 
 	rawText := fmt.Sprintf("%v", resp.Candidates[0].Content.Parts[0])
 
+	// Parse the response
 	lines := strings.Split(rawText, "\n")
-	var viTitle, viSummary string
+	var viTitle, viSummary, viFullContent string
+	currentSection := ""
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
+
 		if strings.HasPrefix(line, "Title:") {
 			viTitle = strings.TrimSpace(strings.TrimPrefix(line, "Title:"))
+			currentSection = "title"
 		} else if strings.HasPrefix(line, "Summary:") {
 			viSummary = strings.TrimSpace(strings.TrimPrefix(line, "Summary:"))
-		} else if viSummary != "" && line != "" {
-			// multi-line summary
-			viSummary += " " + line
+			currentSection = "summary"
+		} else if strings.HasPrefix(line, "FullContent:") {
+			viFullContent = strings.TrimSpace(strings.TrimPrefix(line, "FullContent:"))
+			currentSection = "fullcontent"
+		} else if line != "" {
+			// Append to current section
+			switch currentSection {
+			case "title":
+				viTitle += " " + line
+			case "summary":
+				viSummary += " " + line
+			case "fullcontent":
+				viFullContent += "\n" + line
+			}
 		}
 	}
 
-	// Fallback if parsing fails slightly (AI sometimes adds bolding etc)
+	// Fallback if parsing fails
 	if viTitle == "" {
-		viTitle = article.Title // fallback to original
+		p.l.Warnf(ctx, "Gemini failed to generate title, using original")
+		viTitle = article.Title
 	}
 	if viSummary == "" {
-		viSummary = "..." // better than nothing
+		p.l.Warnf(ctx, "Gemini failed to generate summary, using fallback")
+		viSummary = "Nội dung đang được cập nhật..."
+	}
+	if viFullContent == "" {
+		p.l.Warnf(ctx, "Gemini failed to generate full content, using summary")
+		viFullContent = viSummary
 	}
 
 	return ProcessedContent{
-		OriginalTitle:     article.Title,
-		TranslatedTitle:   strings.ReplaceAll(viTitle, "**", ""), // Remove markdown bold if any
-		OriginalSummary:   article.Summary,
-		TranslatedSummary: strings.ReplaceAll(viSummary, "**", ""),
-		SourceURL:         article.SourceURL,
-		ImageURL:          article.ImageURL,
+		OriginalTitle:         article.Title,
+		TranslatedTitle:       strings.ReplaceAll(viTitle, "**", ""),
+		OriginalSummary:       article.Summary,
+		TranslatedSummary:     strings.ReplaceAll(viSummary, "**", ""),
+		TranslatedFullContent: strings.TrimSpace(strings.ReplaceAll(viFullContent, "**", "")),
+		SourceURL:             article.SourceURL,
+		ImageURL:              article.ImageURL,
 	}, nil
 }
 

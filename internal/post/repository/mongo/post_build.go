@@ -46,6 +46,7 @@ func (repo impleRepository) buildModels(ctx context.Context, sc models.Scope, op
 	post := models.Post{
 		ID:           repo.db.NewObjectID(),
 		Pin:          opts.Pin,
+		Title:        opts.Title,
 		Content:      opts.Content,
 		FullContent:  opts.FullContent,
 		FileIDs:      fileIDs,

@@ -7,13 +7,14 @@ import (
 )
 
 type ProcessedContent struct {
-	OriginalTitle     string
-	TranslatedTitle   string
-	OriginalSummary   string
-	TranslatedSummary string
-	Content           string
-	SourceURL         string
-	ImageURL          string
+	OriginalTitle         string
+	TranslatedTitle       string // Short, concise title (main idea)
+	OriginalSummary       string
+	TranslatedSummary     string // Brief summary for feed (2-3 sentences)
+	TranslatedFullContent string // Full article translated to Vietnamese
+	Content               string
+	SourceURL             string
+	ImageURL              string
 }
 
 type ContentProcessor interface {

@@ -171,16 +171,16 @@ func main() {
 				}
 
 				// C. Create Post
-				content := fmt.Sprintf("![Image](%s)\n\n**%s**\n\n%s\n\nNguồn: %s",
+				content := fmt.Sprintf("![Image](%s)\n\n%s\n\nNguồn: %s",
 					processed.ImageURL,
-					processed.TranslatedTitle,
 					processed.TranslatedSummary,
 					processed.SourceURL,
 				)
 
 				_, err = pUC.Create(ctx, scope, post.CreateInput{
-					Content:     content,         // AI summary for feed
-					FullContent: article.Content, // Full article text for detail page
+					Title:       processed.TranslatedTitle,       // Clean Title field
+					Content:     content,                         // Image + Summary for feed (no duplicated title)
+					FullContent: processed.TranslatedFullContent, // Full Vietnamese translation
 					Permission:  "public",
 					SourceURL:   processed.SourceURL,
 				})
@@ -203,7 +203,7 @@ func main() {
 
 					// Send Notification to Telegram
 					if tgBot != nil {
-						err := tgBot.SendPost(processed.TranslatedTitle, processed.TranslatedSummary, processed.ImageURL, processed.SourceURL)
+						err := tgBot.SendPost(ctx, processed.TranslatedTitle, processed.TranslatedSummary, processed.ImageURL, processed.SourceURL)
 						if err != nil {
 							l.Errorf(ctx, "Worker: Failed to send Telegram: %v", err)
 						} else {

@@ -9,6 +9,7 @@ import (
 type Post struct {
 	ID           primitive.ObjectID   `bson:"_id,omitempty"`
 	Pin          bool                 `bson:"pin"`
+	Title        string               `bson:"title,omitempty"`
 	Content      string               `bson:"content,omitempty"`
 	FileIDs      []primitive.ObjectID `bson:"file_ids,omitempty"`
 	TaggedTarget []primitive.ObjectID `bson:"tagged_target,omitempty"`

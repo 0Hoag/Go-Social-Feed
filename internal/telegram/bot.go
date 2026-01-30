@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"context"
 	"fmt"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -30,7 +31,7 @@ func NewTelegramClient(token string, chatID int64, l log.Logger) (*TelegramClien
 	}, nil
 }
 
-func (t *TelegramClient) SendPost(title, summary, imageURL, sourceURL string) error {
+func (t *TelegramClient) SendPost(ctx context.Context, title, summary, imageURL, sourceURL string) error {
 	if t == nil || t.bot == nil {
 		return nil // No-op if disabled
 	}
@@ -68,7 +69,7 @@ func (t *TelegramClient) SendPost(title, summary, imageURL, sourceURL string) er
 	if err != nil {
 		// If photo failed (e.g. invalid URL or bad format), try sending just text
 		if imageURL != "" {
-			t.l.Warnf(nil, "Telegram: Failed to send photo, falling back to text: %v", err)
+			t.l.Warnf(ctx, "Telegram: Failed to send photo, falling back to text: %v", err)
 			txt := tgbotapi.NewMessage(t.chatID, caption)
 			txt.ParseMode = "Markdown"
 			_, err = t.bot.Send(txt)
