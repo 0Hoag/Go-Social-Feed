@@ -43,3 +43,15 @@ export function truncateText(text: string, maxLength: number): string {
     if (text.length <= maxLength) return text;
     return text.slice(0, maxLength).trim() + "...";
 }
+
+/**
+ * Extract first image URL from markdown content
+ * Matches: ![alt](url) or ![](url)
+ */
+export function extractImageUrl(content: string): string | null {
+    if (!content) return null;
+    const match = content.match(/!\[.*?\]\((https?:\/\/[^\)]+)\)/);
+    return match ? match[1] : null;
+}
+
+

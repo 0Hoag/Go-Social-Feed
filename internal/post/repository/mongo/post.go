@@ -8,6 +8,7 @@ import (
 	"github.com/hoag/go-social-feed/internal/post/repository"
 	"github.com/hoag/go-social-feed/pkg/mongo"
 	"github.com/hoag/go-social-feed/pkg/paginator"
+	"go.mongodb.org/mongo-driver/bson"
 	driverMongo "go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -94,7 +95,8 @@ func (repo impleRepository) Get(ctx context.Context, sc models.Scope, opts repos
 
 	cur, err := col.Find(ctx, filter, options.Find().
 		SetLimit(opts.PagQuery.Limit).
-		SetSkip(opts.PagQuery.Offset()))
+		SetSkip(opts.PagQuery.Offset()).
+		SetSort(bson.D{{"created_at", -1}})) // Newest first
 	if err != nil {
 		repo.l.Errorf(ctx, "post.mongo.Get.Find: %v", err)
 		return []models.Post{}, paginator.Paginator{}, err

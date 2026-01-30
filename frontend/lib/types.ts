@@ -1,13 +1,13 @@
 export interface Post {
     id: string;
     pin: boolean;
+    title: string;
     content: string;
     file_ids?: string[];
     tagged_target?: string[];
     permission: 'public' | 'justme';
     author_id: string;
-    source_url?: string;
-    full_content?: string;
+    source_url: string;
     created_at: string;
     updated_at: string;
     deleted_at?: string | null;

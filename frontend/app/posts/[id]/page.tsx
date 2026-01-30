@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { getPostById } from "@/lib/api";
-import { formatDate, getSourceName } from "@/lib/utils";
+import { formatDate, getSourceName, extractImageUrl } from "@/lib/utils";
 import { ArrowLeft, ExternalLink, Clock, TrendingUp } from "lucide-react";
 
 interface PostPageProps {
@@ -25,9 +25,8 @@ export default async function PostPage({ params }: PostPageProps) {
     }
 
     const sourceName = post.source_url ? getSourceName(post.source_url) : "Unknown";
-    const imageUrl = post.file_ids && post.file_ids.length > 0
-        ? post.file_ids[0]
-        : null;
+    const imageUrl = extractImageUrl(post.content);
+    const title = post.title || "Untitled Article";
 
     return (
         <div className="min-h-screen">
@@ -60,7 +59,7 @@ export default async function PostPage({ params }: PostPageProps) {
                         </div>
 
                         <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
-                            {post.content || "Untitled Article"}
+                            {title}
                         </h1>
 
                         {post.source_url && (
@@ -92,9 +91,10 @@ export default async function PostPage({ params }: PostPageProps) {
                     {/* Article Body */}
                     <div className="prose prose-invert prose-lg max-w-none">
                         <div className="rounded-2xl bg-gradient-to-br from-gray-900/90 to-gray-800/90 border border-white/10 p-8">
-                            {post.full_content ? (
+                            {post.content ? (
                                 <div className="text-gray-300 leading-relaxed whitespace-pre-wrap">
-                                    {post.full_content}
+                                    {/* Remove the markdown image since we display it at the top */}
+                                    {post.content.replace(/!\[.*?\]\(.*?\)/g, "").trim()}
                                 </div>
                             ) : (
                                 <div className="text-center py-12">
