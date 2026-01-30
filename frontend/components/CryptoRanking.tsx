@@ -57,7 +57,7 @@ export default function CryptoRanking() {
     return (
         <div className="bg-[#111] border border-white/5 rounded-2xl p-5">
             <h3 className="text-gray-400 text-xs font-bold tracking-wider uppercase mb-5 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-gray-600"></span> Top 10 Crypto (Binance)
+                <span className="w-2 h-2 rounded-full bg-gray-600"></span> Top 10 Crypto
             </h3>
 
             <div className="space-y-4">
