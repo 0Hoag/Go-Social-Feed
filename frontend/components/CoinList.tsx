@@ -143,7 +143,8 @@ export default function CoinList({ onCoinSelect, selectedSymbol }: CoinListProps
                                             alt={coin.name}
                                             className="w-6 h-6 rounded-full flex-shrink-0 object-cover"
                                             onError={(e) => {
-                                                e.currentTarget.src = 'https://via.placeholder.com/32?text=' + coin.symbol.substring(0, 2);
+                                                e.currentTarget.onerror = null; // Prevent infinite loop if fallback fails
+                                                e.currentTarget.src = `https://ui-avatars.com/api/?name=${coin.symbol}&background=random&color=fff&size=32`;
                                             }}
                                         />
                                         <div className="flex-1 min-w-0">
