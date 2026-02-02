@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import axios from "axios";
-import Image from "next/image";
 
 interface CoinListProps {
     onCoinSelect: (symbol: string, name: string) => void;
@@ -10,12 +9,13 @@ interface CoinListProps {
 }
 
 interface CoinData {
+    id: string;
     symbol: string;
     name: string;
+    icon: string;
     price: string;
     change: string;
     changePercent: string;
-    icon: string;
     tvSymbol?: string;
 }
 
@@ -55,49 +55,59 @@ export default function CoinList({ onCoinSelect, selectedSymbol }: CoinListProps
     ];
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                // Separate crypto and gold
-                const cryptoCoins = coinMapping.filter(c => !c.isGold);
-                const symbols = cryptoCoins.map(c => c.symbol).join(",");
-                const res = await axios.get(`https://api.binance.com/api/v3/ticker/24hr?symbols=["${symbols.split(",").join('","')}"]`);
+        // Initial setup from config
+        const initialCoins = coinMapping.map(c => ({
+            id: c.id,
+            symbol: c.symbol,
+            name: c.name,
+            price: "0.00",
+            change: "0.00",
+            changePercent: "0.00",
+            icon: `https://s2.coinmarketcap.com/static/img/coins/64x64/${c.id}.png`,
+            tvSymbol: c.tvSymbol
+        }));
+        setCoins(initialCoins);
 
-                const mapped = res.data.map((item: any) => {
-                    const config = coinMapping.find(c => c.symbol === item.symbol);
-                    return {
-                        symbol: item.symbol,
-                        name: config?.name || item.symbol,
-                        price: parseFloat(item.lastPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                        change: parseFloat(item.priceChange).toFixed(2),
-                        changePercent: parseFloat(item.priceChangePercent).toFixed(2),
-                        icon: `https://s2.coinmarketcap.com/static/img/coins/64x64/${config?.id}.png`,
-                        tvSymbol: config?.tvSymbol,
-                    };
+        // WebSocket for Crypto
+        const ws = new WebSocket('wss://stream.binance.com:9443/ws/!miniTicker@arr');
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+
+            setCoins(prevCoins => {
+                const newCoins = [...prevCoins];
+                let updated = false;
+
+                data.forEach((ticker: any) => {
+                    const index = newCoins.findIndex(c => c.symbol === ticker.s);
+                    if (index !== -1) {
+                        newCoins[index] = {
+                            ...newCoins[index],
+                            price: parseFloat(ticker.c).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                            change: (parseFloat(ticker.c) - parseFloat(ticker.o)).toFixed(2),
+                            changePercent: ((parseFloat(ticker.c) - parseFloat(ticker.o)) / parseFloat(ticker.o) * 100).toFixed(2),
+                        };
+                        updated = true;
+                    }
                 });
 
-                // Add gold as THE FIRST entry (prepend, not append)
-                const goldConfig = coinMapping.find(c => c.isGold);
-                if (goldConfig) {
-                    mapped.unshift({
-                        symbol: goldConfig.symbol,
-                        name: goldConfig.name,
-                        price: "2,650.00", // Placeholder - could fetch from another API
+                // Set Gold manually since it's not in Binance Crypto WS
+                // In a real app, this would need a separate API/WS
+                const goldIndex = newCoins.findIndex(c => c.symbol === "XAUUSD");
+                if (goldIndex !== -1) {
+                    newCoins[goldIndex] = {
+                        ...newCoins[goldIndex],
+                        price: "2,650.00",
                         change: "+5.20",
-                        changePercent: "+0.20",
-                        icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/7226.png", // Gold futures icon from CMC
-                        tvSymbol: goldConfig.tvSymbol,
-                    });
+                        changePercent: "+0.20"
+                    };
                 }
 
-                setCoins(mapped);
-            } catch (error) {
-                console.error("Failed to fetch coin data:", error);
-            }
+                return updated ? newCoins : prevCoins;
+            });
         };
 
-        fetchData();
-        const interval = setInterval(fetchData, 30000);
-        return () => clearInterval(interval);
+        return () => ws.close();
     }, []);
 
     return (
@@ -107,40 +117,51 @@ export default function CoinList({ onCoinSelect, selectedSymbol }: CoinListProps
             </div>
             <div className="flex-1 overflow-y-auto custom-scrollbar">
                 {coins.map((coin, index) => {
-                    const coinTvSymbol = coin.tvSymbol || `BINANCE:${coin.symbol}`;
-                    const isSelected = selectedSymbol === coinTvSymbol;
+                    const isSelected = selectedSymbol === coin.symbol;
                     const isPositive = parseFloat(coin.changePercent) >= 0;
                     const isGold = coin.symbol === "XAUUSD";
 
                     // Show separator after Gold (first item)
-                    const showDivider = index === 0 && isGold;
+                    const showSeparator = isGold && index === 0;
 
                     return (
                         <div key={coin.symbol}>
                             <div
-                                onClick={() => onCoinSelect(coinTvSymbol, coin.name)}
-                                className={`flex items-center justify-between p-3 border-b border-white/5 cursor-pointer transition-all ${isSelected ? 'bg-blue-500/20 border-l-4 border-l-blue-500' : 'hover:bg-white/5'
-                                    }`}
+                                onClick={() => onCoinSelect(coin.symbol, coin.name)}
+                                className={`
+                                    px-3 py-3 cursor-pointer transition-all border-b border-white/5
+                                    ${isSelected
+                                        ? 'bg-blue-600/20 border-l-2 border-l-blue-500'
+                                        : 'hover:bg-white/5'
+                                    }
+                                `}
                             >
-                                <div className="flex items-center gap-3 flex-1 min-w-0">
-                                    <img src={coin.icon} alt={coin.name} className="w-8 h-8 rounded-full" />
-                                    <div className="flex-1 min-w-0">
-                                        <div className="text-sm font-bold text-white truncate">{coin.name}</div>
-                                        <div className="text-[10px] text-gray-500 font-mono">
-                                            {isGold ? "XAU/USD" : coin.symbol.replace('USDT', '/USDT')}
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                                        <img
+                                            src={coin.icon}
+                                            alt={coin.name}
+                                            className="w-6 h-6 rounded-full flex-shrink-0 object-cover"
+                                            onError={(e) => {
+                                                e.currentTarget.src = 'https://via.placeholder.com/32?text=' + coin.symbol.substring(0, 2);
+                                            }}
+                                        />
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-xs font-semibold text-white truncate">{coin.name}</div>
+                                            <div className="text-[10px] text-gray-500">{coin.symbol.replace('USDT', '')}</div>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="text-right ml-2">
-                                    <div className="text-sm font-bold text-white">${coin.price}</div>
-                                    <div className={`text-[10px] font-bold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-                                        {isPositive ? '+' : ''}{coin.changePercent}%
+                                    <div className="text-right ml-2">
+                                        <div className="text-xs font-bold text-white">${coin.price}</div>
+                                        <div className={`text-[10px] font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                                            {isPositive ? '+' : ''}{coin.changePercent}%
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Divider after Gold */}
-                            {showDivider && (
+                            {/* Separator after Gold */}
+                            {showSeparator && (
                                 <div className="my-2 mx-3 border-t-2 border-dashed border-gray-700 relative">
                                     <span className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-[#111] px-2 text-[9px] text-gray-500 uppercase tracking-wider">
                                         Cryptocurrencies
