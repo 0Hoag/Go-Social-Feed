@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
-import { createChart, ColorType, LineStyle, ISeriesApi, IChartApi, Time } from 'lightweight-charts';
+import { createChart, ColorType, CrosshairMode, LineStyle, ISeriesApi, IChartApi, Time } from 'lightweight-charts';
 
 interface ProfessionalChartProps {
     symbol?: string;
@@ -83,6 +83,7 @@ export default function ProfessionalChart({ symbol = "BTCUSDT" }: ProfessionalCh
                 horzLines: { color: '#1a1a1a', style: LineStyle.Solid },
             },
             crosshair: {
+                mode: CrosshairMode.Normal,
                 vertLine: {
                     color: '#666',
                     width: 1,
@@ -96,6 +97,16 @@ export default function ProfessionalChart({ symbol = "BTCUSDT" }: ProfessionalCh
                     labelBackgroundColor: '#333',
                     labelVisible: false, // Disable native label to use custom one
                 },
+            },
+            localization: {
+                timeFormatter: (time: number) => {
+                    const date = new Date(time * 1000);
+                    return date.toLocaleTimeString('vi-VN', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                    });
+                }
             },
             timeScale: {
                 timeVisible: true,
