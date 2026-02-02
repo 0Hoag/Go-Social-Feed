@@ -159,9 +159,9 @@ export default function ProfessionalChart({ symbol = "BTCUSDT" }: ProfessionalCh
         if (!chartRef.current || !candlestickSeriesRef.current || !chartContainerRef.current) return;
 
         const handleCrosshairMove = (param: any) => {
+            // Check if point is valid (remove !param.time check to allow empty space)
             if (
                 param.point === undefined ||
-                !param.time ||
                 param.point.x < 0 ||
                 param.point.x > chartContainerRef.current!.clientWidth ||
                 param.point.y < 0 ||
