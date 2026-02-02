@@ -12,19 +12,14 @@ export default function Header() {
                     </span>
                 </Link>
 
-                {/* Main Navigation */}
-                <nav className="flex items-center gap-8">
+                {/* Main Navigation - Centered */}
+                <nav className="absolute left-1/2 -translate-x-1/2 flex items-center gap-8">
                     <Link href="/" className="text-sm font-medium text-gray-400 hover:text-white cursor-pointer transition-colors">News</Link>
                     <Link href="/analysis" className="text-sm font-medium text-white cursor-pointer transition-colors">On-chain</Link>
                 </nav>
 
-                {/* Right Area (Search/Profile Placeholder) */}
-                <div className="flex items-center gap-4">
-                    <button className="text-gray-400 hover:text-white transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
-                    </button>
-                    <div className="w-8 h-8 rounded-full bg-gray-800 border border-white/10"></div>
-                </div>
+                {/* Empty right space for balance */}
+                <div className="w-[100px]"></div>
             </div>
         </header>
     );
