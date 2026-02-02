@@ -12,6 +12,13 @@ export default function AnalysisPage() {
     const [currentPrice, setCurrentPrice] = useState(82695.50);
     const [orderBook, setOrderBook] = useState<{ bids: any[], asks: any[] }>({ bids: [], asks: [] });
 
+    // Helper to format large numbers
+    const formatTotal = (num: number) => {
+        if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+        if (num >= 1000) return (num / 1000).toFixed(2) + 'K';
+        return num.toFixed(2);
+    };
+
     // Fetch current price and Order Book via WebSocket
     useEffect(() => {
         // Initial price fetch
@@ -39,14 +46,14 @@ export default function AnalysisPage() {
                 const asks = data.asks.map((ask: any) => ({
                     price: parseFloat(ask[0]).toFixed(2),
                     amount: parseFloat(ask[1]).toFixed(4),
-                    total: (parseFloat(ask[0]) * parseFloat(ask[1])).toFixed(2),
+                    total: formatTotal(parseFloat(ask[0]) * parseFloat(ask[1])),
                     fill: Math.min(100, parseFloat(ask[1]) * 100), // Simple visual depth
                 })).reverse().slice(0, 15); // Show top 15
 
                 const bids = data.bids.map((bid: any) => ({
                     price: parseFloat(bid[0]).toFixed(2),
                     amount: parseFloat(bid[1]).toFixed(4),
-                    total: (parseFloat(bid[0]) * parseFloat(bid[1])).toFixed(2),
+                    total: formatTotal(parseFloat(bid[0]) * parseFloat(bid[1])),
                     fill: Math.min(100, parseFloat(bid[1]) * 100),
                 })).slice(0, 15);
 

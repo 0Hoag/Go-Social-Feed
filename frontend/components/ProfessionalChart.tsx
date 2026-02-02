@@ -74,6 +74,7 @@ export default function ProfessionalChart({ symbol = "BTCUSDT" }: ProfessionalCh
                     width: 1,
                     style: LineStyle.Solid,
                     labelBackgroundColor: '#333',
+                    labelVisible: false, // Disable native label to use custom one
                 },
             },
             timeScale: {
@@ -83,6 +84,15 @@ export default function ProfessionalChart({ symbol = "BTCUSDT" }: ProfessionalCh
                 lockVisibleTimeRangeOnResize: true,  // Prevent auto-scale on resize
                 fixLeftEdge: false,                   // Allow scrolling left
                 fixRightEdge: false,                  // Allow scrolling right
+                tickMarkFormatter: (time: number, tickMarkType: number, locale: string) => {
+                    const date = new Date(time * 1000);
+                    // Use Vietnam locale
+                    return date.toLocaleTimeString('vi-VN', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                    });
+                },
             },
             rightPriceScale: {
                 borderColor: '#333',
@@ -142,10 +152,63 @@ export default function ProfessionalChart({ symbol = "BTCUSDT" }: ProfessionalCh
         };
     }, []);
 
+    const [stats, setStats] = useState({ high: '0.00', low: '0.00', vol: '0.00' });
+    const [cursorData, setCursorData] = useState<{ visible: boolean; x: number; y: number; price: string; percentDiff: string } | null>(null);
+
+    useEffect(() => {
+        if (!chartRef.current || !candlestickSeriesRef.current || !chartContainerRef.current) return;
+
+        const handleCrosshairMove = (param: any) => {
+            if (
+                param.point === undefined ||
+                !param.time ||
+                param.point.x < 0 ||
+                param.point.x > chartContainerRef.current!.clientWidth ||
+                param.point.y < 0 ||
+                param.point.y > chartContainerRef.current!.clientHeight
+            ) {
+                setCursorData(null);
+                return;
+            }
+
+            const price = candlestickSeriesRef.current!.coordinateToPrice(param.point.y);
+            if (price !== null) {
+                const currentPriceVal = parseFloat(currentPrice as string);
+                const diff = ((price - currentPriceVal) / currentPriceVal) * 100;
+
+                setCursorData({
+                    visible: true,
+                    x: param.point.x,
+                    y: param.point.y,
+                    price: price.toFixed(2),
+                    percentDiff: (diff > 0 ? '+' : '') + diff.toFixed(2).replace('.', ',') + '%'
+                });
+            }
+        };
+
+        chartRef.current.subscribeCrosshairMove(handleCrosshairMove);
+
+        return () => {
+            if (chartRef.current) {
+                chartRef.current.unsubscribeCrosshairMove(handleCrosshairMove);
+            }
+        };
+    }, [currentPrice]); // Re-subscribe when current price changes to ensure accurate diff
+
     // Fetch data and setup WebSocket for real-time updates
     useEffect(() => {
         const fetchData = async () => {
+            // ... existing kline fetch logic ...
             try {
+                // Fetch 24h stats
+                const statsRes = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`);
+                const statsData = await statsRes.json();
+                setStats({
+                    high: parseFloat(statsData.highPrice).toFixed(2),
+                    low: parseFloat(statsData.lowPrice).toFixed(2),
+                    vol: parseFloat(statsData.volume).toFixed(2)
+                });
+
                 const timeframe = timeframes.find(tf => tf.value === interval);
                 const limit = timeframe?.limit || 1000;
                 const total = timeframe?.total || 1000;
@@ -165,16 +228,10 @@ export default function ProfessionalChart({ symbol = "BTCUSDT" }: ProfessionalCh
 
                     if (data.length === 0) break;
 
-                    // Prepend older data
-                    allData = [...data, ...allData];
+                    allData = [...data, ...allData]; // Prepend older data
+                    endTime = data[0][0] - 1; // Set endTime for next batch
 
-                    // Set endTime to first candle's time for next batch
-                    endTime = data[0][0] - 1;
-
-                    // Small delay to avoid rate limiting
-                    if (i < batches - 1) {
-                        await new Promise(resolve => setTimeout(resolve, 100));
-                    }
+                    await new Promise(resolve => setTimeout(resolve, 100)); // Rate limit delay
                 }
 
                 const formattedData: CandleData[] = allData.map((item: any) => ({
@@ -190,9 +247,6 @@ export default function ProfessionalChart({ symbol = "BTCUSDT" }: ProfessionalCh
                     candlestickSeriesRef.current.setData(formattedData as any);
                 }
 
-                // Volume removed
-
-                // MA lines removed
                 if (formattedData.length > 0) {
                     const latest = formattedData[formattedData.length - 1];
                     const first = formattedData[0];
@@ -201,21 +255,20 @@ export default function ProfessionalChart({ symbol = "BTCUSDT" }: ProfessionalCh
                     setPriceChange(change);
                 }
 
-                // Auto-scroll to show latest candles and center the latest one
+                // Auto-scroll logic...
                 if (chartRef.current && formattedData.length > 0) {
                     const visibleCandles = 100;
                     const latestTime = formattedData[formattedData.length - 1].time;
                     const startIndex = Math.max(0, formattedData.length - visibleCandles);
                     const startTime = formattedData[startIndex].time;
 
-                    // 1. Set zoom level to show ~100 candles
+                    // 1. Set zoom level
                     chartRef.current.timeScale().setVisibleRange({
                         from: startTime as any,
                         to: latestTime as any,
                     });
 
-                    // 2. Shift view to center the latest candle (create empty space on right)
-                    // The offset is in number of bars. 50 bars offset with 100 bars visible puts it in the middle.
+                    // 2. Shift view to center
                     chartRef.current.timeScale().scrollToPosition(50, false);
                 }
             } catch (error) {
@@ -225,7 +278,7 @@ export default function ProfessionalChart({ symbol = "BTCUSDT" }: ProfessionalCh
 
         fetchData();
 
-        // Setup WebSocket for real-time updates
+        // Setup WebSocket for kline updates
         const wsUrl = `wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@kline_${interval}`;
         const ws = new WebSocket(wsUrl);
 
@@ -235,37 +288,56 @@ export default function ProfessionalChart({ symbol = "BTCUSDT" }: ProfessionalCh
 
             if (candle && candlestickSeriesRef.current) {
                 const newCandle = {
-                    time: (Math.floor(candle.t / 1000) + 25200) as any, // Add 7 hours for UTC+7
+                    time: (Math.floor(candle.t / 1000) + 25200) as any,
                     open: parseFloat(candle.o),
                     high: parseFloat(candle.h),
                     low: parseFloat(candle.l),
                     close: parseFloat(candle.c),
                 };
 
-                // Update current candle
                 candlestickSeriesRef.current.update(newCandle);
-
-                // Update current price display
                 setCurrentPrice(newCandle.close.toFixed(2));
+            }
+        };
+
+        // Setup WebSocket for 24h ticker updates
+        const tickerWsUrl = `wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@ticker`;
+        const tickerWs = new WebSocket(tickerWsUrl);
+
+        tickerWs.onmessage = (event) => {
+            const ticker = JSON.parse(event.data);
+            if (ticker) {
+                setStats({
+                    high: parseFloat(ticker.h).toFixed(2),
+                    low: parseFloat(ticker.l).toFixed(2),
+                    vol: parseFloat(ticker.v).toFixed(2)
+                });
             }
         };
 
         return () => {
             ws.close();
+            tickerWs.close();
         };
     }, [symbol, interval]);
 
     const isPositive = priceChange >= 0;
 
+    const formatPrice = (value: string | number) => {
+        const val = typeof value === 'string' ? parseFloat(value) : value;
+        if (isNaN(val)) return '0,00';
+        return val.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
+
     return (
         <div className="relative w-full h-full bg-gradient-to-b from-[#0a0a0a] to-[#050505] p-6">
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-8">
                     <div>
                         <div className="flex items-baseline gap-3">
                             <span className="text-4xl font-bold text-white">
-                                ${currentPrice}
+                                ${formatPrice(currentPrice)}
                             </span>
                             <span className={`text-lg font-semibold ${isPositive ? 'text-[#26a69a]' : 'text-[#ef5350]'}`}>
                                 {isPositive ? '+' : ''}{priceChange.toFixed(2)}%
@@ -273,6 +345,22 @@ export default function ProfessionalChart({ symbol = "BTCUSDT" }: ProfessionalCh
                         </div>
                         <div className="text-sm text-gray-500 mt-1">
                             {symbol.replace('USDT', '')}/USDT
+                        </div>
+                    </div>
+
+                    {/* 24h Stats */}
+                    <div className="flex gap-8 text-sm">
+                        <div className="flex flex-col">
+                            <span className="text-gray-500 text-xs mb-1">24h High</span>
+                            <span className="text-gray-200 font-medium">{formatPrice(stats.high)}</span>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-gray-500 text-xs mb-1">24h Low</span>
+                            <span className="text-gray-200 font-medium">{formatPrice(stats.low)}</span>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-gray-500 text-xs mb-1">24h Vol</span>
+                            <span className="text-gray-200 font-medium">{formatPrice(stats.vol)}</span>
                         </div>
                     </div>
                 </div>
@@ -283,7 +371,7 @@ export default function ProfessionalChart({ symbol = "BTCUSDT" }: ProfessionalCh
                         <button
                             key={tf.value}
                             onClick={() => setInterval(tf.value)}
-                            className={`px-4 py-2 rounded-lg font-medium transition-all ${interval === tf.value
+                            className={`px-3 py-1 rounded text-xs font-medium transition-all ${interval === tf.value
                                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50'
                                 : 'bg-[#1a1a1a] text-gray-400 hover:bg-[#222] hover:text-white'
                                 }`}
@@ -295,6 +383,21 @@ export default function ProfessionalChart({ symbol = "BTCUSDT" }: ProfessionalCh
             </div>
 
             {/* Tooltip removed to prevent blocking candles */}
+
+            {/* Custom Right Scale Label (Axis) */}
+            {cursorData && cursorData.visible && (
+                <div
+                    className="absolute z-40 pointer-events-none bg-[#333] text-white text-[11px] font-mono px-1 flex items-center justify-center border-l-2 border-white/20"
+                    style={{
+                        right: 0,
+                        top: cursorData.y + 95, // Direct centering: y - half_height
+                        height: '20px',
+                        minWidth: '60px',
+                    }}
+                >
+                    {formatPrice(cursorData.price)} ({cursorData.percentDiff})
+                </div>
+            )}
 
             {/* Chart */}
             <style jsx global>{`
