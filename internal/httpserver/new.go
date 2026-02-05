@@ -2,6 +2,10 @@ package httpserver
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/hoag/go-social-feed/internal/adapters/dexscreener"
+	"github.com/hoag/go-social-feed/internal/adapters/etherscan"
+	"github.com/hoag/go-social-feed/internal/core/scanner"
+	scanDomain "github.com/hoag/go-social-feed/internal/scanner"
 	pkgCrt "github.com/hoag/go-social-feed/pkg/encrypter"
 	pkgLog "github.com/hoag/go-social-feed/pkg/log"
 	pkgMongo "github.com/hoag/go-social-feed/pkg/mongo"
@@ -24,6 +28,9 @@ type HTTPServer struct {
 	internalKey  string
 	encrypter    pkgCrt.Encrypter
 	secretConfig SecretConfig
+
+	// Usecase
+	scannerUC scanDomain.UseCase
 }
 
 type Config struct {
@@ -36,6 +43,14 @@ type Config struct {
 	InternalKey  string
 	Encrypter    pkgCrt.Encrypter
 	SecretConfig SecretConfig
+
+	// Dependency Injection
+	ScanEngine *scanner.Engine
+	DexClient  *dexscreener.Client
+	EthClient  *etherscan.Client
+
+	// Pre-built UC (Optional)
+	ScannerUC scanDomain.UseCase
 }
 
 type HoagConfig struct {
@@ -82,5 +97,7 @@ func New(l pkgLog.Logger, cfg Config) *HTTPServer {
 		internalKey:  cfg.InternalKey,
 		encrypter:    cfg.Encrypter,
 		secretConfig: cfg.SecretConfig,
+
+		scannerUC: cfg.ScannerUC,
 	}
 }

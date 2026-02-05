@@ -51,7 +51,7 @@ func main() {
 
 	// 2. Scan Logic
 	engine := scanner.NewEngine(nil)
-	result := engine.Scan(source)
+	result := engine.Scan(source, *contractAddr)
 
 	// 3. Print Results
 	fmt.Println("\n📊 === SCAN RESULT ===")

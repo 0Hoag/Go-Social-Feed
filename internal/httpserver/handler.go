@@ -71,7 +71,6 @@ func (srv HTTPServer) mapHandlers() error {
 	srv.gin.Use(mw.Locale())
 	api := srv.gin.Group("/api/v1")
 
-	// Routes
 	newsFeedGroup := api.Group("/news-feed")
 	userHTTP.MapRoutes(newsFeedGroup.Group("/user"), userH, mw)
 	authHTTP.MapRoutes(newsFeedGroup.Group("/auth"), authH, mw)

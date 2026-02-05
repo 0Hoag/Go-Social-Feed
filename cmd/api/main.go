@@ -14,6 +14,11 @@ import (
 	pkgLog "github.com/hoag/go-social-feed/pkg/log"
 	"github.com/hoag/go-social-feed/pkg/rabbitmq"
 	"github.com/joho/godotenv"
+
+	"github.com/hoag/go-social-feed/internal/adapters/dexscreener"
+	"github.com/hoag/go-social-feed/internal/adapters/etherscan"
+	"github.com/hoag/go-social-feed/internal/adapters/gemini"
+	"github.com/hoag/go-social-feed/internal/core/scanner"
 )
 
 func main() {
@@ -62,6 +67,35 @@ func main() {
 		panic(err)
 	}
 
+	// ---------------------------------------------------------
+	// SCANNER MODULE INIT
+	// ---------------------------------------------------------
+	ethKey := os.Getenv("ETHERSCAN_API_KEY")
+	bscKey := os.Getenv("BSCSCAN_API_KEY")
+	baseKey := os.Getenv("BASESCAN_API_KEY")
+	arbKey := os.Getenv("ARBISCAN_API_KEY")
+	polyKey := os.Getenv("POLYGONSCAN_API_KEY")
+	geminiKey := os.Getenv("GEMINI_API_KEY")
+
+	apiKeys := map[string]string{
+		etherscan.NetworkETH:      ethKey,
+		etherscan.NetworkBSC:      bscKey,
+		etherscan.NetworkBase:     baseKey,
+		etherscan.NetworkArbitrum: arbKey,
+		etherscan.NetworkPolygon:  polyKey,
+	}
+	ethClient := etherscan.NewClient(apiKeys)
+
+	var geminiClient *gemini.Client
+	if geminiKey != "" {
+		geminiClient = gemini.NewClient(geminiKey)
+		fmt.Println("✅ Gemini AI Integration: ENABLED")
+	}
+
+	scanEngine := scanner.NewEngine(geminiClient)
+	dexClient := dexscreener.NewClient()
+	// ---------------------------------------------------------
+
 	srv := httpserver.New(l, httpserver.Config{
 		Port:         port,
 		DB:           db,
@@ -72,6 +106,9 @@ func main() {
 		SecretConfig: httpserver.SecretConfig{
 			SecretKey: cfg.Encrypter.Key,
 		},
+		ScanEngine: scanEngine,
+		DexClient:  dexClient,
+		EthClient:  ethClient,
 	})
 	fmt.Println("DEBUG: before srv.Run()")
 	if err := srv.Run(); err != nil {
