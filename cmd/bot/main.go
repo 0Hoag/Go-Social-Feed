@@ -20,6 +20,8 @@ func main() {
 	ethKey := os.Getenv("ETHERSCAN_API_KEY")
 	bscKey := os.Getenv("BSCSCAN_API_KEY")
 	baseKey := os.Getenv("BASESCAN_API_KEY")
+	arbKey := os.Getenv("ARBISCAN_API_KEY")
+	polyKey := os.Getenv("POLYGONSCAN_API_KEY")
 	botToken := os.Getenv("SCANNER_BOT_TOKEN")
 	geminiKey := os.Getenv("GEMINI_API_KEY")
 
@@ -31,9 +33,11 @@ func main() {
 
 	// 2. Init Dependencies
 	apiKeys := map[string]string{
-		etherscan.NetworkETH:  ethKey,
-		etherscan.NetworkBSC:  bscKey,
-		etherscan.NetworkBase: baseKey,
+		etherscan.NetworkETH:      ethKey,
+		etherscan.NetworkBSC:      bscKey,
+		etherscan.NetworkBase:     baseKey,
+		etherscan.NetworkArbitrum: arbKey,
+		etherscan.NetworkPolygon:  polyKey,
 	}
 	ethClient := etherscan.NewClient(apiKeys)
 

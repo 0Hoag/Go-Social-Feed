@@ -9,6 +9,7 @@ import (
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/hoag/go-social-feed/internal/adapters/dexscreener"
 	"github.com/hoag/go-social-feed/internal/adapters/etherscan"
 	"github.com/hoag/go-social-feed/internal/core/scanner"
 )
@@ -16,6 +17,7 @@ import (
 type ScannerBot struct {
 	bot        *tgbotapi.BotAPI
 	ethClient  *etherscan.Client
+	dexClient  *dexscreener.Client
 	scanEngine *scanner.Engine
 
 	// Rate limiting
@@ -29,12 +31,13 @@ func NewScannerBot(token string, ethClient *etherscan.Client, engine *scanner.En
 		return nil, fmt.Errorf("failed to create bot: %w", err)
 	}
 
-	bot.Debug = true
+	bot.Debug = false // Disable debug valid to reduce noise
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
 	return &ScannerBot{
 		bot:        bot,
 		ethClient:  ethClient,
+		dexClient:  dexscreener.NewClient(),
 		scanEngine: engine,
 		lastScan:   make(map[int64]time.Time),
 	}, nil
@@ -46,6 +49,8 @@ func (s *ScannerBot) Start() {
 
 	updates := s.bot.GetUpdatesChan(u)
 
+	log.Println("✅ Bot is online and listening for addresses...")
+
 	for update := range updates {
 		if update.Message == nil {
 			continue
@@ -56,57 +61,84 @@ func (s *ScannerBot) Start() {
 }
 
 func (s *ScannerBot) handleMessage(msg *tgbotapi.Message) {
-	// 1. Regular text processing
-	text := strings.TrimSpace(msg.Text)
-
-	// Regex for Ethereum Address
-	ethRegex := regexp.MustCompile(`^0x[a-fA-F0-9]{40}$`)
-
-	if text == "0xMOCK" || ethRegex.MatchString(text) {
-		s.processScan(msg, text)
-	} else if text == "/start" || text == "/help" {
-		s.sendReply(msg.Chat.ID, "👋 Welcome directly to **ChainGuardian AI**!\n\nSend me a Smart Contract address (starting with `0x...`) to scan it for vulnerabilities.\n\n⚠️ Rate Limit: 1 scan/minute.")
-	} else {
-		s.sendReply(msg.Chat.ID, "I only understand Ethereum addresses (0x...) or /start.")
-	}
-}
-
-func (s *ScannerBot) processScan(msg *tgbotapi.Message, address string) {
 	chatID := msg.Chat.ID
 	userID := msg.From.ID
+	text := strings.TrimSpace(msg.Text)
 
-	// 2. Rate Limiting Check
+	// Rate Limiting Check
 	s.mu.Lock()
 	lastTime, exists := s.lastScan[userID]
-	if exists && time.Since(lastTime) < time.Minute {
-		remaining := time.Minute - time.Since(lastTime)
+	if exists && time.Since(lastTime) < 10*time.Second {
+		remaining := 10*time.Second - time.Since(lastTime)
 		s.mu.Unlock()
-		s.sendReply(chatID, fmt.Sprintf("⏳ **Rate Limit Exceeded**\nPlease wait %d seconds before scanning again.", int(remaining.Seconds())))
+		s.sendReply(chatID, fmt.Sprintf("⏳ Please wait %d seconds before scanning again.", int(remaining.Seconds())))
 		return
 	}
 	s.lastScan[userID] = time.Now()
 	s.mu.Unlock()
 
-	// 3. User Feedback: "Typing..." action
+	// 1. Send "Typing..." action
 	action := tgbotapi.NewChatAction(chatID, tgbotapi.ChatTyping)
 	s.bot.Send(action)
 
-	// Send initial status
+	// 2. Initial Reply
 	statusMsg, _ := s.bot.Send(tgbotapi.NewMessage(chatID, "🔍 **ChainGuardian AI** is analyzing..."))
 
-	// 4. Fetch Source Code (Multi-chain Auto-Discovery)
+	// 3. Determine if Input is Address or Symbol
+	addrRegex := regexp.MustCompile(`^0x[a-fA-F0-9]{40}$`)
+	isAddress := addrRegex.MatchString(text) || text == "0xMOCK"
+
+	var contractAddress string
+
+	if isAddress {
+		contractAddress = text
+	} else {
+		// Assume Symbol Search
+		if len(text) > 10 || strings.Contains(text, " ") {
+			s.editMessage(chatID, statusMsg.MessageID, "❌ Invalid input. Please send a Contract Address (0x...) or a Token Symbol (e.g. PEPE).")
+			return
+		}
+
+		s.editMessage(chatID, statusMsg.MessageID, fmt.Sprintf("🔎 Searching for token **%s**...", strings.ToUpper(text)))
+
+		foundAddr, foundNet, foundName, err := s.dexClient.SearchTopToken(text)
+		if err != nil {
+			s.editMessage(chatID, statusMsg.MessageID, fmt.Sprintf("❌ Not found: %s\n(%v)", text, err))
+			return
+		}
+
+		s.editMessage(chatID, statusMsg.MessageID, fmt.Sprintf("✅ Found **%s** on **%s**\n📍 Address: `%s`\n🚀 Starting scan...", foundName, strings.ToUpper(foundNet), foundAddr))
+		contractAddress = foundAddr
+
+		// Small delay to let user read
+		time.Sleep(1 * time.Second)
+	}
+
+	// 4. Start Scan Process
+	s.processScan(chatID, statusMsg.MessageID, contractAddress)
+}
+
+func (s *ScannerBot) processScan(chatID int64, messageID int, address string) {
+	// Fetch Source Code (Multi-chain Auto-Discovery)
 	var source string
+	var name string // Etherscan name (might be slightly different from DexScreener but authoritative for code)
 	var err error
 	var networkFound string
 
 	// Try all networks
-	networks := []string{etherscan.NetworkETH, etherscan.NetworkBSC, etherscan.NetworkBase}
+	networks := []string{
+		etherscan.NetworkETH,
+		etherscan.NetworkBSC,
+		etherscan.NetworkBase,
+		etherscan.NetworkArbitrum,
+		etherscan.NetworkPolygon,
+	}
 
 	for _, net := range networks {
 		// Update status
-		s.editMessage(chatID, statusMsg.MessageID, fmt.Sprintf("🔍 Scanning on **%s** network...", strings.ToUpper(net)))
+		s.editMessage(chatID, messageID, fmt.Sprintf("🔍 Scanning on **%s** network...", strings.ToUpper(net)))
 
-		source, err = s.ethClient.GetContractSource(net, address)
+		source, name, err = s.ethClient.GetContractSource(net, address)
 		if err == nil && source != "" {
 			networkFound = net
 			break
@@ -114,21 +146,24 @@ func (s *ScannerBot) processScan(msg *tgbotapi.Message, address string) {
 	}
 
 	if networkFound == "" {
-		s.editMessage(chatID, statusMsg.MessageID, fmt.Sprintf("❌ **Scan Failed**\nContract not found on ETH, BSC, or BASE.\n(Note: Verify your API keys and contract address)"))
+		s.editMessage(chatID, messageID, fmt.Sprintf("❌ **Scan Failed**\nContract not found on ETH, BSC, or BASE.\n(Note: Verify your API keys and contract address)"))
 		return
 	}
 
-	// 5. Run Scan Engine
-	result := s.scanEngine.Scan(source)
+	// Run Scan Engine
+	// Update status before heavy AI task
+	s.editMessage(chatID, messageID, fmt.Sprintf("🧠 **Elite Auditor AI** is analyzing logic on **%s**...\n(This might take up to 60s for complex contracts)", strings.ToUpper(networkFound)))
 
-	// 6. Format Output (User's Template)
-	report := s.formatReport(address, networkFound, result)
+	result := s.scanEngine.Scan(source, address)
 
-	// 7. Send Final Report
-	s.editMessage(chatID, statusMsg.MessageID, report)
+	// Format Output
+	report := s.formatReport(address, networkFound, name, result)
+
+	// Send Final Report
+	s.editMessage(chatID, messageID, report)
 }
 
-func (s *ScannerBot) formatReport(address, network string, result scanner.ScanResult) string {
+func (s *ScannerBot) formatReport(address, network, name string, result scanner.ScanResult) string {
 	// Create "0xHOANG..." short address
 	shortAddr := address
 	if len(address) > 10 {
@@ -144,46 +179,47 @@ func (s *ScannerBot) formatReport(address, network string, result scanner.ScanRe
 			icon = "🔸" // Warning
 		}
 
-		issuesList += fmt.Sprintf("• %s %s (-%d pts)\n", icon, issue.Name, issue.Impact)
+		// New detailed format
+		issuesList += fmt.Sprintf("• %s **%s** (-%d pts)\n   _Violates:_ %s\n", icon, issue.Name, issue.Impact, issue.Description)
 	}
 
 	if len(result.Issues) == 0 {
-		issuesList = "• No critical vulnerabilities found (+0 pts)\n"
+		issuesList = "• ✅ No critical vulnerabilities found (+0 pts)\n"
 	}
 
 	// Determine Safety Advice
-	advice := "✅ Contract looks safe, but always DYOR."
+	advice := "✅ Contract looks legitimate. Safe to trade."
 	scoreColor := "✅"
-	riskLevel := "AN TOÀN"
+	riskLevel := "SAFE"
 
 	if result.TrustScore < 50 {
-		advice = "⚠️ **Advice:** Hãy cực kỳ cẩn trọng trước khi nạp tiền!"
+		advice = "⚠️ **Advice:** Exercise extreme caution! High potential for rug pull or scam. Do not invest unless you understand the risks."
 		scoreColor = "🛑"
-		riskLevel = "RỦI RO CAO"
+		riskLevel = "HIGH RISK"
 	} else if result.TrustScore < 80 {
-		advice = "⚠️ **Advice:** Có một số dấu hiệu đáng ngờ. Hãy check kỹ."
+		advice = "⚠️ **Advice:** Suspicious centralized features detected. Audit heavily before investing."
 		scoreColor = "⚠️"
-		riskLevel = "TRUNG BÌNH"
+		riskLevel = "MEDIUM RISK"
 	}
 
-	safeList := ""
-	if result.TrustScore > 0 {
-		safeList = "• Source code verified (+10 pts)\n"
-		// Real engine assumes verified code if we got this far
+	safeList := "• Source code verified on Explorer\n"
+	for _, feature := range result.SafeFeatures {
+		safeList += fmt.Sprintf("• ✅ %s\n", feature)
 	}
 
 	return fmt.Sprintf(`🛡 *ChainGuardian AI Report*
 	---------------------------
 	📍 *Network:* %s
+	📍 *Name:* %s
 	📍 *Contract:* `+"`%s`"+`
 	📊 *Trust Score:* %s **%d/100** (%s)
 
-	❌ *Issues Found:*
+	❌ *RISK ANALYSIS:*
 	%s
-	✅ *Safe:*
+	✅ *SAFETY FEATURES:*
 	%s
 
-	%s`, strings.ToUpper(network), shortAddr, scoreColor, result.TrustScore, riskLevel, issuesList, safeList, advice)
+	%s`, strings.ToUpper(network), name, shortAddr, scoreColor, result.TrustScore, riskLevel, issuesList, safeList, advice)
 }
 
 func (s *ScannerBot) sendReply(chatID int64, text string) {

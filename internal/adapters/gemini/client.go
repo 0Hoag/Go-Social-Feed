@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/google/generative-ai-go/genai"
 	"google.golang.org/api/option"
@@ -16,8 +17,9 @@ type Client struct {
 }
 
 type AIAnalysisResult struct {
-	TrustScore int         `json:"trust_score"`
-	Issues     []IssueData `json:"issues"`
+	TrustScore   int         `json:"trust_score"`
+	Issues       []IssueData `json:"issues"`
+	SafeFeatures []string    `json:"safe_features"`
 }
 
 type IssueData struct {
@@ -34,42 +36,64 @@ func NewClient(apiKey string) *Client {
 		log.Fatalf("Error creating Gemini client: %v", err)
 	}
 
-	// Use gemini-1.5-flash for speed and efficiency
+	// Use gemini-flash-latest for best performance
 	model := client.GenerativeModel("gemini-flash-latest")
-	model.SetTemperature(0.1) // Low temperature for consistent analysis
+	model.SetTemperature(0.1)
 
 	return &Client{model: model}
 }
 
 func (c *Client) AnalyzeContract(sourceCode string) (*AIAnalysisResult, error) {
-	ctx := context.Background()
+	// Set a reasonable timeout for AI analysis (e.g. 2 minutes)
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
 
-	// Truncate if too long (Gemini Flash has ~1M token context, but let's be safe/efficient)
+	// Truncate if too long
 	if len(sourceCode) > 100000 {
 		sourceCode = sourceCode[:100000] + "\n... (truncated)"
 	}
 
 	prompt := fmt.Sprintf(`
-	You are a Senior Smart Contract Auditor. Analyze the following Solidity code for security vulnerabilities.
-	Focus on logical flaws, backdoors, hidden mint functions, honeypot mechanisms, and high taxes.
+	You are an Elite Smart Contract Security Auditor. Your job is to analyze Solidity code with extreme depth and nuance.
+	
+	### OBJECTIVE:
+	Determine if the contract is a **Legitimate Project** (DeFi, Stablecoin, Top Token) or a **Scam/Rug Pull**.
+	
+	### ANALYSIS RULES:
+	1. **Context Matters**: 
+	   - If code allows **Minting**: Is it restricted to a specific role (e.g. 'minter'), capped, or time-locked? If yes, this is Standard DeFi (Low Risk). If 'onlyOwner' can mint unlimited without checks -> Critical Risk.
+	   - If code has **Blacklist**: Is it a standard implementation (like USDC/USDT) for compliance? If yes -> Warning (Centralization). If it blocks allows transfer only to owner -> Critical (Honeypot).
+	   - If code is **Proxy/Upgradable**: This is standard for professional projects (e.g. ENA, USDC). Flag as "Upgradable Contract" (Info/Warning), not Critical.
+
+	2. **Code Quality Heuristics**:
+	   - Professional formatting, Natspec comments, modular imports (OpenZeppelin) => High Trust Score (+20 pts).
+	   - Obfuscated code, lack of comments, single monolithic file => Scam Indicator.
+
+	3. **Scoring Logic**:
+	   - **Legit DeFi/Top Coins** (ENA, UNI, USDT): Score should be **65-95** (depending on centralization).
+	   - **Scams/Honeypots**: Score should be **0-30**.
+	   - **Average Meme Coins**: Score **30-60** (High risk but honest code).
+
+	### OUTPUT FORMAT (JSON ONLY):
+	{
+		"trust_score": <0-100 integer>,
+		"issues": [
+			{
+				"type": "CRITICAL" | "WARNING" | "INFO",
+				"name": "<Technical Name>",
+				"description": "<Explain WHY it is risky in this specific context. Mention if it's standard for this type of token.>",
+				"impact": <positive integer deduction>
+			}
+		],
+		"safe_features": [
+			"<List specific mitigating factors found, e.g. 'Minting limited to Minter Role', 'Uses OpenZeppelin Standard', 'Proxy Pattern Detected'>"
+		]
+	}
 
 	Source Code:
 	%s
-
-	Output STRICTLY JSON in the following format (no markdown code blocks):
-	{
-	"trust_score": <0-100 integer, 100 is safe, 0 is scam>,
-	"issues": [
-		{
-		"type": "CRITICAL" | "WARNING" | "INFO",
-		"name": "<Short Name>",
-		"description": "<Concise explanation>",
-		"impact": <negative integer, e.g. 40>
-		}
-	]
-	}
-
-	If no issues found, return empty issues array and high trust score.
+	
+	Output STRICTLY JSON. Checks must be rigorous but fair.
 `, sourceCode)
 
 	resp, err := c.model.GenerateContent(ctx, genai.Text(prompt))

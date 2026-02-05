@@ -38,7 +38,7 @@ func main() {
 		etherscan.NetworkETH: apiKey,
 	}
 	client := etherscan.NewClient(apiKeys)
-	source, err := client.GetContractSource(etherscan.NetworkETH, *contractAddr)
+	source, _, err := client.GetContractSource(etherscan.NetworkETH, *contractAddr)
 	if err != nil {
 		log.Fatalf("❌ Failed to fetch source code: %v", err)
 	}

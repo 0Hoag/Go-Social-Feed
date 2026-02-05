@@ -9,9 +9,11 @@ import (
 )
 
 const (
-	NetworkETH  = "eth"
-	NetworkBSC  = "bsc"
-	NetworkBase = "base"
+	NetworkETH      = "eth"
+	NetworkBSC      = "bsc"
+	NetworkBase     = "base"
+	NetworkArbitrum = "arbitrum"
+	NetworkPolygon  = "polygon"
 )
 
 type Client struct {
@@ -36,9 +38,11 @@ func NewClient(apiKeys map[string]string) *Client {
 	return &Client{
 		apiKeys: apiKeys,
 		baseURLs: map[string]string{
-			NetworkETH:  "https://api.etherscan.io/v2/api",
-			NetworkBSC:  "https://api.bscscan.com/api",
-			NetworkBase: "https://api.basescan.org/api",
+			NetworkETH:      "https://api.etherscan.io/v2/api",
+			NetworkBSC:      "https://api.bscscan.com/api",
+			NetworkBase:     "https://api.basescan.org/api",
+			NetworkArbitrum: "https://api.arbiscan.io/api",
+			NetworkPolygon:  "https://api.polygonscan.com/api",
 		},
 		httpClient: &http.Client{
 			Timeout: 10 * time.Second,
@@ -46,50 +50,26 @@ func NewClient(apiKeys map[string]string) *Client {
 	}
 }
 
-// GetContractSource fetches the Solidity source code for a given contract address on a specific network
-func (c *Client) GetContractSource(network, address string) (string, error) {
+// GetContractSource fetches the Solidity source code and name for a given contract address on a specific network
+func (c *Client) GetContractSource(network, address string) (string, string, error) {
 	apiKey, ok := c.apiKeys[network]
 	if !ok || apiKey == "" {
-		return "", fmt.Errorf("no api key for network: %s", network)
+		return "", "", fmt.Errorf("no api key for network: %s", network)
 	}
 
 	baseURL, ok := c.baseURLs[network]
 	if !ok {
-		return "", fmt.Errorf("unsupported network: %s", network)
+		return "", "", fmt.Errorf("unsupported network: %s", network)
 	}
 
 	// MOCK MODE
 	if apiKey == "MOCK" {
 		fmt.Println("⚠️  Running in MOCK MODE (Simulated Response)")
 		return `// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
-contract MockRiskyToken {
-    mapping(address => uint256) public balances;
-    mapping(address => bool) public blacklist;
-    address public owner;
-
-    constructor() {
-        owner = msg.sender;
-        balances[owner] = 1000000;
-    }
-
-    // Critical: Rug Pull Risk (Uncapped Mint)
-    function mint(address to, uint256 amount) public {
-        balances[to] += amount;
-    }
-
-    // Critical: Honeypot Risk (Blacklist)
-    function setBlacklist(address user, bool value) public {
-        require(msg.sender == owner);
-        blacklist[user] = value;
-    }
-
-    function transfer(address to, uint256 amount) public {
-        require(!blacklist[msg.sender], "You are blacklisted!");
-        balances[msg.sender] -= amount;
-        balances[to] += amount;
-    }
-}`, nil
+		pragma solidity ^0.8.0;
+		contract MockRiskyToken {
+			function mint(address to, uint256 amount) public {}
+		}`, "MockRiskyToken", nil
 	}
 
 	// Different chains might have slightly different v2/v1 query params, but standard getsourcecode is usually consistant.
@@ -106,38 +86,38 @@ contract MockRiskyToken {
 
 	resp, err := c.httpClient.Get(url)
 	if err != nil {
-		return "", fmt.Errorf("failed to make request: %w", err)
+		return "", "", fmt.Errorf("failed to make request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+		return "", "", fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("failed to read response body: %w", err)
+		return "", "", fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	var parsedResp SourceCodeResponse
 	if err := json.Unmarshal(body, &parsedResp); err != nil {
-		return "", fmt.Errorf("failed to parse JSON: %w", err)
+		return "", "", fmt.Errorf("failed to parse JSON: %w", err)
 	}
 
 	if parsedResp.Status == "0" {
 		var errorMsg string
 		_ = json.Unmarshal(parsedResp.Result, &errorMsg)
-		return "", fmt.Errorf("etherscan API error (%s): %s - %s", network, parsedResp.Message, errorMsg)
+		return "", "", fmt.Errorf("etherscan API error (%s): %s - %s", network, parsedResp.Message, errorMsg)
 	}
 
 	var results []ContractSource
 	if err := json.Unmarshal(parsedResp.Result, &results); err != nil {
-		return "", fmt.Errorf("api error (structure mismatch?): %w - raw: %s", err, string(parsedResp.Result))
+		return "", "", fmt.Errorf("api error (structure mismatch?): %w - raw: %s", err, string(parsedResp.Result))
 	}
 
 	if len(results) == 0 {
-		return "", fmt.Errorf("no source code found")
+		return "", "", fmt.Errorf("no source code found")
 	}
 
-	return results[0].SourceCode, nil
+	return results[0].SourceCode, results[0].ContractName, nil
 }
