@@ -34,8 +34,11 @@ func main() {
 	fmt.Printf("🔍 Scanning Contract: %s\n", *contractAddr)
 
 	// 1. Fetch Source Code
-	client := etherscan.NewClient(apiKey)
-	source, err := client.GetContractSource(*contractAddr)
+	apiKeys := map[string]string{
+		etherscan.NetworkETH: apiKey,
+	}
+	client := etherscan.NewClient(apiKeys)
+	source, err := client.GetContractSource(etherscan.NetworkETH, *contractAddr)
 	if err != nil {
 		log.Fatalf("❌ Failed to fetch source code: %v", err)
 	}
@@ -47,7 +50,7 @@ func main() {
 	fmt.Printf("✅ Source code fetched (%d bytes)\n", len(source))
 
 	// 2. Scan Logic
-	engine := scanner.NewEngine()
+	engine := scanner.NewEngine(nil)
 	result := engine.Scan(source)
 
 	// 3. Print Results

@@ -8,10 +8,16 @@ import (
 	"time"
 )
 
+const (
+	NetworkETH  = "eth"
+	NetworkBSC  = "bsc"
+	NetworkBase = "base"
+)
+
 type Client struct {
-	apiKey     string
+	apiKeys    map[string]string
+	baseURLs   map[string]string
 	httpClient *http.Client
-	baseURL    string
 }
 
 type SourceCodeResponse struct {
@@ -26,56 +32,77 @@ type ContractSource struct {
 	ABI          string `json:"ABI"`
 }
 
-func NewClient(apiKey string) *Client {
+func NewClient(apiKeys map[string]string) *Client {
 	return &Client{
-		apiKey:  apiKey,
-		baseURL: "https://api.etherscan.io/v2/api",
+		apiKeys: apiKeys,
+		baseURLs: map[string]string{
+			NetworkETH:  "https://api.etherscan.io/v2/api",
+			NetworkBSC:  "https://api.bscscan.com/api",
+			NetworkBase: "https://api.basescan.org/api",
+		},
 		httpClient: &http.Client{
 			Timeout: 10 * time.Second,
 		},
 	}
 }
 
-// GetContractSource fetches the Solidity source code for a given contract address
-func (c *Client) GetContractSource(address string) (string, error) {
-	// MOCK MODE for testing without API Key
-	if c.apiKey == "MOCK" {
-		fmt.Println("⚠️  Running in MOCK MODE (Simulated Etherscan Response)")
-		return `
-		// SPDX-License-Identifier: MIT
-		pragma solidity ^0.8.0;
-
-		contract MockRiskyToken {
-			mapping(address => uint256) public balances;
-			mapping(address => bool) public blacklist;
-			address public owner;
-
-			constructor() {
-				owner = msg.sender;
-				balances[owner] = 1000000;
-			}
-
-			// Critical: Rug Pull Risk (Uncapped Mint)
-			function mint(address to, uint256 amount) public {
-				balances[to] += amount;
-			}
-
-			// Critical: Honeypot Risk (Blacklist)
-			function setBlacklist(address user, bool value) public {
-				require(msg.sender == owner);
-				blacklist[user] = value;
-			}
-
-			function transfer(address to, uint256 amount) public {
-				require(!blacklist[msg.sender], "You are blacklisted!");
-				balances[msg.sender] -= amount;
-				balances[to] += amount;
-			}
-		}
-		`, nil
+// GetContractSource fetches the Solidity source code for a given contract address on a specific network
+func (c *Client) GetContractSource(network, address string) (string, error) {
+	apiKey, ok := c.apiKeys[network]
+	if !ok || apiKey == "" {
+		return "", fmt.Errorf("no api key for network: %s", network)
 	}
 
-	url := fmt.Sprintf("%s?chainid=1&module=contract&action=getsourcecode&address=%s&apikey=%s", c.baseURL, address, c.apiKey)
+	baseURL, ok := c.baseURLs[network]
+	if !ok {
+		return "", fmt.Errorf("unsupported network: %s", network)
+	}
+
+	// MOCK MODE
+	if apiKey == "MOCK" {
+		fmt.Println("⚠️  Running in MOCK MODE (Simulated Response)")
+		return `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+contract MockRiskyToken {
+    mapping(address => uint256) public balances;
+    mapping(address => bool) public blacklist;
+    address public owner;
+
+    constructor() {
+        owner = msg.sender;
+        balances[owner] = 1000000;
+    }
+
+    // Critical: Rug Pull Risk (Uncapped Mint)
+    function mint(address to, uint256 amount) public {
+        balances[to] += amount;
+    }
+
+    // Critical: Honeypot Risk (Blacklist)
+    function setBlacklist(address user, bool value) public {
+        require(msg.sender == owner);
+        blacklist[user] = value;
+    }
+
+    function transfer(address to, uint256 amount) public {
+        require(!blacklist[msg.sender], "You are blacklisted!");
+        balances[msg.sender] -= amount;
+        balances[to] += amount;
+    }
+}`, nil
+	}
+
+	// Different chains might have slightly different v2/v1 query params, but standard getsourcecode is usually consistant.
+	// Etherscan V2 uses chainid param. BscScan/BaseScan might still use V1 or ignore it.
+	// For safety, we try the standard V1-style appended with chainid if it's ETH v2, or just standard for others.
+
+	var url string
+	if network == NetworkETH {
+		url = fmt.Sprintf("%s?chainid=1&module=contract&action=getsourcecode&address=%s&apikey=%s", baseURL, address, apiKey)
+	} else {
+		// BSC and Base standard endpoints
+		url = fmt.Sprintf("%s?module=contract&action=getsourcecode&address=%s&apikey=%s", baseURL, address, apiKey)
+	}
 
 	resp, err := c.httpClient.Get(url)
 	if err != nil {
@@ -100,12 +127,12 @@ func (c *Client) GetContractSource(address string) (string, error) {
 	if parsedResp.Status == "0" {
 		var errorMsg string
 		_ = json.Unmarshal(parsedResp.Result, &errorMsg)
-		return "", fmt.Errorf("etherscan API error: %s - %s", parsedResp.Message, errorMsg)
+		return "", fmt.Errorf("etherscan API error (%s): %s - %s", network, parsedResp.Message, errorMsg)
 	}
 
 	var results []ContractSource
 	if err := json.Unmarshal(parsedResp.Result, &results); err != nil {
-		return "", fmt.Errorf("etherscan API error (v2 structure mismatch?): %w - raw: %s", err, string(parsedResp.Result))
+		return "", fmt.Errorf("api error (structure mismatch?): %w - raw: %s", err, string(parsedResp.Result))
 	}
 
 	if len(results) == 0 {
