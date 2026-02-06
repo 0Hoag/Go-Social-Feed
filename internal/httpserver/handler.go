@@ -3,6 +3,10 @@ package httpserver
 import (
 	"github.com/hoag/go-social-feed/config"
 	_ "github.com/hoag/go-social-feed/docs"
+	"github.com/hoag/go-social-feed/internal/adapters/dexscreener"
+	"github.com/hoag/go-social-feed/internal/adapters/etherscan"
+	"github.com/hoag/go-social-feed/internal/adapters/gemini"
+	"github.com/hoag/go-social-feed/internal/core/scanner"
 	prod "github.com/hoag/go-social-feed/internal/delivery/rabbitmq/producer"
 	"github.com/hoag/go-social-feed/pkg/jwt"
 	swaggerFiles "github.com/swaggo/files"
@@ -53,10 +57,17 @@ func (srv HTTPServer) mapHandlers() error {
 	followRepo := followMongo.New(srv.l, srv.db)
 	commentRepo := commentMongo.New(srv.l, srv.db)
 
-	// Client
-	engine := engine.New(srv.l)
-	dexClient := dex.New(srv.l)
-	ethClient := etherscan.New(srv.l)
+	// Scanner Dependencies
+	geminiClient := gemini.NewClient(cfg.Gemini.APIKey)
+	engine := scanner.NewEngine(geminiClient)
+	dexClient := dexscreener.NewClient()
+	ethClient := etherscan.NewClient(map[string]string{
+		etherscan.NetworkETH:      cfg.Scanner.EtherscanAPIKey,
+		etherscan.NetworkBSC:      cfg.Scanner.BscScanAPIKey,
+		etherscan.NetworkBase:     cfg.Scanner.BaseScanAPIKey,
+		etherscan.NetworkArbitrum: cfg.Scanner.ArbitrumScanAPIKey,
+		etherscan.NetworkPolygon:  cfg.Scanner.PolygonScanAPIKey,
+	})
 
 	// Usecases
 	userUC := userUC.New(srv.l, userRepo)

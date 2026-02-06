@@ -13,6 +13,15 @@ type Config struct {
 	Bot          BotConfig
 	Gemini       GeminiConfig
 	Telegram     TelegramConfig
+	Scanner      ScannerConfig
+}
+
+type ScannerConfig struct {
+	EtherscanAPIKey    string `env:"ETHERSCAN_API_KEY"`
+	BscScanAPIKey      string `env:"BSCSCAN_API_KEY"`
+	BaseScanAPIKey     string `env:"BASESCAN_API_KEY"`
+	ArbitrumScanAPIKey string `env:"ARBITRUMSCAN_API_KEY"`
+	PolygonScanAPIKey  string `env:"POLYGONSCAN_API_KEY"`
 }
 
 type GeminiConfig struct {
