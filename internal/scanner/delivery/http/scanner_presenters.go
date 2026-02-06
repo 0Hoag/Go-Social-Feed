@@ -24,10 +24,10 @@ func (r scannerTokenInput) validate() error {
 }
 
 type issue struct {
-	Type        scan.IssueType
-	Name        string
-	Description string
-	Impact      int
+	Type        scan.IssueType `json:"type"`
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Impact      int            `json:"impact"`
 }
 
 func toIssues(issues []scan.Issue) []issue {

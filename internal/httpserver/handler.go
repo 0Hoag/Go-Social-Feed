@@ -28,6 +28,9 @@ import (
 	authHTTP "github.com/hoag/go-social-feed/internal/auth/delivery/http"
 	authUC "github.com/hoag/go-social-feed/internal/auth/usecase"
 
+	scanHTTP "github.com/hoag/go-social-feed/internal/scanner/delivery/http"
+	scanUC "github.com/hoag/go-social-feed/internal/scanner/usecase"
+
 	// Import this to execute the init function in docs.go which setups the Swagger docs.
 	_ "github.com/hoag/go-social-feed/docs"
 )
@@ -50,12 +53,18 @@ func (srv HTTPServer) mapHandlers() error {
 	followRepo := followMongo.New(srv.l, srv.db)
 	commentRepo := commentMongo.New(srv.l, srv.db)
 
+	// Client
+	engine := engine.New(srv.l)
+	dexClient := dex.New(srv.l)
+	ethClient := etherscan.New(srv.l)
+
 	// Usecases
 	userUC := userUC.New(srv.l, userRepo)
 	postUC := postUC.New(srv.l, postProd, userUC, postRepo)
 	followUC := followUC.New(srv.l, userUC, followRepo)
 	commentUC := commentUC.New(srv.l, postUC, commentRepo)
 	authUC := authUC.New(srv.l, cfg, userUC)
+	scanUC := scanUC.New(srv.l, engine, dexClient, ethClient)
 
 	// Handlers
 	userH := userHTTP.New(srv.l, userUC)
@@ -63,6 +72,7 @@ func (srv HTTPServer) mapHandlers() error {
 	followH := followHTTP.New(srv.l, followUC)
 	commentH := commentHTTP.New(srv.l, commentUC)
 	authH := authHTTP.New(srv.l, authUC)
+	scanH := scanHTTP.New(srv.l, scanUC)
 
 	// Middlewares
 	mw := middleware.New(srv.l, userUC, jwtManager, srv.encrypter, srv.internalKey)
@@ -77,6 +87,7 @@ func (srv HTTPServer) mapHandlers() error {
 	postHTTP.MapRoutes(newsFeedGroup.Group("/posts"), postH, mw)
 	followHTTP.MapRoutes(newsFeedGroup.Group("/follow"), followH, mw)
 	commentHTTP.MapRoutes(newsFeedGroup.Group("/comment"), commentH, mw)
+	scanHTTP.MapRoutes(newsFeedGroup.Group("/scanner"), scanH, mw)
 
 	return nil
 }

@@ -16,7 +16,7 @@ type handler struct {
 	l  log.Logger
 }
 
-func NewHandler(l log.Logger, uc scanner.UseCase) Handler {
+func New(l log.Logger, uc scanner.UseCase) Handler {
 	return handler{
 		uc: uc,
 		l:  l,

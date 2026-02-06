@@ -17,7 +17,6 @@ func (uc ScannerUC) ScanToken(ctx context.Context, input scanDomain.ScanTokenInp
 	// 1. Resolve Symbol if needed
 	isAddress := strings.HasPrefix(query, "0x") && len(query) == 42
 	if !isAddress {
-		uc.l.Infof(ctx, "Searching for token symbol: %s", query)
 		foundAddr, foundNet, foundName, err := uc.dexClient.SearchTopToken(query)
 		if err != nil {
 			uc.l.Errorf(ctx, "Token not found: %v", err)
@@ -29,13 +28,10 @@ func (uc ScannerUC) ScanToken(ctx context.Context, input scanDomain.ScanTokenInp
 	}
 
 	// 2. Fetch Source Code
-	// Simplified logic for API: if direct address, default loop or specific network.
-	// For MVP, we use the loop logic if address provided without context.
 	var sourceCode string
 	var err error
 
 	if isAddress {
-		// Loop Strategy like Bot
 		networks := []string{
 			etherscan.NetworkETH,
 			etherscan.NetworkBSC,
@@ -51,7 +47,6 @@ func (uc ScannerUC) ScanToken(ctx context.Context, input scanDomain.ScanTokenInp
 			}
 		}
 	} else {
-		// Single Network Strategy
 		sourceCode, name, err = uc.ethClient.GetContractSource(network, address)
 	}
 
