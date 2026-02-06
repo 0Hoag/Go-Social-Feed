@@ -5,6 +5,8 @@ import { createChart, ColorType, CrosshairMode, LineStyle, ISeriesApi, IChartApi
 
 interface ProfessionalChartProps {
     symbol?: string;
+    chartType?: 'candle' | 'area';
+    interval?: string;
 }
 
 interface CandleData {
@@ -16,18 +18,18 @@ interface CandleData {
     volume: number;
 }
 
-export default function ProfessionalChart({ symbol = "BTCUSDT" }: ProfessionalChartProps) {
+export default function ProfessionalChart({ symbol = "BTCUSDT", chartType = 'candle', interval: externalInterval = '15m' }: ProfessionalChartProps) {
     const chartContainerRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<IChartApi | null>(null);
-    const candlestickSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
-    const volumeSeriesRef = useRef<ISeriesApi<"Histogram"> | null>(null);
+    const mainSeriesRef = useRef<ISeriesApi<"Candlestick" | "Area"> | null>(null);
+
     const ema7SeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
     const ema25SeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
     const ema99SeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
     const ma7SeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
     const ma25SeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
 
-    const [interval, setInterval] = useState<string>('15m');
+    const interval = externalInterval;
     const currentPriceRef = useRef<string>("0.00");
     const [currentPrice, _setCurrentPrice] = useState("0.00");
     const setCurrentPrice = (price: string) => {
@@ -121,7 +123,7 @@ export default function ProfessionalChart({ symbol = "BTCUSDT" }: ProfessionalCh
                 borderColor: '#333',
                 scaleMargins: {
                     top: 0.1,
-                    bottom: 0.2, // Leave space for volume
+                    bottom: 0.1,
                 },
             },
             watermark: {
@@ -141,60 +143,67 @@ export default function ProfessionalChart({ symbol = "BTCUSDT" }: ProfessionalCh
 
         chartRef.current = chart;
 
-        // Add candlestick series
-        const candlestickSeries = chart.addCandlestickSeries({
-            upColor: '#26a69a',
-            downColor: '#ef5350',
-            borderUpColor: '#26a69a',
-            borderDownColor: '#ef5350',
-            wickUpColor: '#26a69a',
-            wickDownColor: '#ef5350',
-        });
-        candlestickSeriesRef.current = candlestickSeries;
+        chartRef.current = chart;
 
-        // Volume Series
-        const volumeSeries = chart.addHistogramSeries({
-            priceScaleId: 'volume',
-            priceFormat: { type: 'volume' },
-        });
-        volumeSeriesRef.current = volumeSeries;
+        // Add main series based on chart type
+        let mainSeries: ISeriesApi<"Candlestick" | "Area">;
 
-        chart.priceScale('volume').applyOptions({
-            scaleMargins: {
-                top: 0.85, // Place volume at the bottom 8% (very small)
-                bottom: 0,
-            },
-        });
+        if (chartType === 'area') {
+            mainSeries = chart.addAreaSeries({
+                topColor: 'rgba(38, 166, 154, 0.56)',
+                bottomColor: 'rgba(38, 166, 154, 0.04)',
+                lineColor: 'rgba(38, 166, 154, 1)',
+                lineWidth: 2,
+            });
+        } else {
+            mainSeries = chart.addCandlestickSeries({
+                upColor: '#26a69a',
+                downColor: '#ef5350',
+                borderUpColor: '#26a69a',
+                borderDownColor: '#ef5350',
+                wickUpColor: '#26a69a',
+                wickDownColor: '#ef5350',
+            });
+        }
+        mainSeriesRef.current = mainSeries;
 
-        // EMA Series
-        const ema7 = chart.addLineSeries({
-            color: 'rgba(251, 140, 0, 0.5)',
-            lineWidth: 1,
-            priceScaleId: 'right',
-            lastValueVisible: false,
-            priceLineVisible: false,
-            crosshairMarkerVisible: false,
-        }); // Yellow
-        const ema25 = chart.addLineSeries({
-            color: 'rgba(41, 98, 255, 0.5)',
-            lineWidth: 1,
-            priceScaleId: 'right',
-            lastValueVisible: false,
-            priceLineVisible: false,
-            crosshairMarkerVisible: false,
-        }); // Blue
-        const ema99 = chart.addLineSeries({
-            color: 'rgba(224, 64, 251, 0.5)',
-            lineWidth: 1,
-            priceScaleId: 'right',
-            lastValueVisible: false,
-            priceLineVisible: false,
-            crosshairMarkerVisible: false,
-        }); // Purple
 
-        ema7SeriesRef.current = ema7;
-        ema25SeriesRef.current = ema25;
-        ema99SeriesRef.current = ema99;
+
+        // EMA Series (Only for Candle chart)
+        if (chartType === 'candle') {
+            const ema7 = chart.addLineSeries({
+                color: 'rgba(251, 140, 0, 0.5)',
+                lineWidth: 1,
+                priceScaleId: 'right',
+                lastValueVisible: false,
+                priceLineVisible: false,
+                crosshairMarkerVisible: false,
+            }); // Yellow
+            const ema25 = chart.addLineSeries({
+                color: 'rgba(41, 98, 255, 0.5)',
+                lineWidth: 1,
+                priceScaleId: 'right',
+                lastValueVisible: false,
+                priceLineVisible: false,
+                crosshairMarkerVisible: false,
+            }); // Blue
+            const ema99 = chart.addLineSeries({
+                color: 'rgba(224, 64, 251, 0.5)',
+                lineWidth: 1,
+                priceScaleId: 'right',
+                lastValueVisible: false,
+                priceLineVisible: false,
+                crosshairMarkerVisible: false,
+            }); // Purple
+
+            ema7SeriesRef.current = ema7;
+            ema25SeriesRef.current = ema25;
+            ema99SeriesRef.current = ema99;
+        } else {
+            ema7SeriesRef.current = null;
+            ema25SeriesRef.current = null;
+            ema99SeriesRef.current = null;
+        }
 
         // Handle resize
         const handleResize = () => {
@@ -220,7 +229,7 @@ export default function ProfessionalChart({ symbol = "BTCUSDT" }: ProfessionalCh
                 return;
             }
 
-            const price = candlestickSeriesRef.current!.coordinateToPrice(param.point.y);
+            const price = mainSeriesRef.current!.coordinateToPrice(param.point.y);
             if (price !== null) {
                 const currentPriceVal = parseFloat(currentPriceRef.current);
                 // Fallback to avoid weird display if currentPrice is 0 (initial state)
@@ -256,14 +265,13 @@ export default function ProfessionalChart({ symbol = "BTCUSDT" }: ProfessionalCh
             chart.unsubscribeCrosshairMove(handleCrosshairMove);
             chart.remove();
         };
-    }, []); // Only run once on mount (technically depends on nothing)
+    }, [chartType]); // Re-create chart when chartType changes
 
     const [stats, setStats] = useState({ high: '0.00', low: '0.00', vol: '0.00' });
     const [cursorData, setCursorData] = useState<{ visible: boolean; x: number; y: number; price: string; percentDiff: string } | null>(null);
     // Data Fetching
     useEffect(() => {
         const fetchData = async () => {
-            // ... existing kline fetch logic ...
             try {
                 // Fetch 24h stats
                 const statsRes = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`);
@@ -308,18 +316,20 @@ export default function ProfessionalChart({ symbol = "BTCUSDT" }: ProfessionalCh
                     volume: parseFloat(item[5]),
                 }));
 
-                const volumeData = data.map((item: any) => ({
-                    time: Math.floor(item[0] / 1000) + 25200,
-                    value: parseFloat(item[5]),
-                    color: parseFloat(item[4]) >= parseFloat(item[1]) ? 'rgba(38, 166, 154, 0.5)' : 'rgba(239, 83, 80, 0.5)',
-                }));
 
-                if (candlestickSeriesRef.current && volumeSeriesRef.current) {
-                    candlestickSeriesRef.current.setData(formattedData as any);
-                    volumeSeriesRef.current.setData(volumeData as any);
+
+                if (mainSeriesRef.current) {
+                    if (chartType === 'area') {
+                        const areaData = formattedData.map(d => ({ time: d.time, value: d.close }));
+                        mainSeriesRef.current.setData(areaData as any);
+                    } else {
+                        mainSeriesRef.current.setData(formattedData as any);
+                    }
+
+
 
                     // Set EMA Data
-                    if (formattedData.length > 0) {
+                    if (formattedData.length > 0 && chartType === 'candle') {
                         const ema7Data = calculateEMA(formattedData, 7);
                         const ema25Data = calculateEMA(formattedData, 25);
                         const ema99Data = calculateEMA(formattedData, 99);
@@ -338,7 +348,10 @@ export default function ProfessionalChart({ symbol = "BTCUSDT" }: ProfessionalCh
                                             interval === '1d' ? 86400 : 604800; // 1w
 
                         for (let i = 1; i <= 10; i++) {
-                            candlestickSeriesRef.current.update({ time: (lastTime + (i * intervalSeconds)) as any } as any);
+                            // Only update for candle series for now as area series might behave differently with empty data
+                            if (chartType === 'candle') {
+                                (mainSeriesRef.current as ISeriesApi<"Candlestick">).update({ time: (lastTime + (i * intervalSeconds)) as any } as any);
+                            }
                         }
                     }
                 }
@@ -382,7 +395,7 @@ export default function ProfessionalChart({ symbol = "BTCUSDT" }: ProfessionalCh
             const message = JSON.parse(event.data);
             const candle = message.k;
 
-            if (candle && candlestickSeriesRef.current) {
+            if (candle && mainSeriesRef.current) {
                 const newCandle = {
                     time: (Math.floor(candle.t / 1000) + 25200) as any,
                     open: parseFloat(candle.o),
@@ -392,21 +405,18 @@ export default function ProfessionalChart({ symbol = "BTCUSDT" }: ProfessionalCh
                 };
 
                 try {
-                    candlestickSeriesRef.current.update(newCandle);
+                    if (chartType === 'area') {
+                        mainSeriesRef.current.update({ time: newCandle.time, value: newCandle.close } as any);
+                    } else {
+                        (mainSeriesRef.current as ISeriesApi<"Candlestick">).update(newCandle);
+                    }
                 } catch (e) {
                     // Ignore "Cannot update oldest data" errors during race conditions
                     console.warn("Chart update skipped:", e);
                 }
                 setCurrentPrice(newCandle.close.toFixed(2));
 
-                // Update Volume
-                if (volumeSeriesRef.current) {
-                    volumeSeriesRef.current.update({
-                        time: newCandle.time,
-                        value: parseFloat(candle.v),
-                        color: newCandle.close >= newCandle.open ? 'rgba(38, 166, 154, 0.5)' : 'rgba(239, 83, 80, 0.5)',
-                    });
-                }
+
 
                 // Note: Updating EMAs in real-time accurately requires the full history or storing the last EMA state. 
                 // For simplicity/visual smoothness, we can just let it re-fetch on interval change or implement a simplified incremental update if needed.
@@ -437,7 +447,7 @@ export default function ProfessionalChart({ symbol = "BTCUSDT" }: ProfessionalCh
             ws.close();
             tickerWs.close();
         };
-    }, [symbol, interval]);
+    }, [symbol, interval, chartType]);
 
     const isPositive = priceChange >= 0;
 
@@ -449,56 +459,7 @@ export default function ProfessionalChart({ symbol = "BTCUSDT" }: ProfessionalCh
 
     return (
         <div className="relative w-full h-full bg-gradient-to-b from-[#0a0a0a] to-[#050505] p-6">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-8">
-                    <div>
-                        <div className="flex items-baseline gap-3">
-                            <span className="text-4xl font-bold text-white">
-                                ${formatPrice(currentPrice)}
-                            </span>
-                            <span className={`text-lg font-semibold ${isPositive ? 'text-[#26a69a]' : 'text-[#ef5350]'}`}>
-                                {isPositive ? '+' : ''}{priceChange.toFixed(2)}%
-                            </span>
-                        </div>
-                        <div className="text-sm text-gray-500 mt-1">
-                            {symbol.replace('USDT', '')}/USDT
-                        </div>
-                    </div>
 
-                    {/* 24h Stats */}
-                    <div className="flex gap-8 text-sm">
-                        <div className="flex flex-col">
-                            <span className="text-gray-500 text-xs mb-1">24h High</span>
-                            <span className="text-gray-200 font-medium">{formatPrice(stats.high)}</span>
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-gray-500 text-xs mb-1">24h Low</span>
-                            <span className="text-gray-200 font-medium">{formatPrice(stats.low)}</span>
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-gray-500 text-xs mb-1">24h Vol</span>
-                            <span className="text-gray-200 font-medium">{formatPrice(stats.vol)}</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Timeframe Selector */}
-                <div className="flex gap-2">
-                    {timeframes.map((tf) => (
-                        <button
-                            key={tf.value}
-                            onClick={() => setInterval(tf.value)}
-                            className={`px-3 py-1 rounded text-xs font-medium transition-all ${interval === tf.value
-                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50'
-                                : 'bg-[#1a1a1a] text-gray-400 hover:bg-[#222] hover:text-white'
-                                }`}
-                        >
-                            {tf.label}
-                        </button>
-                    ))}
-                </div>
-            </div>
 
             {/* Tooltip removed to prevent blocking candles */}
 

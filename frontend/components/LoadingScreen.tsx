@@ -4,9 +4,10 @@ import { useEffect, useState } from 'react';
 
 interface LoadingScreenProps {
     onLoadingComplete?: () => void;
+    isReady?: boolean;
 }
 
-export default function LoadingScreen({ onLoadingComplete }: LoadingScreenProps) {
+export default function LoadingScreen({ onLoadingComplete, isReady = false }: LoadingScreenProps) {
     const [progress, setProgress] = useState(0);
     const [messageIndex, setMessageIndex] = useState(0);
     const [isVisible, setIsVisible] = useState(true);
@@ -22,11 +23,18 @@ export default function LoadingScreen({ onLoadingComplete }: LoadingScreenProps)
         // Progress animation
         const progressInterval = setInterval(() => {
             setProgress(prev => {
-                if (prev >= 100) {
-                    clearInterval(progressInterval);
-                    return 100;
+                // If ready, speed up to 100
+                if (isReady) {
+                    const next = prev + 5;
+                    if (next >= 100) {
+                        return 100;
+                    }
+                    return next;
                 }
-                return prev + 2;
+
+                // If not ready, slow down at 90%
+                if (prev >= 90) return prev;
+                return prev + 1;
             });
         }, 30);
 
@@ -35,19 +43,22 @@ export default function LoadingScreen({ onLoadingComplete }: LoadingScreenProps)
             setMessageIndex(prev => (prev + 1) % messages.length);
         }, 800);
 
-        // Minimum display time
-        const minDisplayTimer = setTimeout(() => {
-            if (onLoadingComplete) {
-                onLoadingComplete();
-            }
-        }, 1500);
-
         return () => {
             clearInterval(progressInterval);
             clearInterval(messageInterval);
-            clearTimeout(minDisplayTimer);
         };
-    }, []);
+    }, [isReady]);
+
+    // Handle completion when progress hits 100
+    useEffect(() => {
+        if (progress === 100 && onLoadingComplete) {
+            // Small delay to show 100%
+            const timer = setTimeout(() => {
+                onLoadingComplete();
+            }, 500);
+            return () => clearTimeout(timer);
+        }
+    }, [progress, onLoadingComplete]);
 
     return (
         <div
@@ -58,7 +69,7 @@ export default function LoadingScreen({ onLoadingComplete }: LoadingScreenProps)
                 {/* Logo */}
                 <div className="flex items-center gap-3">
                     <h1 className="text-5xl font-bold text-[#00d4ff]">
-                        Syntax
+                        CryptoCheck
                     </h1>
                     <span className="px-3 py-1 text-sm font-bold text-white bg-[#ff6b35] rounded">
                         PRO

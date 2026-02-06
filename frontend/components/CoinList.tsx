@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from "axios";
+import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface CoinListProps {
     onCoinSelect: (symbol: string, name: string) => void;
@@ -17,112 +18,146 @@ interface CoinData {
     change: string;
     changePercent: string;
     tvSymbol?: string;
+    isGold?: boolean;
+}
+
+interface MiniTicker {
+    s: string; // Symbol
+    c: string; // Close price
+    o: string; // Open price
+    h: string; // High price
+    l: string; // Low price
+    v: string; // Volume
+    q: string; // Quote Volume
 }
 
 export default function CoinList({ onCoinSelect, selectedSymbol }: CoinListProps) {
     const [coins, setCoins] = useState<CoinData[]>([]);
-
-    const coinMapping = [
-        // Commodity (separated at top)
-        { symbol: "XAUUSD", name: "Gold", id: "gold", logo: "gold", tvSymbol: "OANDA:XAUUSD", isGold: true },
-
-        // Top 25 Cryptocurrencies
-        { symbol: "BTCUSDT", name: "Bitcoin", id: "1", logo: "btc", tvSymbol: "BINANCE:BTCUSDT" },
-        { symbol: "ETHUSDT", name: "Ethereum", id: "1027", logo: "eth", tvSymbol: "BINANCE:ETHUSDT" },
-        { symbol: "SOLUSDT", name: "Solana", id: "5426", logo: "sol", tvSymbol: "BINANCE:SOLUSDT" },
-        { symbol: "BNBUSDT", name: "BNB", id: "1839", logo: "bnb", tvSymbol: "BINANCE:BNBUSDT" },
-        { symbol: "XRPUSDT", name: "XRP", id: "52", logo: "xrp", tvSymbol: "BINANCE:XRPUSDT" },
-        { symbol: "DOGEUSDT", name: "Dogecoin", id: "74", logo: "doge", tvSymbol: "BINANCE:DOGEUSDT" },
-        { symbol: "ADAUSDT", name: "Cardano", id: "2010", logo: "ada", tvSymbol: "BINANCE:ADAUSDT" },
-        { symbol: "AVAXUSDT", name: "Avalanche", id: "5805", logo: "avax", tvSymbol: "BINANCE:AVAXUSDT" },
-        { symbol: "TRXUSDT", name: "Tron", id: "1958", logo: "trx", tvSymbol: "BINANCE:TRXUSDT" },
-        { symbol: "LINKUSDT", name: "Chainlink", id: "1975", logo: "link", tvSymbol: "BINANCE:LINKUSDT" },
-        { symbol: "DOTUSDT", name: "Polkadot", id: "6636", logo: "dot", tvSymbol: "BINANCE:DOTUSDT" },
-        { symbol: "MATICUSDT", name: "Polygon", id: "3890", logo: "matic", tvSymbol: "BINANCE:MATICUSDT" },
-        { symbol: "TONUSDT", name: "Toncoin", id: "11419", logo: "ton", tvSymbol: "BINANCE:TONUSDT" },
-        { symbol: "LTCUSDT", name: "Litecoin", id: "2", logo: "ltc", tvSymbol: "BINANCE:LTCUSDT" },
-        { symbol: "WBTCUSDT", name: "Wrapped Bitcoin", id: "3717", logo: "wbtc", tvSymbol: "BINANCE:WBTCUSDT" },
-        { symbol: "NEARUSDT", name: "NEAR Protocol", id: "6535", logo: "near", tvSymbol: "BINANCE:NEARUSDT" },
-        { symbol: "UNIUSDT", name: "Uniswap", id: "7083", logo: "uni", tvSymbol: "BINANCE:UNIUSDT" },
-        { symbol: "APTUSDT", name: "Aptos", id: "21794", logo: "apt", tvSymbol: "BINANCE:APTUSDT" },
-        { symbol: "ATOMUSDT", name: "Cosmos", id: "3794", logo: "atom", tvSymbol: "BINANCE:ATOMUSDT" },
-        { symbol: "SUIUSDT", name: "Sui", id: "20947", logo: "sui", tvSymbol: "BINANCE:SUIUSDT" },
-        { symbol: "PEPEUSDT", name: "Pepe", id: "24478", logo: "pepe", tvSymbol: "BINANCE:PEPEUSDT" },
-        { symbol: "ARBUSDT", name: "Arbitrum", id: "11841", logo: "arb", tvSymbol: "BINANCE:ARBUSDT" },
-        { symbol: "ENAUSDT", name: "Ethena", id: "30171", logo: "ena", tvSymbol: "BINANCE:ENAUSDT" },
-        { symbol: "OPUSDT", name: "Optimism", id: "11840", logo: "op", tvSymbol: "BINANCE:OPUSDT" },
-        { symbol: "SHIBUSDT", name: "Shiba Inu", id: "5994", logo: "shib", tvSymbol: "BINANCE:SHIBUSDT" },
-    ];
+    const [searchTerm, setSearchTerm] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const ITEMS_PER_PAGE = 8;
 
     useEffect(() => {
-        // Initial setup from config
-        const initialCoins = coinMapping.map(c => ({
-            id: c.id,
-            symbol: c.symbol,
-            name: c.name,
-            price: "0.00",
-            change: "0.00",
-            changePercent: "0.00",
-            icon: `https://s2.coinmarketcap.com/static/img/coins/64x64/${c.id}.png`,
-            tvSymbol: c.tvSymbol
-        }));
-        setCoins(initialCoins);
+        const fetchCoins = async () => {
+            try {
+                const res = await axios.get("https://api.binance.com/api/v3/ticker/24hr");
+                let data = res.data;
 
-        // WebSocket for Crypto
-        const ws = new WebSocket('wss://stream.binance.com:9443/ws/!miniTicker@arr');
+                // Filter for USDT pairs and sort by quote volume (liquidity)
+                data = data.filter((t: any) => t.symbol.endsWith("USDT"));
+                data.sort((a: any, b: any) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume));
 
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-
-            setCoins(prevCoins => {
-                const newCoins = [...prevCoins];
-                let updated = false;
-
-                data.forEach((ticker: any) => {
-                    const index = newCoins.findIndex(c => c.symbol === ticker.s);
-                    if (index !== -1) {
-                        newCoins[index] = {
-                            ...newCoins[index],
-                            price: parseFloat(ticker.c).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                            change: (parseFloat(ticker.c) - parseFloat(ticker.o)).toFixed(2),
-                            changePercent: ((parseFloat(ticker.c) - parseFloat(ticker.o)) / parseFloat(ticker.o) * 100).toFixed(2),
-                        };
-                        updated = true;
-                    }
+                // Take ALL pairs (no limit)
+                const formattedCoins = data.map((t: any) => {
+                    const symbol = t.symbol.replace("USDT", "");
+                    return {
+                        id: symbol.toLowerCase(),
+                        symbol: t.symbol,
+                        name: symbol, // We don't have full names without a huge map, using symbol as name
+                        price: parseFloat(t.lastPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                        change: parseFloat(t.priceChange).toFixed(2),
+                        changePercent: parseFloat(t.priceChangePercent).toFixed(2),
+                        icon: `https://assets.coincap.io/assets/icons/${symbol.toLowerCase()}@2x.png`,
+                        tvSymbol: `BINANCE:${t.symbol}`
+                    };
                 });
 
-                // Set Gold manually since it's not in Binance Crypto WS
-                // In a real app, this would need a separate API/WS
-                const goldIndex = newCoins.findIndex(c => c.symbol === "XAUUSD");
-                if (goldIndex !== -1) {
-                    newCoins[goldIndex] = {
-                        ...newCoins[goldIndex],
-                        price: "2,650.00",
-                        change: "+5.20",
-                        changePercent: "+0.20"
-                    };
-                }
+                setCoins(formattedCoins);
 
-                return updated ? newCoins : prevCoins;
+            } catch (error) {
+                console.error("Failed to fetch top coins:", error);
+            }
+        };
+
+        fetchCoins();
+        const interval = setInterval(fetchCoins, 10000); // Poll every 10s as a simple backup or use WS
+
+        // WebSocket for real-time updates
+        const ws = new WebSocket('wss://stream.binance.com:9443/ws/!miniTicker@arr');
+        ws.onmessage = (event) => {
+            const tickers = JSON.parse(event.data);
+            setCoins(prevCoins => {
+                // Create a map for faster lookup
+                const tickerMap = new Map<string, MiniTicker>(tickers.map((t: MiniTicker) => [t.s, t]));
+
+                const newCoins = prevCoins.map(coin => {
+                    const updates = tickerMap.get(coin.symbol);
+                    if (updates) {
+                        const currentPrice = parseFloat(updates.c);
+                        const openPrice = parseFloat(updates.o);
+                        const change = currentPrice - openPrice;
+                        const changePercent = (change / openPrice) * 100;
+
+                        return {
+                            ...coin,
+                            price: currentPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                            change: change.toFixed(2),
+                            changePercent: changePercent.toFixed(2)
+                        };
+                    }
+                    return coin;
+                });
+                return newCoins;
             });
         };
 
-        return () => ws.close();
+        return () => {
+            clearInterval(interval);
+            ws.close();
+        }
     }, []);
+
+    // Filter coins based on search term
+    const filteredCoins = coins.filter(coin =>
+        coin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        coin.symbol.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    // Paginate filtered coins
+    const totalPages = Math.ceil(filteredCoins.length / ITEMS_PER_PAGE);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const paginatedCoins = filteredCoins.slice(startIndex, endIndex);
+
+    // Reset to page 1 when search term changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
+
+    // Scroll to top when page changes
+    useEffect(() => {
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTop = 0;
+        }
+    }, [currentPage]);
 
     return (
         <div className="h-full w-full bg-[#111] border border-white/5 rounded-2xl overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-white/5">
+            <div className="p-4 border-b border-white/5 space-y-3">
                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Market Overview</h3>
+
+                {/* Search Input */}
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <input
+                        type="text"
+                        placeholder="Search coins..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-all"
+                    />
+                </div>
             </div>
-            <div className="flex-1 overflow-y-auto custom-scrollbar">
-                {coins.map((coin, index) => {
+
+            <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
+                {paginatedCoins.map((coin, index) => {
                     const isSelected = selectedSymbol === coin.symbol;
                     const isPositive = parseFloat(coin.changePercent) >= 0;
                     const isGold = coin.symbol === "XAUUSD";
 
                     // Show separator after Gold (first item)
-                    const showSeparator = isGold && index === 0;
+                    const showSeparator = isGold && startIndex === 0 && index === 0;
 
                     return (
                         <div key={coin.symbol}>
@@ -143,7 +178,7 @@ export default function CoinList({ onCoinSelect, selectedSymbol }: CoinListProps
                                             alt={coin.name}
                                             className="w-6 h-6 rounded-full flex-shrink-0 object-cover"
                                             onError={(e) => {
-                                                e.currentTarget.onerror = null; // Prevent infinite loop if fallback fails
+                                                e.currentTarget.onerror = null;
                                                 e.currentTarget.src = `https://ui-avatars.com/api/?name=${coin.symbol}&background=random&color=fff&size=32`;
                                             }}
                                         />
@@ -173,6 +208,36 @@ export default function CoinList({ onCoinSelect, selectedSymbol }: CoinListProps
                     );
                 })}
             </div>
+
+            {/* Pagination Controls - Sticky at bottom */}
+            {filteredCoins.length > 0 && (
+                <div className="sticky bottom-0 bg-[#0a0a0a] border-t border-white/5 p-2 flex items-center justify-between text-xs">
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className="flex items-center gap-1 px-2 py-1 rounded-lg bg-gradient-to-r from-blue-600/20 to-blue-500/20 hover:from-blue-600/30 hover:to-blue-500/30 border border-blue-500/30 text-blue-400 font-medium disabled:opacity-30 disabled:cursor-not-allowed transition-all disabled:hover:from-blue-600/20 disabled:hover:to-blue-500/20"
+                    >
+                        <ChevronLeft className="w-3 h-3" />
+                    </button>
+
+                    <div className="flex items-center gap-1.5">
+                        <span className="text-gray-500 text-[9px] uppercase tracking-wider">Page</span>
+                        <span className="px-1.5 py-0.5 bg-blue-500/20 border border-blue-500/30 rounded text-blue-400 font-bold text-[10px]">
+                            {currentPage}
+                        </span>
+                        <span className="text-gray-600 text-[10px]">/</span>
+                        <span className="text-gray-500 text-[10px]">{totalPages}</span>
+                    </div>
+
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                        className="flex items-center gap-1 px-2 py-1 rounded-lg bg-gradient-to-r from-blue-600/20 to-blue-500/20 hover:from-blue-600/30 hover:to-blue-500/30 border border-blue-500/30 text-blue-400 font-medium disabled:opacity-30 disabled:cursor-not-allowed transition-all disabled:hover:from-blue-600/20 disabled:hover:to-blue-500/20"
+                    >
+                        <ChevronRight className="w-3 h-3" />
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
