@@ -44,18 +44,20 @@ func (repo impleRepository) buildModels(ctx context.Context, sc models.Scope, op
 	}
 
 	post := models.Post{
-		ID:           repo.db.NewObjectID(),
-		Pin:          opts.Pin,
-		Title:        opts.Title,
-		Content:      opts.Content,
-		FullContent:  opts.FullContent,
-		FileIDs:      fileIDs,
-		TaggedTarget: tmpTagged,
-		Permission:   models.PrivacyType(opts.Permission),
-		AuthorID:     authorID,
-		SourceURL:    opts.SourceURL,
-		CreatedAt:    now,
-		UpdatedAt:    now,
+		ID:            repo.db.NewObjectID(),
+		Pin:           opts.Pin,
+		Title:         opts.Title,
+		TitleEn:       opts.TitleEn,
+		Content:       opts.Content,
+		FullContent:   opts.FullContent,
+		FullContentEn: opts.FullContentEn,
+		FileIDs:       fileIDs,
+		TaggedTarget:  tmpTagged,
+		Permission:    models.PrivacyType(opts.Permission),
+		AuthorID:      authorID,
+		SourceURL:     opts.SourceURL,
+		CreatedAt:     now,
+		UpdatedAt:     now,
 	}
 
 	return post, nil

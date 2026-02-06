@@ -13,9 +13,11 @@ import CryptoRanking from "@/components/CryptoRanking";
 import MarketWidgets from "@/components/MarketWidgets";
 import RelatedNews from "@/components/RelatedNews";
 import rehypeRaw from "rehype-raw";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function PostDetail({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
+    const { language } = useLanguage();
     const [post, setPost] = useState<Post | null>(null);
     const [relatedPosts, setRelatedPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
@@ -58,9 +60,35 @@ export default function PostDetail({ params }: { params: Promise<{ id: string }>
 
     if (!post) return <div className="text-white text-center py-20 min-h-screen bg-[#050505]">Post not found</div>;
 
-    const imageUrl = extractImageUrl(post.content);
-    // Remove image md syntax from content to avoid duplicate images
-    const cleanContent = post.content.replace(/!\[.*?\]\(.*?\)/g, "").trim();
+    // Language Switching Logic
+    const isEn = language === 'en';
+    const displayTitle = (isEn && post.title_en) ? post.title_en : post.title;
+
+    // Content logic: 
+    // If EN and has full_content_en, use it. 
+    // Otherwise, check if full_content exists (VI), use it. 
+    // Lastly fall back to post.content (which might contain image markdown).
+    // Content logic: 
+    // If EN and has full_content_en, use it. 
+    // Otherwise, check if full_content exists (VI), use it. 
+    // Lastly fall back to post.content (which might contain image markdown).
+    let rawContent = post.content;
+    if (isEn && post.full_content_en) {
+        rawContent = post.full_content_en;
+    } else if (post.full_content) {
+        // Prefer full_content for VI if available (cleaner than content with image md)
+        rawContent = post.full_content;
+    }
+
+    const imageUrl = extractImageUrl(post.content); // Always extract image from original content (or file_ids if updated)
+
+    // Remove image md syntax from content if we are falling back to post.content
+    // If using full_content_en / full_content, they presumably don't have the image md prepended (based on worker logic)
+    // Worker: FullContent = processed.TranslatedFullContent (Text only usually)
+    // Worker: Content = ImageMD + Summary
+    // So if using full* content, we usually don't need to strip image md, but doing it safely won't hurt.
+    const cleanContent = rawContent.replace(/!\[.*?\]\(.*?\)/g, "").trim();
+
     const sourceName = post.source_url ? getSourceName(post.source_url) : "Source";
 
     return (
@@ -71,7 +99,7 @@ export default function PostDetail({ params }: { params: Promise<{ id: string }>
                 <div className="max-w-[1600px] mx-auto px-4 py-3 flex items-center gap-2 text-xs text-gray-500">
                     <Link href="/" className="hover:text-white transition-colors">Home</Link>
                     <span>/</span>
-                    <span className="text-gray-300 truncate max-w-[300px]">{post.title}</span>
+                    <span className="text-gray-300 truncate max-w-[300px]">{displayTitle}</span>
                 </div>
             </div>
 
@@ -89,7 +117,7 @@ export default function PostDetail({ params }: { params: Promise<{ id: string }>
                     <div className="col-span-1 lg:col-span-8 xl:col-span-6">
                         <article>
                             <h1 className="text-3xl md:text-3xl lg:text-4xl font-bold text-white leading-tight mb-6">
-                                {post.title}
+                                {displayTitle}
                             </h1>
 
                             <div className="flex items-center gap-4 text-xs text-gray-400 mb-8 border-b border-white/5 pb-6">
@@ -107,7 +135,7 @@ export default function PostDetail({ params }: { params: Promise<{ id: string }>
                                 <div className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden mb-8 border border-white/5 bg-gray-900 group">
                                     <Image
                                         src={imageUrl}
-                                        alt={post.title}
+                                        alt={displayTitle}
                                         fill
                                         className="object-cover group-hover:scale-105 transition-transform duration-700"
                                         priority

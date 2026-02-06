@@ -82,7 +82,7 @@ func (s *ScannerBot) handleMessage(msg *tgbotapi.Message) {
 	s.bot.Send(action)
 
 	// 2. Initial Reply
-	statusMsg, _ := s.bot.Send(tgbotapi.NewMessage(chatID, "🔍 **ChainGuardian AI** is analyzing..."))
+	statusMsg, _ := s.bot.Send(tgbotapi.NewMessage(chatID, "🔍 **CryptoCheck** is analyzing..."))
 
 	// 3. Determine if Input is Address or Symbol
 	addrRegex := regexp.MustCompile(`^0x[a-fA-F0-9]{40}$`)
@@ -207,7 +207,7 @@ func (s *ScannerBot) formatReport(address, network, name string, result scanner.
 		safeList += fmt.Sprintf("• ✅ %s\n", feature)
 	}
 
-	return fmt.Sprintf(`🛡 *ChainGuardian AI Report*
+	return fmt.Sprintf(`🛡 *CryptoCheck Report*
 	---------------------------
 	📍 *Network:* %s
 	📍 *Name:* %s

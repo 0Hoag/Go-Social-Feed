@@ -7,14 +7,16 @@ import (
 
 // Post
 type CreateOptions struct {
-	Pin          bool
-	Title        string
-	Content      string
-	FullContent  string
-	FileIDs      []string
-	TaggedTarget []string
-	Permission   string
-	SourceURL    string
+	Pin           bool
+	Title         string
+	TitleEn       string
+	Content       string
+	FullContent   string
+	FullContentEn string
+	FileIDs       []string
+	TaggedTarget  []string
+	Permission    string
+	SourceURL     string
 }
 
 type Filter struct {

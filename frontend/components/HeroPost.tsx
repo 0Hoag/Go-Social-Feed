@@ -4,11 +4,17 @@ import { Post } from "@/lib/types";
 import { formatDate, getSourceName, extractImageUrl } from "@/lib/utils";
 import { Clock } from "lucide-react";
 
+import { useLanguage } from "@/context/LanguageContext";
+
 interface HeroPostProps {
     post: Post;
 }
 
 export default function HeroPost({ post }: HeroPostProps) {
+    const { language } = useLanguage();
+    const isEn = language === 'en';
+    const displayTitle = (isEn && post.title_en) ? post.title_en : post.title;
+
     const imageUrl = extractImageUrl(post.content);
     const sourceName = post.source_url ? getSourceName(post.source_url) : "CryptoNews";
 
@@ -19,7 +25,7 @@ export default function HeroPost({ post }: HeroPostProps) {
                 {imageUrl ? (
                     <Image
                         src={imageUrl}
-                        alt={post.title}
+                        alt={displayTitle}
                         fill
                         className="object-cover opacity-60 group-hover:opacity-70 transition-opacity duration-500"
                         priority
@@ -45,7 +51,7 @@ export default function HeroPost({ post }: HeroPostProps) {
                 </div>
 
                 <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight mb-4 group-hover:text-cyan-50 transition-colors">
-                    {post.title}
+                    {displayTitle}
                 </h1>
 
                 <div className="flex items-center gap-4 text-gray-400 text-xs md:text-sm">

@@ -15,14 +15,16 @@ func (uc impleUsecase) Create(ctx context.Context, sc models.Scope, input post.C
 	_, ctx = errgroup.WithContext(ctx)
 
 	post, err := uc.repo.Create(ctx, sc, repository.CreateOptions{
-		Pin:          input.Pin,
-		Title:        input.Title,
-		Content:      input.Content,
-		FullContent:  input.FullContent,
-		FileIDs:      input.FileIDs,
-		TaggedTarget: input.TaggedTarget,
-		Permission:   input.Permission,
-		SourceURL:    input.SourceURL,
+		Pin:           input.Pin,
+		Title:         input.Title,
+		TitleEn:       input.TitleEn,
+		Content:       input.Content,
+		FullContent:   input.FullContent,
+		FullContentEn: input.FullContentEn,
+		FileIDs:       input.FileIDs,
+		TaggedTarget:  input.TaggedTarget,
+		Permission:    input.Permission,
+		SourceURL:     input.SourceURL,
 	})
 	if err != nil {
 		uc.l.Errorf(ctx, "post.usecase.Create.Create: %v", err)

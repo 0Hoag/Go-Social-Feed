@@ -178,11 +178,13 @@ func main() {
 				)
 
 				_, err = pUC.Create(ctx, scope, post.CreateInput{
-					Title:       processed.TranslatedTitle,       // Clean Title field
-					Content:     content,                         // Image + Summary for feed (no duplicated title)
-					FullContent: processed.TranslatedFullContent, // Full Vietnamese translation
-					Permission:  "public",
-					SourceURL:   processed.SourceURL,
+					Title:         processed.TranslatedTitle,       // Vietnamese Title
+					TitleEn:       article.Title,                   // Original English Title
+					Content:       content,                         // Image + Summary for feed
+					FullContent:   processed.TranslatedFullContent, // Full Vietnamese translation
+					FullContentEn: article.Content,                 // Original English Content
+					Permission:    "public",
+					SourceURL:     processed.SourceURL,
 				})
 
 				if err != nil {

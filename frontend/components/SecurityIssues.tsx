@@ -1,46 +1,51 @@
+"use client";
+
 import { AlertTriangle, Lock, TrendingDown, Ban, Unlock, DollarSign } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function SecurityIssues() {
+    const { t } = useLanguage();
+
     const issues = [
         {
             icon: Lock,
-            title: "Honeypot",
-            description: "Vào thì dễ, ra thì... không bao giờ.",
+            title: t.security_issues.honeypot,
+            description: t.security_issues.honeypot_desc,
             severity: "critical",
             color: "red"
         },
         {
             icon: TrendingDown,
-            title: "Rug Pull",
-            description: "Khi chủ dự án bỗng nhiên muốn đi du lịch dài ngày bằng tiền của bạn.",
+            title: t.security_issues.rug_pull,
+            description: t.security_issues.rug_pull_desc,
             severity: "critical",
             color: "red"
         },
         {
             icon: Ban,
-            title: "Blacklist Function",
-            description: "Admin có thể khóa ví của bạn",
+            title: t.security_issues.blacklist,
+            description: t.security_issues.blacklist_desc,
             severity: "warning",
             color: "orange"
         },
         {
             icon: AlertTriangle,
-            title: "Backdoor",
-            description: "Hàm ẩn cho phép thao túng số dư",
+            title: t.security_issues.backdoor,
+            description: t.security_issues.backdoor_desc,
             severity: "warning",
             color: "orange"
         },
         {
             icon: Unlock,
-            title: "Unlocked Liquidity",
-            description: "Thanh khoản chưa được khóa",
+            title: t.security_issues.unlocked_liquidity,
+            description: t.security_issues.unlocked_liquidity_desc,
             severity: "medium",
             color: "yellow"
         },
         {
             icon: DollarSign,
-            title: "High Tax",
-            description: "Bạn kiếm được 10 đồng, họ 'xin' nhẹ 9 đồng.",
+            title: t.security_issues.high_tax,
+            description: t.security_issues.high_tax_desc,
             severity: "medium",
             color: "yellow"
         }
@@ -63,10 +68,10 @@ export default function SecurityIssues() {
             <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-16">
                     <h2 className="text-4xl md:text-5xl font-black text-white mb-4">
-                        Các lỗi bảo mật <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-500">phổ biến</span>
+                        {t.security_issues.title_prefix} <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-500">{t.security_issues.title_highlight}</span>
                     </h2>
                     <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-                        ChainGuardian AI phát hiện và cảnh báo những rủi ro này tự động
+                        {t.security_issues.subtitle}
                     </p>
                 </div>
 
@@ -106,7 +111,7 @@ export default function SecurityIssues() {
                 {/* Bottom Note */}
                 <div className="mt-12 text-center">
                     <p className="text-gray-500 text-sm">
-                        Và nhiều lỗ hổng khác được phát hiện bởi AI Logic Auditor...
+                        {t.security_issues.note}
                     </p>
                 </div>
             </div>

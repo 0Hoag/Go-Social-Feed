@@ -3,11 +3,16 @@ import { formatDate } from "@/lib/utils";
 import { Zap } from "lucide-react";
 import Link from "next/link";
 
+import { useLanguage } from "@/context/LanguageContext";
+
 interface QuickHeadlinesProps {
     posts: Post[];
 }
 
 export default function QuickHeadlines({ posts }: QuickHeadlinesProps) {
+    const { language } = useLanguage();
+    const isEn = language === 'en';
+
     return (
         <div className="bg-[#111] border border-white/5 rounded-2xl p-5 h-fit sticky top-24">
             <div className="flex items-center gap-2 mb-6">
@@ -24,7 +29,7 @@ export default function QuickHeadlines({ posts }: QuickHeadlinesProps) {
                             </div>
                             <div>
                                 <h4 className="text-gray-300 group-hover:text-white text-sm font-medium leading-snug transition-colors line-clamp-3">
-                                    {post.title}
+                                    {(isEn && post.title_en) ? post.title_en : post.title}
                                 </h4>
                                 <span className="text-[10px] text-gray-500 mt-1 block">
                                     {formatDate(post.created_at)}

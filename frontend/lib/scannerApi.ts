@@ -12,18 +12,18 @@ export interface ScanResult {
 }
 
 export interface Issue {
-    Name: string;
-    Description: string;
-    Impact: number;
-    Type: string;
+    name: string;
+    description: string;
+    impact: number;
+    type: string;
 }
 
 export const scanToken = async (query: string): Promise<ScanResult> => {
     try {
-        const response = await axios.get(`${API_BASE_URL}/scan`, {
-            params: { q: query }
+        const response = await axios.get(`${API_BASE_URL}/news-feed/scanner`, {
+            params: { token: query }
         });
-        return response.data;
+        return response.data.data;
     } catch (error) {
         console.error("Scan error:", error);
         throw error;

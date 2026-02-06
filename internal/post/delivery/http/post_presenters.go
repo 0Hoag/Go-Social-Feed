@@ -160,15 +160,18 @@ func (r updateReq) validate() error {
 
 func (h handler) newPostDataResp(p models.Post) postDataResp {
 	return postDataResp{
-		ID:           p.ID.Hex(),
-		Title:        p.Title,
-		Content:      p.Content,
-		Pin:          p.Pin,
-		FileIDs:      util.ObjectIDsToHex(p.FileIDs),
-		TaggedTarget: util.ObjectIDsToHex(p.TaggedTarget),
-		SourceURL:    p.SourceURL,
-		CreatedAt:    p.CreatedAt,
-		UpdatedAt:    p.UpdatedAt,
+		ID:            p.ID.Hex(),
+		Title:         p.Title,
+		TitleEn:       p.TitleEn,
+		Content:       p.Content,
+		FullContent:   p.FullContent,
+		FullContentEn: p.FullContentEn,
+		Pin:           p.Pin,
+		FileIDs:       util.ObjectIDsToHex(p.FileIDs),
+		TaggedTarget:  util.ObjectIDsToHex(p.TaggedTarget),
+		SourceURL:     p.SourceURL,
+		CreatedAt:     p.CreatedAt,
+		UpdatedAt:     p.UpdatedAt,
 	}
 }
 
@@ -183,15 +186,18 @@ func (h handler) newDetailResp(p models.Post) detailResp {
 }
 
 type postDataResp struct {
-	ID           string    `json:"id"`
-	Title        string    `json:"title"`
-	Content      string    `json:"content"`
-	FileIDs      []string  `json:"file_ids"`
-	TaggedTarget []string  `json:"tagged_target"`
-	Pin          bool      `json:"pin"`
-	SourceURL    string    `json:"source_url"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
+	ID            string    `json:"id"`
+	Title         string    `json:"title"`
+	TitleEn       string    `json:"title_en"`
+	Content       string    `json:"content"`
+	FullContent   string    `json:"full_content"`
+	FullContentEn string    `json:"full_content_en"`
+	FileIDs       []string  `json:"file_ids"`
+	TaggedTarget  []string  `json:"tagged_target"`
+	Pin           bool      `json:"pin"`
+	SourceURL     string    `json:"source_url"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
 }
 
 type postItem struct {

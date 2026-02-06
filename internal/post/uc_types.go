@@ -8,14 +8,16 @@ import (
 
 // Post
 type CreateInput struct {
-	Pin          bool
-	Title        string
-	Content      string
-	FileIDs      []string
-	TaggedTarget []string
-	Permission   string
-	SourceURL    string
-	FullContent  string
+	Pin           bool
+	Title         string
+	TitleEn       string
+	Content       string
+	FileIDs       []string
+	TaggedTarget  []string
+	Permission    string
+	SourceURL     string
+	FullContent   string
+	FullContentEn string
 }
 
 type Filter struct {

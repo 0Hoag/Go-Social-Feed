@@ -55,7 +55,7 @@ export default function TrustScoreDemo() {
                         Live Demo: Kết quả Quét
                     </h2>
                     <p className="text-gray-400 text-lg">
-                        Xem cách ChainGuardian AI phân tích Smart Contract trong thực tế
+                        Xem cách CryptoCheck phân tích Smart Contract trong thực tế
                     </p>
                 </div>
 

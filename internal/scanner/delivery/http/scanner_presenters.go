@@ -6,7 +6,7 @@ import (
 )
 
 type scannerTokenInput struct {
-	Token string `json:"token"`
+	Token string `form:"token"`
 }
 
 func (r scannerTokenInput) ToScanTokenInput() scanner.ScanTokenInput {
@@ -31,7 +31,7 @@ type issue struct {
 }
 
 func toIssues(issues []scan.Issue) []issue {
-	var result []issue
+	result := []issue{}
 	for _, i := range issues {
 		result = append(result, issue{
 			Type:        i.Type,

@@ -5,6 +5,8 @@ import { formatDate, getSourceName, extractImageUrl } from "@/lib/utils";
 import { Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { useLanguage } from "@/context/LanguageContext";
+
 interface ArticleCardProps {
     post: Post;
     variant?: "default" | "compact";
@@ -12,9 +14,12 @@ interface ArticleCardProps {
 }
 
 export default function ArticleCard({ post, variant = "default", className }: ArticleCardProps) {
+    const { language } = useLanguage();
     const sourceName = post.source_url ? getSourceName(post.source_url) : "CryptoNews";
     const imageUrl = extractImageUrl(post.content);
-    const title = post.title || "Untitled Article";
+
+    const isEn = language === 'en';
+    const displayTitle = (isEn && post.title_en) ? post.title_en : post.title || "Untitled Article";
 
     return (
         <Link
@@ -31,7 +36,7 @@ export default function ArticleCard({ post, variant = "default", className }: Ar
                 {imageUrl ? (
                     <Image
                         src={imageUrl}
-                        alt={title}
+                        alt={displayTitle}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
                     />
@@ -60,7 +65,7 @@ export default function ArticleCard({ post, variant = "default", className }: Ar
                     "font-bold text-gray-100 leading-snug group-hover:text-cyan-400 transition-colors",
                     variant === "compact" ? "text-sm line-clamp-3 mb-1" : "text-lg line-clamp-2 mb-3"
                 )}>
-                    {title}
+                    {displayTitle}
                 </h3>
 
                 {variant === "default" && (

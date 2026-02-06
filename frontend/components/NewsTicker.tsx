@@ -6,9 +6,11 @@ import { Post } from "@/lib/types";
 import { truncateText } from "@/lib/utils";
 import { Zap } from "lucide-react";
 import Link from "next/link";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function NewsTicker() {
     const [headlines, setHeadlines] = useState<Post[]>([]);
+    const { language } = useLanguage();
 
     useEffect(() => {
         const fetchHeadlines = async () => {
@@ -36,29 +38,38 @@ export default function NewsTicker() {
             <div className="overflow-hidden whitespace-nowrap mask-linear-gradient w-full flex hover:pause-animation group">
                 <div className="flex items-center gap-12 animate-marquee-slow shrink-0 pr-12 group-hover:[animation-play-state:paused]">
                     {/* Duplicate list to ensure it covers screen width */}
-                    {[...headlines, ...headlines, ...headlines].map((post, index) => (
-                        <Link
-                            key={`orig-${post.id}-${index}`}
-                            href={`/posts/${post.id}`}
-                            className="text-xs text-gray-300 hover:text-cyan-400 transition-colors flex items-center gap-3"
-                        >
-                            <span className="w-1.5 h-1.5 rounded-full bg-white/20"></span>
-                            {truncateText(post.title, 80)}
-                        </Link>
-                    ))}
+                    {[...headlines, ...headlines, ...headlines].map((post, index) => {
+                        // Display title based on language
+                        const displayTitle = (language === 'en' && post.title_en) ? post.title_en : post.title;
+
+                        return (
+                            <Link
+                                key={`orig-${post.id}-${index}`}
+                                href={`/posts/${post.id}`}
+                                className="text-xs text-gray-300 hover:text-cyan-400 transition-colors flex items-center gap-3"
+                            >
+                                <span className="w-1.5 h-1.5 rounded-full bg-white/20"></span>
+                                {truncateText(displayTitle, 80)}
+                            </Link>
+                        );
+                    })}
                 </div>
                 {/* Second duplicated container for seamless loop */}
                 <div className="flex items-center gap-12 animate-marquee-slow shrink-0 pr-12 group-hover:[animation-play-state:paused]" aria-hidden="true">
-                    {[...headlines, ...headlines, ...headlines].map((post, index) => (
-                        <Link
-                            key={`copy-${post.id}-${index}`}
-                            href={`/posts/${post.id}`}
-                            className="text-xs text-gray-300 hover:text-cyan-400 transition-colors flex items-center gap-3"
-                        >
-                            <span className="w-1.5 h-1.5 rounded-full bg-white/20"></span>
-                            {truncateText(post.title, 80)}
-                        </Link>
-                    ))}
+                    {[...headlines, ...headlines, ...headlines].map((post, index) => {
+                        const displayTitle = (language === 'en' && post.title_en) ? post.title_en : post.title;
+
+                        return (
+                            <Link
+                                key={`copy-${post.id}-${index}`}
+                                href={`/posts/${post.id}`}
+                                className="text-xs text-gray-300 hover:text-cyan-400 transition-colors flex items-center gap-3"
+                            >
+                                <span className="w-1.5 h-1.5 rounded-full bg-white/20"></span>
+                                {truncateText(displayTitle, 80)}
+                            </Link>
+                        );
+                    })}
                 </div>
             </div>
             <style jsx>{`

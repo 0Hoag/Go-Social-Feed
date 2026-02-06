@@ -29,7 +29,7 @@ func main() {
 		log.Fatal("❌ Error: SCANNER_BOT_TOKEN is required in .env")
 	}
 
-	log.Println("🚀 Starting ChainGuardian Scanner Bot...")
+	log.Println("🚀 Starting CryptoCheck Scanner Bot...")
 
 	// 2. Init Dependencies
 	apiKeys := map[string]string{

@@ -2,7 +2,10 @@ export interface Post {
     id: string;
     pin: boolean;
     title: string;
+    title_en?: string;
     content: string;
+    full_content?: string;
+    full_content_en?: string;
     file_ids?: string[];
     tagged_target?: string[];
     permission: 'public' | 'justme';

@@ -1,41 +1,46 @@
+"use client";
+
 import { Zap, Bot, Target, Bell, DollarSign, Globe } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function FeaturesGrid() {
+    const { t } = useLanguage();
+
     const features = [
         {
             icon: Zap,
-            title: "Tốc độ thực thời",
-            description: "Kết quả phân tích chỉ trong 30-60 giây. Không cần chờ đợi hàng giờ.",
+            title: t.features.f1_title,
+            description: t.features.f1_desc,
             color: "from-yellow-400 to-orange-500"
         },
         {
             icon: Bot,
-            title: "AI Logic Auditor",
-            description: "Sử dụng LLM để phát hiện lỗ hổng logic tinh vi mà máy quét thông thường bỏ qua.",
+            title: t.features.f2_title,
+            description: t.features.f2_desc,
             color: "from-cyan-400 to-blue-500"
         },
         {
             icon: Target,
-            title: "Dễ hiểu cho mọi người",
-            description: "Trust Score 0-100 đơn giản. Không cần hiểu code Solidity phức tạp.",
+            title: t.features.f3_title,
+            description: t.features.f3_desc,
             color: "from-green-400 to-emerald-500"
         },
         {
             icon: Bell,
-            title: "Telegram Bot",
-            description: "Cảnh báo real-time khi phát hiện hợp đồng mới nguy hiểm trên mạng lưới.",
+            title: t.features.f4_title,
+            description: t.features.f4_desc,
             color: "from-purple-400 to-pink-500"
         },
         {
             icon: DollarSign,
-            title: "Miễn phí cho cá nhân",
-            description: "Bình dân hóa bảo mật. Chi phí cực thấp hoặc miễn phí cho nhà đầu tư cá nhân.",
+            title: t.features.f5_title,
+            description: t.features.f5_desc,
             color: "from-green-400 to-teal-500"
         },
         {
             icon: Globe,
-            title: "Đa mạng lưới",
-            description: "Hỗ trợ Ethereum, BSC, Polygon và nhiều blockchain khác.",
+            title: t.features.f6_title,
+            description: t.features.f6_desc,
             color: "from-blue-400 to-indigo-500"
         }
     ];
@@ -45,10 +50,10 @@ export default function FeaturesGrid() {
             <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-16">
                     <h2 className="text-4xl md:text-5xl font-black text-white mb-4">
-                        Tại sao chọn <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">ChainGuardian AI</span>?
+                        {t.features.title_prefix} <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">{t.features.title_highlight}</span>{t.features.title_suffix}
                     </h2>
                     <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-                        Công nghệ tiên tiến kết hợp với trải nghiệm người dùng đơn giản
+                        {t.features.subtitle}
                     </p>
                 </div>
 

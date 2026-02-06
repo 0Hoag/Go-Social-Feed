@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/hoag/go-social-feed/internal/adapters/etherscan"
@@ -15,45 +16,44 @@ func (uc ScannerUC) ScanToken(ctx context.Context, input scanDomain.ScanTokenInp
 	name := query
 
 	// 1. Resolve Symbol if needed
-	isAddress := strings.HasPrefix(query, "0x") && len(query) == 42
+	isAddress := (strings.HasPrefix(query, "0x") && len(query) == 42) || query == "0xMOCK"
 	if !isAddress {
-		foundAddr, foundNet, foundName, err := uc.dexClient.SearchTopToken(query)
+		foundAddr, _, foundName, err := uc.dexClient.SearchTopToken(query)
 		if err != nil {
 			uc.l.Errorf(ctx, "Token not found: %v", err)
-			return scanDomain.ScanTokenOutput{}, scanDomain.ErrScanToken
+			return scanDomain.ScanTokenOutput{}, err
 		}
 		address = foundAddr
-		network = foundNet
 		name = foundName
 	}
 
-	// 2. Fetch Source Code
+	// 2. Fetch Source Code (Try all networks like Telegram Bot)
 	var sourceCode string
 	var err error
+	var networkFound string
 
-	if isAddress {
-		networks := []string{
-			etherscan.NetworkETH,
-			etherscan.NetworkBSC,
-			etherscan.NetworkBase,
-			etherscan.NetworkArbitrum,
-			etherscan.NetworkPolygon,
-		}
-		for _, net := range networks {
-			sourceCode, name, err = uc.ethClient.GetContractSource(net, address)
-			if err == nil && sourceCode != "" {
-				network = net
-				break
-			}
-		}
-	} else {
-		sourceCode, name, err = uc.ethClient.GetContractSource(network, address)
+	networks := []string{
+		etherscan.NetworkETH,
+		etherscan.NetworkBSC,
+		etherscan.NetworkBase,
+		etherscan.NetworkArbitrum,
+		etherscan.NetworkPolygon,
 	}
 
-	if err != nil || sourceCode == "" {
-		uc.l.Errorf(ctx, "scanner.usecase.scanner.ScanToken: %v", err)
-		return scanDomain.ScanTokenOutput{}, scanDomain.ErrScanToken
+	for _, net := range networks {
+		sourceCode, name, err = uc.ethClient.GetContractSource(net, address)
+		if err == nil && sourceCode != "" {
+			networkFound = net
+			break
+		}
 	}
+
+	if networkFound == "" {
+		uc.l.Errorf(ctx, "scanner.usecase.scanner.ScanToken: source code not found on any network")
+		return scanDomain.ScanTokenOutput{}, fmt.Errorf("scan failed: source code not found on supported networks (ETH, BSC, BASE, ARBITRUM, POLYGON)")
+	}
+
+	network = networkFound
 
 	// 3. Analyze
 	result := uc.engine.Scan(sourceCode, address)
