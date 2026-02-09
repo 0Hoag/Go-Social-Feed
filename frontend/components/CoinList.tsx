@@ -138,15 +138,19 @@ export default function CoinList({ onCoinSelect, selectedSymbol }: CoinListProps
                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Market Overview</h3>
 
                 {/* Search Input */}
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                {/* Search Input - Pro Style */}
+                <div className="relative group z-20">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Search className="w-4 h-4 text-gray-500 group-focus-within:text-blue-400 transition-colors duration-300" />
+                    </div>
                     <input
                         type="text"
                         placeholder="Search coins..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-all"
+                        className="block w-full pl-10 pr-4 py-2.5 bg-[#0a0a0a]/60 border border-white/5 rounded-xl text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:bg-[#0a0a0a]/90 transition-all duration-300 shadow-lg shadow-black/20 backdrop-blur-md"
                     />
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/10 to-teal-500/10 opacity-0 group-focus-within:opacity-100 pointer-events-none transition-opacity duration-500" />
                 </div>
             </div>
 

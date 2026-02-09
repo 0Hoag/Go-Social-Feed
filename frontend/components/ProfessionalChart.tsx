@@ -75,7 +75,7 @@ export default function ProfessionalChart({ symbol = "BTCUSDT", chartType = 'can
         // Create chart
         const chart = createChart(chartContainerRef.current, {
             width: chartContainerRef.current.clientWidth,
-            height: 500,
+            height: chartContainerRef.current.clientHeight, // Use actual container height
             layout: {
                 background: { color: '#0a0a0a' },
                 textColor: '#999',
@@ -91,6 +91,7 @@ export default function ProfessionalChart({ symbol = "BTCUSDT", chartType = 'can
                     width: 1,
                     style: LineStyle.Solid,
                     labelBackgroundColor: '#333',
+                    labelVisible: true,
                 },
                 horzLine: {
                     color: '#666',
@@ -101,23 +102,16 @@ export default function ProfessionalChart({ symbol = "BTCUSDT", chartType = 'can
                 },
             },
             localization: {
-                timeFormatter: (time: number) => {
-                    const date = new Date(time * 1000);
-                    return date.toLocaleTimeString('vi-VN', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: false
-                    });
-                }
+                // Use default locale
             },
             timeScale: {
                 timeVisible: true,
                 secondsVisible: false,
                 borderColor: '#333',
-                lockVisibleTimeRangeOnResize: true,  // Prevent auto-scale on resize
-                fixLeftEdge: false,                   // Allow scrolling left
-                fixRightEdge: false,                  // Allow scrolling right
-                rightOffset: 12, // Add 12 bars of empty space to the right
+                lockVisibleTimeRangeOnResize: true,
+                fixLeftEdge: false,
+                fixRightEdge: false,
+                rightOffset: 12,
             },
             rightPriceScale: {
                 borderColor: '#333',
@@ -129,7 +123,6 @@ export default function ProfessionalChart({ symbol = "BTCUSDT", chartType = 'can
             watermark: {
                 visible: false,
             },
-            // Disable zoom on scroll, enable pan on scroll
             handleScale: {
                 mouseWheel: false,
             },
@@ -140,8 +133,6 @@ export default function ProfessionalChart({ symbol = "BTCUSDT", chartType = 'can
                 vertTouchDrag: true,
             },
         });
-
-        chartRef.current = chart;
 
         chartRef.current = chart;
 
@@ -167,8 +158,6 @@ export default function ProfessionalChart({ symbol = "BTCUSDT", chartType = 'can
         }
         mainSeriesRef.current = mainSeries;
 
-
-
         // EMA Series (Only for Candle chart)
         if (chartType === 'candle') {
             const ema7 = chart.addLineSeries({
@@ -178,7 +167,7 @@ export default function ProfessionalChart({ symbol = "BTCUSDT", chartType = 'can
                 lastValueVisible: false,
                 priceLineVisible: false,
                 crosshairMarkerVisible: false,
-            }); // Yellow
+            });
             const ema25 = chart.addLineSeries({
                 color: 'rgba(41, 98, 255, 0.5)',
                 lineWidth: 1,
@@ -186,7 +175,7 @@ export default function ProfessionalChart({ symbol = "BTCUSDT", chartType = 'can
                 lastValueVisible: false,
                 priceLineVisible: false,
                 crosshairMarkerVisible: false,
-            }); // Blue
+            });
             const ema99 = chart.addLineSeries({
                 color: 'rgba(224, 64, 251, 0.5)',
                 lineWidth: 1,
@@ -194,7 +183,7 @@ export default function ProfessionalChart({ symbol = "BTCUSDT", chartType = 'can
                 lastValueVisible: false,
                 priceLineVisible: false,
                 crosshairMarkerVisible: false,
-            }); // Purple
+            });
 
             ema7SeriesRef.current = ema7;
             ema25SeriesRef.current = ema25;
@@ -205,21 +194,22 @@ export default function ProfessionalChart({ symbol = "BTCUSDT", chartType = 'can
             ema99SeriesRef.current = null;
         }
 
-        // Handle resize
-        const handleResize = () => {
-            if (chartContainerRef.current) {
-                chart.applyOptions({
-                    width: chartContainerRef.current.clientWidth,
-                });
-            }
-        };
+        // Handle resize with ResizeObserver
+        const resizeObserver = new ResizeObserver((entries) => {
+            if (!chartContainerRef.current || entries.length === 0) return;
+            const newRect = entries[0].contentRect;
+            chart.applyOptions({
+                width: newRect.width,
+                height: newRect.height
+            });
+        });
 
-        window.addEventListener('resize', handleResize);
+        resizeObserver.observe(chartContainerRef.current);
 
         const handleCrosshairMove = (param: any) => {
-            // Check if point is valid (remove !param.time check to allow empty space)
             if (
                 param.point === undefined ||
+                !param.time ||
                 param.point.x < 0 ||
                 param.point.x > chartContainerRef.current!.clientWidth ||
                 param.point.y < 0 ||
@@ -232,7 +222,6 @@ export default function ProfessionalChart({ symbol = "BTCUSDT", chartType = 'can
             const price = mainSeriesRef.current!.coordinateToPrice(param.point.y);
             if (price !== null) {
                 const currentPriceVal = parseFloat(currentPriceRef.current);
-                // Fallback to avoid weird display if currentPrice is 0 (initial state)
                 if (isNaN(currentPriceVal) || currentPriceVal === 0) {
                     setCursorData({
                         visible: true,
@@ -259,9 +248,8 @@ export default function ProfessionalChart({ symbol = "BTCUSDT", chartType = 'can
 
         chart.subscribeCrosshairMove(handleCrosshairMove);
 
-
         return () => {
-            window.removeEventListener('resize', handleResize);
+            resizeObserver.disconnect();
             chart.unsubscribeCrosshairMove(handleCrosshairMove);
             chart.remove();
         };
@@ -469,7 +457,7 @@ export default function ProfessionalChart({ symbol = "BTCUSDT", chartType = 'can
                     className="absolute z-40 pointer-events-none bg-[#333] text-white text-[11px] font-mono px-1 flex items-center justify-center border-l-2 border-white/20"
                     style={{
                         right: 0,
-                        top: cursorData.y + 95, // Direct centering: y - half_height
+                        top: cursorData.y + 14, // Adjust for p-6 (24px) - half height (10px)
                         height: '20px',
                         minWidth: '60px',
                     }}
@@ -480,25 +468,14 @@ export default function ProfessionalChart({ symbol = "BTCUSDT", chartType = 'can
 
             {/* Chart */}
             <style jsx global>{`
-                /* Hide TradingView watermark and attribution */
-                .tv-lightweight-charts > table > tr:nth-child(2) > td:nth-child(2) > a {
-                    display: none !important;
-                }
-                .tv-lightweight-charts > div:last-child {
-                    display: none !important;
-                }
                 a[href^="https://www.tradingview.com/"] {
-                    display: none !important;
-                }
-                /* Additional backup selectors */
-                div[style*="z-index: 3"] > a[href*="tradingview"] {
                     display: none !important;
                 }
                 .tv-lightweight-charts__watermark {
                     display: none !important;
                 }
             `}</style>
-            <div ref={chartContainerRef} className="w-full" />
+            <div ref={chartContainerRef} className="w-full h-full" />
 
             {/* Legend removed - MA lines disabled */}
         </div>
