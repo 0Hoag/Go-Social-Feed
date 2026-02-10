@@ -1,8 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import dynamic from "next/dynamic";
 import { LineChart, CandlestickChart, ArrowUp, ArrowDown } from "lucide-react";
-import ProfessionalChart from "@/components/ProfessionalChart";
+
+const ProfessionalChart = dynamic(() => import("@/components/ProfessionalChart"), {
+    ssr: false,
+    loading: () => <div className="animate-pulse bg-white/5 w-full h-full rounded-lg" />
+});
+
 import CoinList from "@/components/CoinList";
 import LoadingScreen from "@/components/LoadingScreen";
 import AnalysisLeftSidebar from "@/components/AnalysisLeftSidebar";
@@ -215,12 +221,12 @@ export default function AnalysisPage() {
 
     // Auto-hide loading if data is ready
     // Removed to allow LoadingScreen to control completion via isReady prop
-    /* useEffect(() => {
-        if (isDataReady) {
-            const timer = setTimeout(() => setIsLoading(false), 500);
-            return () => clearTimeout(timer);
-        }
-    }, [isDataReady]); */
+
+    // Memoized handler for coin selection
+    const handleCoinSelect = useCallback((symbol: string, name: string) => {
+        setSelectedSymbol(symbol);
+        setSelectedCoinName(name);
+    }, []);
 
     return (
         <>
@@ -343,7 +349,7 @@ export default function AnalysisPage() {
                                         </div>
 
                                         <div className="flex gap-1 p-1 bg-[#000]/50 rounded-lg border border-white/5">
-                                            {['1h', '4h', '1d', '1w'].map((tf) => (
+                                            {['5m', '15m', '1h', '4h', '1d', '1w'].map((tf) => (
                                                 <button
                                                     key={tf}
                                                     onClick={() => setTimeframe(tf)}
@@ -397,17 +403,14 @@ export default function AnalysisPage() {
                         <div className="sticky top-4 bg-[#111] border border-white/5 rounded-2xl overflow-hidden" style={{ maxHeight: 'calc(100vh - 120px)' }}>
                             <CoinList
                                 selectedSymbol={selectedSymbol}
-                                onCoinSelect={(symbol, name) => {
-                                    setSelectedSymbol(symbol);
-                                    setSelectedCoinName(name);
-                                }}
+                                onCoinSelect={handleCoinSelect}
                             />
                         </div>
                     </div>
-                </div>
+                </div >
 
                 {/* AI Analysis Chat Overlay */}
-                <AIAnalysisChat
+                < AIAnalysisChat
                     isOpen={isAIChatOpen}
                     onClose={() => setIsAIChatOpen(false)}
                     coinSymbol={selectedSymbol}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, memo } from "react";
 import axios from "axios";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLanguage } from '@/context/LanguageContext';
@@ -32,7 +32,7 @@ interface MiniTicker {
     q: string; // Quote Volume
 }
 
-export default function CoinList({ onCoinSelect, selectedSymbol }: CoinListProps) {
+function CoinList({ onCoinSelect, selectedSymbol }: CoinListProps) {
     const { t } = useLanguage();
     const [coins, setCoins] = useState<CoinData[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
@@ -262,3 +262,6 @@ export default function CoinList({ onCoinSelect, selectedSymbol }: CoinListProps
         </div>
     );
 }
+
+const CoinDataList = memo(CoinList);
+export default CoinDataList;
