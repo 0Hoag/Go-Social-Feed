@@ -64,26 +64,6 @@ const ProfessionalChart = memo(({ symbol = "BTCUSDT", chartType = 'candle', inte
     useEffect(() => {
         if (!chartContainerRef.current) return;
 
-        // Handle resize with ResizeObserver
-        const resizeObserver = new ResizeObserver((entries) => {
-            if (!chartContainerRef.current || entries.length === 0) return;
-            const newRect = entries[0].contentRect;
-
-            if (newRect.width === 0 || newRect.height === 0) return;
-
-            if (chartRef.current) {
-                chartRef.current.applyOptions({
-                    width: newRect.width,
-                    height: newRect.height
-                });
-            } else {
-                // Initialize chart if it doesn't exist and we have dimensions
-                createChartInstance();
-            }
-        });
-
-        resizeObserver.observe(chartContainerRef.current);
-
         const createChartInstance = () => {
             if (chartRef.current || !chartContainerRef.current) return;
 
@@ -136,7 +116,6 @@ const ProfessionalChart = memo(({ symbol = "BTCUSDT", chartType = 'candle', inte
             });
 
             chartRef.current = chart;
-            setIsChartReady(true); // Signal that chart is ready
 
             // Add main series
             let mainSeries: ISeriesApi<"Candlestick" | "Area">;
@@ -214,6 +193,32 @@ const ProfessionalChart = memo(({ symbol = "BTCUSDT", chartType = 'candle', inte
             };
 
             chart.subscribeCrosshairMove(handleCrosshairMove);
+            setIsChartReady(true); // Signal that chart is ready
+        };
+
+        // Handle resize with ResizeObserver
+        const resizeObserver = new ResizeObserver((entries) => {
+            if (!chartContainerRef.current || entries.length === 0) return;
+            const newRect = entries[0].contentRect;
+
+            if (newRect.width === 0 || newRect.height === 0) return;
+
+            if (chartRef.current) {
+                chartRef.current.applyOptions({
+                    width: newRect.width,
+                    height: newRect.height
+                });
+            } else {
+                // Initialize chart if it doesn't exist and we have dimensions
+                createChartInstance();
+            }
+        });
+
+        resizeObserver.observe(chartContainerRef.current);
+
+        // Immediate check in case ResizeObserver is lazy or dimensions are already present
+        if (chartContainerRef.current.clientWidth > 0 && chartContainerRef.current.clientHeight > 0) {
+            createChartInstance();
         }
 
         // cleanup
@@ -222,6 +227,13 @@ const ProfessionalChart = memo(({ symbol = "BTCUSDT", chartType = 'candle', inte
             if (chartRef.current) {
                 chartRef.current.remove();
                 chartRef.current = null;
+
+                // Explicitly clear refs to avoid stale usage
+                mainSeriesRef.current = null;
+                ema7SeriesRef.current = null;
+                ema25SeriesRef.current = null;
+                ema99SeriesRef.current = null;
+
                 setIsChartReady(false);
             }
         };
