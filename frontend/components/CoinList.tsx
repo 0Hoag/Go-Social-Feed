@@ -47,9 +47,32 @@ function CoinList({ onCoinSelect, selectedSymbol }: CoinListProps) {
                 const res = await axios.get("https://api.binance.com/api/v3/ticker/24hr");
                 let data = res.data;
 
-                // Filter for USDT pairs and sort by quote volume (liquidity)
+                // Filter for USDT pairs
                 data = data.filter((t: any) => t.symbol.endsWith("USDT"));
-                data.sort((a: any, b: any) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume));
+
+                // Priority list (Approximate Market Cap Ranking)
+                const TOP_COINS = [
+                    'BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'ADA', 'AVAX', 'SHIB', 'DOT',
+                    'LINK', 'TRX', 'MATIC', 'BCH', 'NEAR', 'UNI', 'LTC', 'APT', 'ICP', 'FIL'
+                ];
+
+                data.sort((a: any, b: any) => {
+                    const symbolA = a.symbol.replace("USDT", "");
+                    const symbolB = b.symbol.replace("USDT", "");
+
+                    const idxA = TOP_COINS.indexOf(symbolA);
+                    const idxB = TOP_COINS.indexOf(symbolB);
+
+                    // If both are in top list, sort by rank
+                    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                    // If A is in list, it comes first
+                    if (idxA !== -1) return -1;
+                    // If B is in list, it comes first
+                    if (idxB !== -1) return 1;
+
+                    // Otherwise sort by Volume (Liquidity)
+                    return parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume);
+                });
 
                 // Take ALL pairs (no limit)
                 const formattedCoins = data.map((t: any) => {
