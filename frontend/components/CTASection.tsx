@@ -25,7 +25,7 @@ export default function CTASection() {
 
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                         <Link
-                            href="#demo"
+                            href="/scanner"
                             className="group px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-cyan-500/50 transition-all duration-300 flex items-center gap-2 text-lg"
                         >
                             <Zap className="w-5 h-5" />
