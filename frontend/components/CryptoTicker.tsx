@@ -61,7 +61,7 @@ export default function CryptoTicker() {
 
             {/* Ticker Container */}
             <div className="overflow-hidden whitespace-nowrap mask-linear-gradient w-full flex">
-                <div className="flex items-center gap-8 animate-marquee shrink-0 pr-8">
+                <div className="flex items-center gap-8 animate-marquee shrink-0 pr-8 will-change-transform">
                     {/* Duplicate list to ensure it covers screen width */}
                     {[...prices, ...prices, ...prices, ...prices].map((coin, index) => (
                         <div key={`orig-${coin.symbol}-${index}`} className="flex items-center gap-2 text-xs">

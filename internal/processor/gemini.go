@@ -48,21 +48,26 @@ func (p *GeminiProcessor) Process(ctx context.Context, article crawler.Article) 
 	}
 
 	// Enhanced prompt: Generate 3 distinct outputs
-	prompt := fmt.Sprintf(`You are a Vietnamese crypto news editor. Read this English article and create Vietnamese content.
-
+	prompt := fmt.Sprintf(`You are a professional crypto news editor for the Vietnamese market. 
+	Your task is to translate the following article into Vietnamese, ensuring NO information is lost.
+	
 	Article Title: %s
 	Full Content:
 	%s
 
 	Tasks:
-	1. Translate the Title to Vietnamese. IMPORTANT: Keep it SHORT and CONCISE, similar length to original English title. Do NOT summarize the article in the title.
-	2. Write a BRIEF Vietnamese summary for news feed (2-3 sentences maximum).
-	3. Translate the FULL article content to Vietnamese (natural journalism style).
+	1. Translate the Title: Keep it concise but accurate.
+	2. Write a Summary: 2-3 sentences max.
+	3. Translate the Full Content: 
+	   - Translate paragraph by paragraph.
+	   - Do NOT summarize. Translate the full meaning of every sentence.
+	   - Use professional, natural Vietnamese terminology for crypto/finance.
+	   - Maintain the original structure and length.
 
 	Output Format (strict):
-	Title: [Short Vietnamese Title]
-	Summary: [Brief 2-3 sentence summary]
-	FullContent: [Complete Vietnamese translation of the article]
+	Title: [Vietnamese Title]
+	Summary: [Vietnamese Summary]
+	FullContent: [Full Vietnamese Translation]
 	`, article.Title, contentToAnalyze)
 
 	resp, err := p.model.GenerateContent(ctx, genai.Text(prompt))

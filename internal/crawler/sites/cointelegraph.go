@@ -63,7 +63,7 @@ func (c *coiTelegraphCrawler) Crawl(ctx context.Context) ([]crawler.Article, err
 		detailCollector := c.c.Clone()
 		var fullContent strings.Builder
 
-		detailCollector.OnHTML(".post-content p, article p, .article__content p", func(e *colly.HTMLElement) {
+		detailCollector.OnHTML(".post-content p, .article__content p, .ct-prose p", func(e *colly.HTMLElement) {
 			text := strings.TrimSpace(e.Text)
 			if text != "" && len(text) > 20 {
 				fullContent.WriteString(text)
