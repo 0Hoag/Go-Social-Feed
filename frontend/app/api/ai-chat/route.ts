@@ -5,14 +5,20 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function POST(request: NextRequest) {
     try {
-        const { message, coinSymbol, coinName, currentPrice, priceChange } = await request.json();
+        const { message, coinSymbol, coinName, currentPrice, priceChange, language } = await request.json();
 
-        const prompt = `
+        const isVi = language === 'vi';
+
+        const prompt = isVi ? `
         Bạn là chuyên gia phân tích thị trường crypto (CryptoCheck AI).
         Hiện tại người dùng đang hỏi về đồng: ${coinName} (${coinSymbol}).
         Giá hiện tại: $${currentPrice} (Biến động 24h: ${priceChange}%).
 
         Câu hỏi của người dùng: "${message}"
+
+        **QUY TẮC NGÔN NGỮ (QUAN TRỌNG):**
+        - Nếu người dùng hỏi bằng Tiếng Anh (hoặc ngôn ngữ khác), HÃY TRẢ LỜI BẰNG NGÔN NGỮ ĐÓ.
+        - Nếu người dùng hỏi Tiếng Việt, trả lời Tiếng Việt.
 
         Hãy trả lời ngắn gọn, súc tích (dưới 200 từ), tập trung vào dữ liệu và xu hướng.
         **YÊU CẦU ĐỊNH DẠNG (BẮT BUỘC):**
@@ -32,19 +38,74 @@ export async function POST(request: NextRequest) {
 
         Nếu câu hỏi không liên quan đến crypto, hãy lái về chủ đề thị trường một cách khéo léo.
         Phong cách: Chuyên nghiệp, khách quan, hữu ích.
+
+        **QUAN TRỌNG:**
+        Với mọi câu trả lời liên quan đến xu hướng giá hoặc lời khuyên đầu tư, BẮT BUỘC phải kết thúc bằng dòng disclaimer sau (in nghiêng):
+        *> Lưu ý: Đây là nhận định dựa trên dữ liệu tham khảo, có thể đúng hoặc sai. Quyết định đầu tư thuộc về bạn, vui lòng cân nhắc kỹ lưỡng trước khi hành động.*
+        ` : `
+        You are a crypto market analysis expert (CryptoCheck AI).
+        The user is asking about: ${coinName} (${coinSymbol}).
+        Current Price: $${currentPrice} (24h Change: ${priceChange}%).
+
+        User Question: "${message}"
+
+        **LANGUAGE RULES (IMPORTANT):**
+        - If user asks in Vietnamese (or other languages), ANSWER IN THAT LANGUAGE.
+        - If user asks in English, answer in English.
+
+        Please provide a concise, data-driven answer (under 200 words).
+        **FORMAT REQUIREMENTS (MANDATORY):**
+        - Use \`###\` for main headers (e.g., ### Market Overview). **DO NOT NUMBER THEM**.
+        - Use \`>\` (blockquote) for summaries or key points.
+        - **PREFER paragraphs** for detailed explanation.
+        - Use \`-\` lists only for short items.
+        - **Bold** key terms.
+        - Separate paragraphs clearly.
+
+        Finally, suggest 3 short follow-up questions (under 10 words).
+        Mandatory format:
+        ---QUESTIONS---
+        Question 1
+        Question 2
+        Question 3
+
+        If the question is unrelated to crypto, politely steer it back to market topics.
+        Style: Professional, objective, helpful.
+
+        **IMPORTANT:**
+        For any answer regarding price trends or investment expectations, YOU MUST end with this disclaimer (italicized):
+        *> Note: This analysis is based on reference data and may not be accurate. Investment decisions are yours alone; please consider carefully before acting.*
         `;
 
         const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
+        const result = await model.generateContentStream(prompt);
 
-        return NextResponse.json({ reply: text });
+        const stream = new ReadableStream({
+            async start(controller) {
+                const encoder = new TextEncoder();
+                try {
+                    for await (const chunk of result.stream) {
+                        const text = chunk.text();
+                        if (text) {
+                            controller.enqueue(encoder.encode(text));
+                        }
+                    }
+                    controller.close();
+                } catch (error) {
+                    console.error('Stream processing error:', error);
+                    controller.error(error);
+                }
+            }
+        });
+
+        return new Response(stream, {
+            headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+        });
 
     } catch (error) {
         console.error('Chat API Error:', error);
         return NextResponse.json({
-            reply: `Xin lỗi, có lỗi xảy ra: ${error instanceof Error ? error.message : String(error)}`
-        });
+            error: `Xin lỗi, có lỗi xảy ra: ${error instanceof Error ? error.message : String(error)}`
+        }, { status: 500 });
     }
 }

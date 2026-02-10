@@ -136,6 +136,52 @@ export const translations = {
             no_risks: "Không tìm thấy rủi ro nghiêm trọng.",
             no_features: "Không phát hiện tính năng an toàn cụ thể.",
             error_generic: "Không tìm thấy token. Lưu ý: Chỉ hỗ trợ ETH, BSC, BASE, ARB, POLY. (Chưa hỗ trợ Solana/Sui)"
+        },
+        analysis_page: {
+            about: "Về",
+            dominance: "Vốn hóa (Dominance)",
+            rank: "Xếp hạng",
+            ath: "Đỉnh Lịch Sử (ATH)",
+            ask_ai: "Tại sao giá {coin} {trend}?",
+            high_24h: "Cao 24h",
+            low_24h: "Thấp 24h",
+            vol_24h: "KL 24h"
+        },
+        left_sidebar: {
+            market_overview: "Tổng quan thị trường",
+            market_cap: "Vốn hóa",
+            vol_24h: "Volume 24h",
+            btc_dom: "BTC Dominance",
+            active_coins: "Coins Hoạt động",
+            top_gainers: "Tăng giá mạnh nhất (24h)",
+            top_losers: "Giảm giá mạnh nhất (24h)"
+        },
+        ai_chat: {
+            title: "CryptoCheck AI",
+            subtitle: "Phân tích thị trường",
+            placeholder: "Hỏi CryptoCheck AI...",
+            thinking: "CryptoCheck AI đang suy nghĩ...",
+            analyzing: "CryptoCheck AI đang phân tích dữ liệu thị trường...",
+            tldr: "Tóm tắt (TLDR)",
+            main_cause: "Nguyên nhân chính",
+            secondary_cause: "Nguyên nhân phụ",
+            outlook: "Triển vọng",
+            conclusion: "Kết luận",
+            market_outlook: "Triển vọng thị trường",
+            key_point: "Điểm cần lưu ý",
+            suggested_next: "Gợi ý tiếp theo",
+            initial_q_up: "Tại sao giá {coin} tăng?",
+            initial_q_down: "Tại sao giá {coin} giảm?",
+            q_factors: "Yếu tố nào ảnh hưởng giá {coin}?",
+            q_community: "Cộng đồng nói gì về {coin}?",
+            q_news: "Tin tức mới nhất về {coin}?",
+            q_what_is: "{coin} là gì?"
+        },
+        coin_list: {
+            market_overview: "Tổng quan thị trường",
+            search_placeholder: "Tìm kiếm coin...",
+            page: "Trang",
+            cryptocurrencies: "Tiền điện tử"
         }
     },
     en: {
@@ -273,6 +319,52 @@ export const translations = {
             no_risks: "No critical risks found.",
             no_features: "No specific safety features detected.",
             error_generic: "Token not found. Note: Only ETH, BSC, BASE, ARB, POLY supported. (Solana/Sui not yet supported)"
+        },
+        analysis_page: {
+            about: "About",
+            dominance: "Dominance",
+            rank: "Rank",
+            ath: "All Time High",
+            ask_ai: "Why {coin} price is {trend}?",
+            high_24h: "High 24h",
+            low_24h: "Low 24h",
+            vol_24h: "Vol 24h"
+        },
+        left_sidebar: {
+            market_overview: "Market Overview",
+            market_cap: "Market Cap",
+            vol_24h: "24h Volume",
+            btc_dom: "BTC Dominance",
+            active_coins: "Active Coins",
+            top_gainers: "Top Gainers (24h)",
+            top_losers: "Top Losers (24h)"
+        },
+        ai_chat: {
+            title: "CryptoCheck AI",
+            subtitle: "Market Analysis",
+            placeholder: "Ask CryptoCheck AI...",
+            thinking: "CryptoCheck AI is thinking...",
+            analyzing: "CryptoCheck AI is analyzing market data...",
+            tldr: "TLDR",
+            main_cause: "Main Cause",
+            secondary_cause: "Secondary Cause",
+            outlook: "Outlook",
+            conclusion: "Conclusion",
+            market_outlook: "Market Outlook",
+            key_point: "Key Point",
+            suggested_next: "Suggested Questions",
+            initial_q_up: "Why is {coin} price up?",
+            initial_q_down: "Why is {coin} price down?",
+            q_factors: "What factors affect {coin} price?",
+            q_community: "What is the community saying about {coin}?",
+            q_news: "Latest news about {coin}?",
+            q_what_is: "What is {coin}?"
+        },
+        coin_list: {
+            market_overview: "Market Overview",
+            search_placeholder: "Search coins...",
+            page: "Page",
+            cryptocurrencies: "Cryptocurrencies"
         }
     }
-};
+}

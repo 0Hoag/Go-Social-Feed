@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { X, Sparkles, TrendingDown, TrendingUp, ChevronRight, Send, Loader2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { CryptoCheckLogo } from '@/components/CryptoCheckLogo';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface AIAnalysisChatProps {
     isOpen: boolean;
@@ -39,21 +41,30 @@ interface AnalysisData {
     };
 }
 
+
+
 export default function AIAnalysisChat({ isOpen, onClose, coinSymbol, coinName, currentPrice, priceChange }: AIAnalysisChatProps) {
+    const { t, language } = useLanguage();
     const [isLoading, setIsLoading] = useState(false);
     const [analysis, setAnalysis] = useState<AnalysisData | null>(null);
     const [userQuestion, setUserQuestion] = useState('');
     const [chatHistory, setChatHistory] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([]);
 
     const isNegative = priceChange < 0;
-    const initialQuestion = `Tại sao giá ${coinName} ${isNegative ? 'giảm' : 'tăng'}?`;
+    const initialQuestion = isNegative
+        ? t.ai_chat.initial_q_down.replace('{coin}', coinName)
+        : t.ai_chat.initial_q_up.replace('{coin}', coinName);
 
-    const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([
-        `Yếu tố nào có thể ảnh hưởng đến giá của ${coinName} trong tương lai?`,
-        `Mọi người đang nói gì về ${coinName}?`,
-        `Có tin tức mới nhất nào về ${coinName}?`,
-        `${coinName} là gì?`
-    ]);
+    const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([]);
+
+    useEffect(() => {
+        setSuggestedQuestions([
+            t.ai_chat.q_factors.replace('{coin}', coinName),
+            t.ai_chat.q_community.replace('{coin}', coinName),
+            t.ai_chat.q_news.replace('{coin}', coinName),
+            t.ai_chat.q_what_is.replace('{coin}', coinName)
+        ]);
+    }, [coinName, t]);
 
     const fetchAnalysis = async () => {
         setIsLoading(true);
@@ -66,7 +77,8 @@ export default function AIAnalysisChat({ isOpen, onClose, coinSymbol, coinName, 
                     name: coinName,
                     price: currentPrice,
                     priceChange: priceChange,
-                    timeframe: '24h'
+                    timeframe: '24h',
+                    language
                 })
             });
 
@@ -108,17 +120,48 @@ export default function AIAnalysisChat({ isOpen, onClose, coinSymbol, coinName, 
                     coinSymbol,
                     coinName,
                     currentPrice,
-                    priceChange
+                    priceChange,
+                    language
                 })
             });
 
-            const data = await response.json();
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Server detailed error:', errorText);
+                throw new Error(`Server error: ${response.status} - ${errorText}`);
+            }
 
-            // Parse reply and suggestions
-            const fullReply = data.reply;
-            const parts = fullReply.split('---QUESTIONS---');
-            const mainContent = parts[0].trim();
+            if (!response.body) {
+                throw new Error('Response body is missing');
+            }
 
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let accumulatedText = '';
+            let isThinking = true;
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value, { stream: true });
+                accumulatedText += chunk;
+
+                // Separate content from questions for display
+                const parts = accumulatedText.split('---QUESTIONS---');
+                const displayContent = parts[0];
+
+                setChatHistory(prev => prev.map(msg =>
+                    (msg as any).id === loadingId
+                        ? { role: 'assistant', content: displayContent, id: loadingId }
+                        : msg
+                ));
+
+                isThinking = false;
+            }
+
+            // Final parsing for suggested questions
+            const parts = accumulatedText.split('---QUESTIONS---');
             if (parts.length > 1) {
                 const questions = parts[1]
                     .split('\n')
@@ -129,13 +172,11 @@ export default function AIAnalysisChat({ isOpen, onClose, coinSymbol, coinName, 
                 }
             }
 
-            // Updates message, removing loading
-            setChatHistory(prev => prev.map(msg =>
-                (msg as any).id === loadingId ? { role: 'assistant', content: mainContent } : msg
-            ));
         } catch (error) {
+            console.error('Chat error:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             setChatHistory(prev => prev.map(msg =>
-                (msg as any).id === loadingId ? { role: 'assistant', content: 'Xin lỗi, tôi không thể trả lời ngay lúc này.' } : msg
+                (msg as any).id === loadingId ? { role: 'assistant', content: `Xin lỗi, có lỗi xảy ra: ${errorMessage}` } : msg
             ));
         }
     };
@@ -155,12 +196,12 @@ export default function AIAnalysisChat({ isOpen, onClose, coinSymbol, coinName, 
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-teal-400 flex items-center justify-center">
-                            <Sparkles className="w-5 h-5 text-white" />
+                        <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shadow-lg shadow-blue-500/10">
+                            <CryptoCheckLogo className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-white">CryptoCheck AI</h2>
-                            <p className="text-xs text-gray-400">Phân tích thị trường</p>
+                            <h2 className="text-lg font-bold text-white">{t.ai_chat.title}</h2>
+                            <p className="text-xs text-gray-400">{t.ai_chat.subtitle}</p>
                         </div>
                     </div>
                     <button
@@ -185,7 +226,7 @@ export default function AIAnalysisChat({ isOpen, onClose, coinSymbol, coinName, 
                         <div className="flex justify-start">
                             <div className="flex items-center gap-3 p-4 bg-white/5 rounded-xl border border-white/10 animate-pulse w-fit">
                                 <Loader2 className="w-5 h-5 text-teal-400 animate-spin" />
-                                <span className="text-gray-400 text-sm">CryptoCheck AI đang phân tích dữ liệu thị trường...</span>
+                                <span className="text-gray-400 text-sm">{t.ai_chat.analyzing}</span>
                             </div>
                         </div>
                     )}
@@ -196,8 +237,8 @@ export default function AIAnalysisChat({ isOpen, onClose, coinSymbol, coinName, 
                             {/* TLDR Section */}
                             <div className="bg-gradient-to-br from-blue-900/40 to-teal-900/40 border border-blue-500/30 rounded-xl p-5">
                                 <div className="flex items-center gap-2 mb-3">
-                                    <Sparkles className="w-5 h-5 text-teal-400" />
-                                    <h3 className="text-lg font-bold text-white">TLDR</h3>
+                                    <CryptoCheckLogo className="w-5 h-5 text-cyan-400" />
+                                    <h3 className="text-lg font-bold text-white">{t.ai_chat.tldr}</h3>
                                 </div>
                                 <p className="text-gray-300 leading-relaxed">{analysis.tldr}</p>
                             </div>
@@ -209,9 +250,9 @@ export default function AIAnalysisChat({ isOpen, onClose, coinSymbol, coinName, 
                                     <h4 className="text-white font-bold">{analysis.mainCause.title}</h4>
                                 </div>
                                 <div className="pl-8 space-y-2 text-sm">
-                                    <p className="text-gray-300"><span className="font-semibold text-white">Tổng quan:</span> {analysis.mainCause.overview}</p>
-                                    <p className="text-gray-300"><span className="font-semibold text-white">Ý nghĩa:</span> {analysis.mainCause.implication}</p>
-                                    <p className="text-gray-300"><span className="font-semibold text-white">Cần theo dõi:</span> {analysis.mainCause.watchFor}</p>
+                                    <p className="text-gray-300"><span className="font-semibold text-white">Overview:</span> {analysis.mainCause.overview}</p>
+                                    <p className="text-gray-300"><span className="font-semibold text-white">Implication:</span> {analysis.mainCause.implication}</p>
+                                    <p className="text-gray-300"><span className="font-semibold text-white">Watch For:</span> {analysis.mainCause.watchFor}</p>
                                 </div>
                             </div>
 
@@ -223,9 +264,9 @@ export default function AIAnalysisChat({ isOpen, onClose, coinSymbol, coinName, 
                                         <h4 className="text-white font-bold">{analysis.secondaryCause.title}</h4>
                                     </div>
                                     <div className="pl-8 space-y-2 text-sm">
-                                        <p className="text-gray-300"><span className="font-semibold text-white">Tổng quan:</span> {analysis.secondaryCause.overview}</p>
-                                        <p className="text-gray-300"><span className="font-semibold text-white">Ý nghĩa:</span> {analysis.secondaryCause.implication}</p>
-                                        <p className="text-gray-300"><span className="font-semibold text-white">Cần theo dõi:</span> {analysis.secondaryCause.watchFor}</p>
+                                        <p className="text-gray-300"><span className="font-semibold text-white">Overview:</span> {analysis.secondaryCause.overview}</p>
+                                        <p className="text-gray-300"><span className="font-semibold text-white">Implication:</span> {analysis.secondaryCause.implication}</p>
+                                        <p className="text-gray-300"><span className="font-semibold text-white">Watch For:</span> {analysis.secondaryCause.watchFor}</p>
                                     </div>
                                 </div>
                             )}
@@ -237,17 +278,17 @@ export default function AIAnalysisChat({ isOpen, onClose, coinSymbol, coinName, 
                                     <h4 className="text-white font-bold">{analysis.outlook.title}</h4>
                                 </div>
                                 <div className="pl-8 space-y-2 text-sm">
-                                    <p className="text-gray-300"><span className="font-semibold text-white">Tổng quan:</span> {analysis.outlook.overview}</p>
-                                    <p className="text-gray-300"><span className="font-semibold text-white">Ý nghĩa:</span> {analysis.outlook.implication}</p>
-                                    <p className="text-gray-300"><span className="font-semibold text-white">Cần theo dõi:</span> {analysis.outlook.watchFor}</p>
+                                    <p className="text-gray-300"><span className="font-semibold text-white">Overview:</span> {analysis.outlook.overview}</p>
+                                    <p className="text-gray-300"><span className="font-semibold text-white">Implication:</span> {analysis.outlook.implication}</p>
+                                    <p className="text-gray-300"><span className="font-semibold text-white">Watch For:</span> {analysis.outlook.watchFor}</p>
                                 </div>
                             </div>
 
                             {/* Conclusion */}
                             <div className="bg-gradient-to-r from-blue-900/30 to-teal-900/30 border border-teal-500/30 rounded-xl p-5">
-                                <h4 className="text-white font-bold mb-3">Kết luận</h4>
-                                <p className="text-gray-300 mb-2"><span className="font-semibold text-white">Triển vọng thị trường:</span> {analysis.conclusion.outlook}</p>
-                                <p className="text-gray-300"><span className="font-semibold text-white">Điểm cần lưu ý:</span> {analysis.conclusion.keyPoint}</p>
+                                <h4 className="text-white font-bold mb-3">{t.ai_chat.conclusion}</h4>
+                                <p className="text-gray-300 mb-2"><span className="font-semibold text-white">{t.ai_chat.market_outlook}:</span> {analysis.conclusion.outlook}</p>
+                                <p className="text-gray-300"><span className="font-semibold text-white">{t.ai_chat.key_point}:</span> {analysis.conclusion.keyPoint}</p>
                             </div>
 
 
@@ -263,7 +304,7 @@ export default function AIAnalysisChat({ isOpen, onClose, coinSymbol, coinName, 
                                             msg.content === 'THINKING_INDICATOR' ? (
                                                 <div className="flex items-center gap-3 p-4 bg-white/5 rounded-xl border border-white/10 animate-pulse w-fit">
                                                     <Loader2 className="w-5 h-5 text-teal-400 animate-spin" />
-                                                    <span className="text-gray-400 text-sm">CryptoCheck AI đang suy nghĩ...</span>
+                                                    <span className="text-gray-400 text-sm">{t.ai_chat.thinking}</span>
                                                 </div>
                                             ) : (
                                                 <div className="text-sm animate-fadeIn" style={{ counterReset: 'chat-section' }}>
@@ -283,7 +324,7 @@ export default function AIAnalysisChat({ isOpen, onClose, coinSymbol, coinName, 
                                                         strong: ({ node, ...props }) => <strong className="text-white font-semibold" {...props} />,
                                                         blockquote: ({ node, ...props }) => (
                                                             <div className="bg-gradient-to-br from-blue-900/40 to-teal-900/40 border border-blue-500/30 rounded-xl p-4 my-4 flex gap-3">
-                                                                <Sparkles className="w-5 h-5 text-teal-400 shrink-0 mt-0.5" />
+                                                                <CryptoCheckLogo className="w-5 h-5 shrink-0 mt-0.5 text-cyan-400" />
                                                                 <div className="text-gray-300 leading-relaxed">
                                                                     {props.children}
                                                                 </div>
@@ -303,7 +344,7 @@ export default function AIAnalysisChat({ isOpen, onClose, coinSymbol, coinName, 
 
                             {/* Suggested Questions */}
                             <div className="space-y-3 pt-4 border-t border-white/10">
-                                <h4 className="text-white font-semibold text-sm">Gợi ý tiếp theo</h4>
+                                <h4 className="text-white font-semibold text-sm">{t.ai_chat.suggested_next}</h4>
                                 <div className="space-y-2">
                                     {suggestedQuestions.map((question, idx) => (
                                         <button
@@ -329,7 +370,7 @@ export default function AIAnalysisChat({ isOpen, onClose, coinSymbol, coinName, 
                             value={userQuestion}
                             onChange={(e) => setUserQuestion(e.target.value)}
                             onKeyPress={(e) => e.key === 'Enter' && handleSendQuestion()}
-                            placeholder="Hỏi CryptoCheck AI..."
+                            placeholder={t.ai_chat.placeholder}
                             className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 transition-colors"
                         />
                         <button

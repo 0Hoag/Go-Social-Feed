@@ -1,6 +1,7 @@
 "use client";
 
-import { Shield, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle, XCircle } from "lucide-react";
+import { CryptoCheckLogo } from "@/components/CryptoCheckLogo";
 import { useState } from "react";
 
 export default function TrustScoreDemo() {
@@ -86,7 +87,7 @@ export default function TrustScoreDemo() {
                     {/* Contract Name */}
                     <div className="flex items-center gap-3 mb-8">
                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center">
-                            <Shield className="w-6 h-6 text-cyan-400" />
+                            <CryptoCheckLogo className="w-6 h-6 text-cyan-400" />
                         </div>
                         <div>
                             <div className="text-sm text-gray-500 uppercase tracking-wider">Contract Address</div>
@@ -118,7 +119,7 @@ export default function TrustScoreDemo() {
                     {/* Security Issues */}
                     <div>
                         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                            <Shield className="w-5 h-5 text-cyan-400" />
+                            <CryptoCheckLogo className="w-5 h-5 text-cyan-400" />
                             Chi tiết phân tích
                         </h3>
                         <div className="space-y-3">
@@ -149,7 +150,7 @@ export default function TrustScoreDemo() {
                     {/* CTA */}
                     <div className="mt-8 pt-8 border-t border-white/10">
                         <button className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-cyan-500/50 transition-all duration-300 flex items-center justify-center gap-2">
-                            <Shield className="w-5 h-5" />
+                            <CryptoCheckLogo className="w-5 h-5" />
                             Quét Contract của bạn ngay
                         </button>
                     </div>

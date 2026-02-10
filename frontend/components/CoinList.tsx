@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { useLanguage } from '@/context/LanguageContext';
 
 interface CoinListProps {
     onCoinSelect: (symbol: string, name: string) => void;
@@ -32,10 +33,12 @@ interface MiniTicker {
 }
 
 export default function CoinList({ onCoinSelect, selectedSymbol }: CoinListProps) {
+    const { t } = useLanguage();
     const [coins, setCoins] = useState<CoinData[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const latestTickersRef = useRef<Map<string, MiniTicker>>(new Map());
     const ITEMS_PER_PAGE = 8;
 
     useEffect(() => {
@@ -73,19 +76,27 @@ export default function CoinList({ onCoinSelect, selectedSymbol }: CoinListProps
         fetchCoins();
         const interval = setInterval(fetchCoins, 10000); // Poll every 10s as a simple backup or use WS
 
-        // WebSocket for real-time updates
+        // WebSocket for real-time updates (Throttled)
         const ws = new WebSocket('wss://stream.binance.com:9443/ws/!miniTicker@arr');
+
         ws.onmessage = (event) => {
             const tickers = JSON.parse(event.data);
-            setCoins(prevCoins => {
-                // Create a map for faster lookup
-                const tickerMap = new Map<string, MiniTicker>(tickers.map((t: MiniTicker) => [t.s, t]));
+            tickers.forEach((t: MiniTicker) => {
+                latestTickersRef.current.set(t.s, t);
+            });
+        };
 
+        const throttleInterval = setInterval(() => {
+            if (latestTickersRef.current.size === 0) return;
+
+            setCoins(prevCoins => {
+                let hasChanges = false;
                 const newCoins = prevCoins.map(coin => {
-                    const updates = tickerMap.get(coin.symbol);
-                    if (updates) {
-                        const currentPrice = parseFloat(updates.c);
-                        const openPrice = parseFloat(updates.o);
+                    const update = latestTickersRef.current.get(coin.symbol);
+                    if (update) {
+                        hasChanges = true;
+                        const currentPrice = parseFloat(update.c);
+                        const openPrice = parseFloat(update.o);
                         const change = currentPrice - openPrice;
                         const changePercent = (change / openPrice) * 100;
 
@@ -98,12 +109,18 @@ export default function CoinList({ onCoinSelect, selectedSymbol }: CoinListProps
                     }
                     return coin;
                 });
-                return newCoins;
+
+                if (hasChanges) {
+                    latestTickersRef.current.clear(); // Clear consumed updates
+                    return newCoins;
+                }
+                return prevCoins;
             });
-        };
+        }, 2000); // 2 seconds throttle to reduce CPU load
 
         return () => {
             clearInterval(interval);
+            clearInterval(throttleInterval);
             ws.close();
         }
     }, []);
@@ -135,7 +152,7 @@ export default function CoinList({ onCoinSelect, selectedSymbol }: CoinListProps
     return (
         <div className="h-full w-full bg-[#111] border border-white/5 rounded-2xl overflow-hidden flex flex-col">
             <div className="p-4 border-b border-white/5 space-y-3">
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Market Overview</h3>
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t.coin_list.market_overview}</h3>
 
                 {/* Search Input */}
                 {/* Search Input - Pro Style */}
@@ -145,7 +162,7 @@ export default function CoinList({ onCoinSelect, selectedSymbol }: CoinListProps
                     </div>
                     <input
                         type="text"
-                        placeholder="Search coins..."
+                        placeholder={t.coin_list.search_placeholder}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="block w-full pl-10 pr-4 py-2.5 bg-[#0a0a0a]/60 border border-white/5 rounded-xl text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:bg-[#0a0a0a]/90 transition-all duration-300 shadow-lg shadow-black/20 backdrop-blur-md"
@@ -204,7 +221,7 @@ export default function CoinList({ onCoinSelect, selectedSymbol }: CoinListProps
                             {showSeparator && (
                                 <div className="my-2 mx-3 border-t-2 border-dashed border-gray-700 relative">
                                     <span className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-[#111] px-2 text-[9px] text-gray-500 uppercase tracking-wider">
-                                        Cryptocurrencies
+                                        {t.coin_list.cryptocurrencies}
                                     </span>
                                 </div>
                             )}
@@ -225,7 +242,7 @@ export default function CoinList({ onCoinSelect, selectedSymbol }: CoinListProps
                     </button>
 
                     <div className="flex items-center gap-1.5">
-                        <span className="text-gray-500 text-[9px] uppercase tracking-wider">Page</span>
+                        <span className="text-gray-500 text-[9px] uppercase tracking-wider">{t.coin_list.page}</span>
                         <span className="px-1.5 py-0.5 bg-blue-500/20 border border-blue-500/30 rounded text-blue-400 font-bold text-[10px]">
                             {currentPage}
                         </span>

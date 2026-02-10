@@ -255,20 +255,13 @@ export default function ProfessionalChart({ symbol = "BTCUSDT", chartType = 'can
         };
     }, [chartType]); // Re-create chart when chartType changes
 
-    const [stats, setStats] = useState({ high: '0.00', low: '0.00', vol: '0.00' });
     const [cursorData, setCursorData] = useState<{ visible: boolean; x: number; y: number; price: string; percentDiff: string } | null>(null);
     // Data Fetching
     useEffect(() => {
         const fetchData = async () => {
             try {
                 // Fetch 24h stats
-                const statsRes = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`);
-                const statsData = await statsRes.json();
-                setStats({
-                    high: parseFloat(statsData.highPrice).toFixed(2),
-                    low: parseFloat(statsData.lowPrice).toFixed(2),
-                    vol: parseFloat(statsData.volume).toFixed(2)
-                });
+
 
                 const timeframe = timeframes.find(tf => tf.value === interval);
                 const limit = timeframe?.limit || 1000;
@@ -416,24 +409,8 @@ export default function ProfessionalChart({ symbol = "BTCUSDT", chartType = 'can
             }
         };
 
-        // Setup WebSocket for 24h ticker updates
-        const tickerWsUrl = `wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@ticker`;
-        const tickerWs = new WebSocket(tickerWsUrl);
-
-        tickerWs.onmessage = (event) => {
-            const ticker = JSON.parse(event.data);
-            if (ticker) {
-                setStats({
-                    high: parseFloat(ticker.h).toFixed(2),
-                    low: parseFloat(ticker.l).toFixed(2),
-                    vol: parseFloat(ticker.v).toFixed(2)
-                });
-            }
-        };
-
         return () => {
             ws.close();
-            tickerWs.close();
         };
     }, [symbol, interval, chartType]);
 

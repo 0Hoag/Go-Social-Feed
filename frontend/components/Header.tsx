@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Shield, Globe } from "lucide-react";
+import { Globe } from "lucide-react";
+import { CryptoCheckLogo } from "@/components/CryptoCheckLogo";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function Header() {
@@ -16,8 +17,8 @@ export default function Header() {
             <div className="max-w-[1600px] mx-auto flex h-16 items-center justify-between px-4">
                 {/* Logo Area */}
                 <Link href="/" className="flex items-center gap-2 group">
-                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-                        <Shield className="w-5 h-5 text-white" strokeWidth={2.5} />
+                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform shadow-lg shadow-cyan-500/20">
+                        <CryptoCheckLogo className="w-6 h-6 text-white" />
                     </div>
                     <span className="text-xl font-black text-white tracking-tight">
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">CryptoCheck</span>

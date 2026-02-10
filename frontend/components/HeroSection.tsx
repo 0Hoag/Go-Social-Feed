@@ -1,7 +1,8 @@
 "use client";
 
-import { Shield, Zap, ArrowRight } from "lucide-react";
+import { Zap, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { CryptoCheckLogo } from "@/components/CryptoCheckLogo";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function HeroSection() {
@@ -20,7 +21,7 @@ export default function HeroSection() {
                 {/* Logo & Badge */}
                 <div className="flex items-center justify-center gap-3 mb-6">
                     <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-                        <Shield className="w-9 h-9 text-white" strokeWidth={2.5} />
+                        <CryptoCheckLogo className="w-10 h-10 text-white" />
                     </div>
                 </div>
 

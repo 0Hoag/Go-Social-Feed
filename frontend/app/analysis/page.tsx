@@ -11,7 +11,12 @@ import AIAnalysisChat from "@/components/AIAnalysisChat";
 import axios from "axios";
 import { getMetadata } from "@/lib/tokenConstants";
 
+import { useLanguage } from "@/context/LanguageContext";
+import { fallbackDescriptions } from "@/utils/coinDescriptions";
+import CoinDescription from "@/components/CoinDescription";
+
 export default function AnalysisPage() {
+    const { t, language } = useLanguage();
     const [isLoading, setIsLoading] = useState(true);
     const [isDataReady, setIsDataReady] = useState(false);
     const [selectedSymbol, setSelectedSymbol] = useState("BTCUSDT");
@@ -22,7 +27,7 @@ export default function AnalysisPage() {
     const [stats, setStats] = useState({ high: '0.00', low: '0.00', vol: '0.00' });
     const [chartType, setChartType] = useState<'candle' | 'area'>('candle');
     const [timeframe, setTimeframe] = useState<string>('15m');
-    const [coinData, setCoinData] = useState({ ath: 0, athChangePercent: 0, rank: 0, dominance: 0 });
+    const [coinData, setCoinData] = useState({ ath: 0, athChangePercent: 0, rank: 0, dominance: 0, description: { en: '', vi: '' } });
     const [isAIChatOpen, setIsAIChatOpen] = useState(false);
 
     // Fetch current price and stats via WebSocket
@@ -185,7 +190,11 @@ export default function AnalysisPage() {
                     ath: data.market_data.ath.usd,
                     athChangePercent: data.market_data.ath_change_percentage.usd,
                     rank: data.market_cap_rank || 0,
-                    dominance: data.market_data.market_cap_percentage?.btc || 0
+                    dominance: data.market_data.market_cap_percentage?.btc || 0,
+                    description: {
+                        en: (data.description?.en || '').replace(/<[^>]*>?/gm, '').trim(),
+                        vi: fallbackDescriptions[selectedSymbol.replace('USDT', '').toLowerCase()] || ((data.description?.vi || '').replace(/<[^>]*>?/gm, '').trim()) || ''
+                    }
                 });
             } catch (error) {
                 console.error('Failed to fetch CoinGecko data:', error);
@@ -292,7 +301,9 @@ export default function AnalysisPage() {
                                                 </svg>
                                             </div>
                                             <span className="text-xs font-semibold text-indigo-200 group-hover:text-white transition-colors">
-                                                Tại sao giá {selectedCoinName} {priceChange < 0 ? 'giảm' : 'tăng'}?
+                                                {t.analysis_page.ask_ai
+                                                    .replace('{coin}', selectedCoinName)
+                                                    .replace('{trend}', priceChange < 0 ? (language === 'vi' ? 'giảm' : 'decreasing') : (language === 'vi' ? 'tăng' : 'increasing'))}
                                             </span>
                                         </button>
 
@@ -300,15 +311,15 @@ export default function AnalysisPage() {
 
                                         <div className="hidden lg:flex items-center gap-6 text-xs">
                                             <div className="flex flex-col gap-0.5">
-                                                <span className="text-gray-500 font-medium text-[10px] uppercase tracking-wider">High 24h</span>
+                                                <span className="text-gray-500 font-medium text-[10px] uppercase tracking-wider">{t.analysis_page.high_24h}</span>
                                                 <span className="text-white font-medium tracking-wide">${parseFloat(stats.high || '0').toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                             </div>
                                             <div className="flex flex-col gap-0.5">
-                                                <span className="text-gray-500 font-medium text-[10px] uppercase tracking-wider">Low 24h</span>
+                                                <span className="text-gray-500 font-medium text-[10px] uppercase tracking-wider">{t.analysis_page.low_24h}</span>
                                                 <span className="text-white font-medium tracking-wide">${parseFloat(stats.low || '0').toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                             </div>
                                             <div className="flex flex-col gap-0.5">
-                                                <span className="text-gray-500 font-medium text-[10px] uppercase tracking-wider">Vol 24h</span>
+                                                <span className="text-gray-500 font-medium text-[10px] uppercase tracking-wider">{t.analysis_page.vol_24h}</span>
                                                 <span className="text-white font-medium tracking-wide">${parseInt(stats.vol || '0').toLocaleString()}</span>
                                             </div>
                                         </div>
@@ -355,30 +366,30 @@ export default function AnalysisPage() {
                         </div>
 
                         {/* Description / About Section */}
-                        <div className="bg-[#111] border border-white/5 rounded-2xl p-6">
-                            <h2 className="text-xl font-bold text-white mb-4">About {selectedCoinName}</h2>
-                            <p className="text-gray-400 text-sm leading-relaxed mb-4">
-                                {selectedCoinName} is the world's first cryptocurrency, a digital asset that uses public-key cryptography to record, sign and send transactions over the Bitcoin blockchain - all done without the oversight of a central authority.
-                            </p>
+                        {/* Description / About Section */}
+                        <CoinDescription
+                            description={coinData.description[language] || coinData.description['en'] || (language === 'vi' ? `Thông tin về ${selectedCoinName} đang được cập nhật.` : `${selectedCoinName} information is being updated.`)}
+                            coinName={selectedCoinName}
+                        />
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 pt-6 border-t border-white/5">
-                                <div className="p-4 bg-white/5 rounded-xl">
-                                    <h4 className="text-gray-500 text-xs mb-1">Dominance</h4>
-                                    <p className="text-white text-lg font-bold">{coinData.dominance > 0 ? `${coinData.dominance.toFixed(1)}%` : 'N/A'}</p>
-                                </div>
-                                <div className="p-4 bg-white/5 rounded-xl">
-                                    <h4 className="text-gray-500 text-xs mb-1">Rank</h4>
-                                    <p className="text-white text-lg font-bold">#{coinData.rank || 'N/A'}</p>
-                                </div>
-                                <div className="p-4 bg-white/5 rounded-xl">
-                                    <h4 className="text-gray-500 text-xs mb-1">All Time High</h4>
-                                    <p className="text-white text-lg font-bold">${coinData.ath > 0 ? coinData.ath.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 'N/A'}</p>
-                                    <p className={`text-xs -mt-1 ${coinData.athChangePercent >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                        {coinData.athChangePercent !== 0 ? `${coinData.athChangePercent.toFixed(1)}%` : 'N/A'}
-                                    </p>
-                                </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                            <div className="p-4 bg-[#111] border border-white/5 rounded-2xl">
+                                <h4 className="text-gray-500 text-xs mb-1">{t.analysis_page.dominance}</h4>
+                                <p className="text-white text-lg font-bold">{coinData.dominance > 0 ? `${coinData.dominance.toFixed(1)}%` : 'N/A'}</p>
+                            </div>
+                            <div className="p-4 bg-[#111] border border-white/5 rounded-2xl">
+                                <h4 className="text-gray-500 text-xs mb-1">{t.analysis_page.rank}</h4>
+                                <p className="text-white text-lg font-bold">#{coinData.rank || 'N/A'}</p>
+                            </div>
+                            <div className="p-4 bg-[#111] border border-white/5 rounded-2xl">
+                                <h4 className="text-gray-500 text-xs mb-1">{t.analysis_page.ath}</h4>
+                                <p className="text-white text-lg font-bold">${coinData.ath > 0 ? coinData.ath.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 'N/A'}</p>
+                                <p className={`text-xs -mt-1 ${coinData.athChangePercent >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                    {coinData.athChangePercent !== 0 ? `${coinData.athChangePercent.toFixed(1)}%` : 'N/A'}
+                                </p>
                             </div>
                         </div>
+
                     </div>
 
                     {/* RIGHT: Coin List */}
@@ -404,7 +415,7 @@ export default function AnalysisPage() {
                     currentPrice={currentPrice}
                     priceChange={priceChange}
                 />
-            </main>
+            </main >
         </>
     );
 }

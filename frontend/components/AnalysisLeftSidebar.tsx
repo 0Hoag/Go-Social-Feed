@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { TrendingUp, TrendingDown, Activity, BarChart3 } from 'lucide-react';
 import axios from 'axios';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface MarketData {
     symbol: string;
@@ -12,6 +13,7 @@ interface MarketData {
 }
 
 export default function AnalysisLeftSidebar() {
+    const { t } = useLanguage();
     const [topGainers, setTopGainers] = useState<MarketData[]>([]);
     const [topLosers, setTopLosers] = useState<MarketData[]>([]);
     const [marketCap, setMarketCap] = useState('$0');
@@ -88,23 +90,23 @@ export default function AnalysisLeftSidebar() {
                     <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
                         <Activity className="w-3.5 h-3.5 text-white" />
                     </div>
-                    <h3 className="text-sm font-bold text-white">Market Overview</h3>
+                    <h3 className="text-sm font-bold text-white">{t.left_sidebar.market_overview}</h3>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                     <div className="bg-white/5 rounded-lg p-2 hover:bg-white/10 transition-colors">
-                        <div className="text-[10px] text-gray-400 mb-0.5">Market Cap</div>
+                        <div className="text-[10px] text-gray-400 mb-0.5">{t.left_sidebar.market_cap}</div>
                         <div className="text-sm font-bold text-white">{marketCap}</div>
                     </div>
                     <div className="bg-white/5 rounded-lg p-2 hover:bg-white/10 transition-colors">
-                        <div className="text-[10px] text-gray-400 mb-0.5">24h Volume</div>
+                        <div className="text-[10px] text-gray-400 mb-0.5">{t.left_sidebar.vol_24h}</div>
                         <div className="text-sm font-bold text-white">{volume24h}</div>
                     </div>
                     <div className="bg-white/5 rounded-lg p-2 hover:bg-white/10 transition-colors">
-                        <div className="text-[10px] text-gray-400 mb-0.5">BTC Dominance</div>
+                        <div className="text-[10px] text-gray-400 mb-0.5">{t.left_sidebar.btc_dom}</div>
                         <div className="text-sm font-bold text-blue-400">{btcDominance}</div>
                     </div>
                     <div className="bg-white/5 rounded-lg p-2 hover:bg-white/10 transition-colors">
-                        <div className="text-[10px] text-gray-400 mb-0.5">Active Coins</div>
+                        <div className="text-[10px] text-gray-400 mb-0.5">{t.left_sidebar.active_coins}</div>
                         <div className="text-sm font-bold text-white">{activeCoins}</div>
                     </div>
                 </div>
@@ -116,7 +118,7 @@ export default function AnalysisLeftSidebar() {
                     <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
                         <TrendingUp className="w-4 h-4 text-white" />
                     </div>
-                    <h3 className="text-sm font-bold text-white">Top Gainers (24h)</h3>
+                    <h3 className="text-sm font-bold text-white">{t.left_sidebar.top_gainers}</h3>
                 </div>
                 <div className="space-y-1.5">
                     {topGainers.length > 0 ? topGainers.slice(0, 2).map((coin, idx) => (
@@ -161,7 +163,7 @@ export default function AnalysisLeftSidebar() {
                     <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center">
                         <TrendingDown className="w-4 h-4 text-white" />
                     </div>
-                    <h3 className="text-sm font-bold text-white">Top Losers (24h)</h3>
+                    <h3 className="text-sm font-bold text-white">{t.left_sidebar.top_losers}</h3>
                 </div>
                 <div className="space-y-1.5">
                     {topLosers.length > 0 ? topLosers.slice(0, 2).map((coin, idx) => (

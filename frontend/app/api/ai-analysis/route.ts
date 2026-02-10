@@ -58,6 +58,10 @@ export async function POST(request: NextRequest) {
         - Đề cập đến các mức hỗ trợ/kháng cự quan trọng
         - Nếu không có nguyên nhân phụ rõ ràng, có thể bỏ qua "secondaryCause"
         - Trả về CHÍNH XÁC theo format JSON, không thêm markdown hay text khác
+        
+        **QUAN TRỌNG:**
+        BẮT BUỘC phải thêm dòng disclaimer sau vào cuối nội dung của trường "conclusion.keyPoint" hoặc "tldr":
+        " (Lưu ý: Đây là nhận định dựa trên dữ liệu tham khảo, có thể đúng hoặc sai. Quyết định đầu tư thuộc về bạn.)"
         `;
 
         const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
