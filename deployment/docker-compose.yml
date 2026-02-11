@@ -95,7 +95,7 @@ services:
       context: ../
       dockerfile: deployment/Dockerfile.frontend
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://52.221.201.237.sslip.io}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://cryptocheck.click}
     restart: always
     ports:
       - "3000:3000"

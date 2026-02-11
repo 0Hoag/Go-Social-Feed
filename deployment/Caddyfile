@@ -1,10 +1,9 @@
 # Caddyfile
-# Replace 52.221.201.237 with your actual VPS IP if it changes
-52.221.201.237.sslip.io {
+cryptocheck.click, www.cryptocheck.click {
     # Frontend
     reverse_proxy frontend:3000
 
-    # Backend API (Optional: if you want same domain for API)
+    # Backend API
     handle /api/* {
         reverse_proxy backend-api:8080
     }
