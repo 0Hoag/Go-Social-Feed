@@ -10,8 +10,8 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password
-    ports:
-      - "27017:27017" # Exposed for local debugging, can remove in prod
+    # ports:
+    #   - "127.0.0.1:27017:27017" # Exposed ONLY to localhost for safety (or comment out completely)
     volumes:
       - mongodb_data:/data/db
     networks:
@@ -23,9 +23,9 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: user
       RABBITMQ_DEFAULT_PASS: password
-    ports:
-      - "5673:5672"   # AMQP (Changed to 5673 to avoid local conflict)
-      - "15673:15672" # Management UI
+    # ports:
+    #   - "5673:5672"   # AMQP (Internal only)
+    #   - "15673:15672" # Management UI (Tunnel via SSH to access)
     networks:
       - app-network
 
