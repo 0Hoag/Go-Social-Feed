@@ -1,0 +1,16 @@
+# Caddyfile
+# Replace 52.221.201.237 with your actual VPS IP if it changes
+52.221.201.237.sslip.io {
+    # Frontend
+    reverse_proxy frontend:3000
+
+    # Backend API (Optional: if you want same domain for API)
+    handle /api/* {
+        reverse_proxy backend-api:8080
+    }
+    
+    # Swagger UI (Optional)
+    handle /swagger/* {
+        reverse_proxy backend-api:8080
+    }
+}

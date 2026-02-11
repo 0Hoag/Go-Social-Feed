@@ -106,8 +106,29 @@ services:
     networks:
       - app-network
 
+  # ----------------------------------------------------------------
+  # HTTPS / SSL PROXY (Caddy)
+  # ----------------------------------------------------------------
+  caddy:
+    image: caddy:alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+      - backend-api
+    networks:
+      - app-network
+
 volumes:
   mongodb_data:
+  caddy_data:
+  caddy_config:
 
 networks:
   app-network:
