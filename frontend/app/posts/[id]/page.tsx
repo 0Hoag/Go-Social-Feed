@@ -87,7 +87,12 @@ export default function PostDetail({ params }: { params: Promise<{ id: string }>
     // Worker: FullContent = processed.TranslatedFullContent (Text only usually)
     // Worker: Content = ImageMD + Summary
     // So if using full* content, we usually don't need to strip image md, but doing it safely won't hurt.
-    const cleanContent = rawContent.replace(/!\[.*?\]\(.*?\)/g, "").trim();
+    // FIX: Robustly format content into paragraphs
+    const cleanContent = rawContent
+        .replace(/!\[.*?\]\(.*?\)/g, "") // Remove images
+        .split(/\r\n|\r|\n/) // Split by any newline type
+        .filter(line => line.trim() !== "") // Remove empty lines
+        .join("\n\n"); // Re-join with double newlines for Markdown paragraphs
 
     const sourceName = post.source_url ? getSourceName(post.source_url) : "Source";
 

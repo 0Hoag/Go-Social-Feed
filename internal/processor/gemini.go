@@ -23,8 +23,9 @@ func NewGeminiProcessor(ctx context.Context, l log.Logger, apiKey string) (*Gemi
 		return nil, err
 	}
 
-	model := client.GenerativeModel("gemini-flash-latest")
-	model.SetTemperature(0.7) // Creative but focused
+	model := client.GenerativeModel("gemini-1.5-flash") // Use specific version for stability
+	model.SetTemperature(0.7)
+	model.SetMaxOutputTokens(8192) // Ensure enough tokens for full translation
 
 	return &GeminiProcessor{
 		l:      l,
@@ -42,7 +43,7 @@ func (p *GeminiProcessor) Process(ctx context.Context, article crawler.Article) 
 
 	// Limit content length to avoid token limits (approximately 10,000 chars = ~2,500 tokens)
 	// Gemini Flash has 1M token context, but we'll be conservative
-	maxContentLength := 10000
+	maxContentLength := 15000 // Increased limit
 	if len(contentToAnalyze) > maxContentLength {
 		contentToAnalyze = contentToAnalyze[:maxContentLength] + "..."
 	}
@@ -63,11 +64,13 @@ func (p *GeminiProcessor) Process(ctx context.Context, article crawler.Article) 
 	   - Do NOT summarize. Translate the full meaning of every sentence.
 	   - Use professional, natural Vietnamese terminology for crypto/finance.
 	   - Maintain the original structure and length.
+       - Use markdown formatting (bold, italic) where appropriate.
 
 	Output Format (strict):
 	Title: [Vietnamese Title]
 	Summary: [Vietnamese Summary]
-	FullContent: [Full Vietnamese Translation]
+	FullContent:
+    [Full Vietnamese Translation - Preserve Paragraphs]
 	`, article.Title, contentToAnalyze)
 
 	resp, err := p.model.GenerateContent(ctx, genai.Text(prompt))
@@ -90,25 +93,34 @@ func (p *GeminiProcessor) Process(ctx context.Context, article crawler.Article) 
 	currentSection := ""
 
 	for _, line := range lines {
-		line = strings.TrimSpace(line)
+		trimmedLine := strings.TrimSpace(line)
 
-		if strings.HasPrefix(line, "Title:") {
-			viTitle = strings.TrimSpace(strings.TrimPrefix(line, "Title:"))
+		if strings.HasPrefix(trimmedLine, "Title:") {
+			viTitle = strings.TrimSpace(strings.TrimPrefix(trimmedLine, "Title:"))
 			currentSection = "title"
-		} else if strings.HasPrefix(line, "Summary:") {
-			viSummary = strings.TrimSpace(strings.TrimPrefix(line, "Summary:"))
+		} else if strings.HasPrefix(trimmedLine, "Summary:") {
+			viSummary = strings.TrimSpace(strings.TrimPrefix(trimmedLine, "Summary:"))
 			currentSection = "summary"
-		} else if strings.HasPrefix(line, "FullContent:") {
-			viFullContent = strings.TrimSpace(strings.TrimPrefix(line, "FullContent:"))
+		} else if strings.HasPrefix(trimmedLine, "FullContent:") {
+			// Check if there is content on the same line
+			content := strings.TrimPrefix(trimmedLine, "FullContent:")
+			if strings.TrimSpace(content) != "" {
+				viFullContent = strings.TrimSpace(content)
+			}
 			currentSection = "fullcontent"
-		} else if line != "" {
+		} else {
 			// Append to current section
 			switch currentSection {
 			case "title":
-				viTitle += " " + line
+				if trimmedLine != "" {
+					viTitle += " " + trimmedLine
+				}
 			case "summary":
-				viSummary += " " + line
+				if trimmedLine != "" {
+					viSummary += " " + trimmedLine
+				}
 			case "fullcontent":
+				// Preserve empty lines for paragraph separation
 				viFullContent += "\n" + line
 			}
 		}
