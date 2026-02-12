@@ -32,7 +32,8 @@ func (h handler) ScanToken(c *gin.Context) {
 	token, err := h.uc.ScanToken(ctx, req.ToScanTokenInput())
 	if err != nil {
 		h.l.Errorf(ctx, "scanner.delivery.http.ScanToken: %v", err)
-		response.Error(c, err)
+		mapErr := h.mapError(err)
+		response.Error(c, mapErr)
 		return
 	}
 
