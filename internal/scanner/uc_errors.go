@@ -3,10 +3,12 @@ package scanner
 import "errors"
 
 var wantErrors = []error{
-	ErrScanToken,
+	ErrTokenNotFound,
+	ErrSourceCodeNotFound,
 }
 
 var (
-	// user
-	ErrScanToken = errors.New("user not found")
+	// Scanner errors
+	ErrTokenNotFound      = errors.New("token not found on DexScreener")
+	ErrSourceCodeNotFound = errors.New("source code not found on supported networks")
 )

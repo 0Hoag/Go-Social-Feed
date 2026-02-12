@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/hoag/go-social-feed/internal/adapters/etherscan"
@@ -20,8 +19,8 @@ func (uc ScannerUC) ScanToken(ctx context.Context, input scanDomain.ScanTokenInp
 	if !isAddress {
 		foundAddr, _, foundName, err := uc.dexClient.SearchTopToken(query)
 		if err != nil {
-			uc.l.Errorf(ctx, "Token not found: %v", err)
-			return scanDomain.ScanTokenOutput{}, err
+			uc.l.Errorf(ctx, "Token not found on DexScreener: %v", err)
+			return scanDomain.ScanTokenOutput{}, scanDomain.ErrTokenNotFound
 		}
 		address = foundAddr
 		name = foundName
@@ -50,7 +49,7 @@ func (uc ScannerUC) ScanToken(ctx context.Context, input scanDomain.ScanTokenInp
 
 	if networkFound == "" {
 		uc.l.Errorf(ctx, "scanner.usecase.scanner.ScanToken: source code not found on any network")
-		return scanDomain.ScanTokenOutput{}, fmt.Errorf("scan failed: source code not found on supported networks (ETH, BSC, BASE, ARBITRUM, POLYGON)")
+		return scanDomain.ScanTokenOutput{}, scanDomain.ErrSourceCodeNotFound
 	}
 
 	network = networkFound
