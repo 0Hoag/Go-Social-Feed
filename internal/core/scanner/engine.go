@@ -45,41 +45,41 @@ func NewEngine(aiClient *gemini.Client) *Engine {
 		geminiClient: aiClient,
 		regexRules: map[string]*regexp.Regexp{
 			// Critical: Honeypot / Blocking
-			"Blacklist Function":   regexp.MustCompile(`(?i)(function\s+blacklist|mapping\s*\(address\s*=>\s*bool\)\s*.*blacklist)`),
-			"Transfer Restriction": regexp.MustCompile(`(?i)(require\s*\(.*!isBlacklisted)`),
-			"Trading Cooldown":     regexp.MustCompile(`(?i)(tradingOpen|launchTime)`),
+			"Hàm Blacklist (Cấm ví)":  regexp.MustCompile(`(?i)(function\s+blacklist|mapping\s*\(address\s*=>\s*bool\)\s*.*blacklist)`),
+			"Hạn chế Giao dịch":       regexp.MustCompile(`(?i)(require\s*\(.*!isBlacklisted)`),
+			"Thời gian chờ giao dịch": regexp.MustCompile(`(?i)(tradingOpen|launchTime)`),
 
 			// Critical: Rugpull / Centralization
-			"Hidden Mint Function": regexp.MustCompile(`(?i)(function\s+mint.*public|function\s+mint.*external)`),
-			"Unlimited Allowance":  regexp.MustCompile(`(?i)(allowance\s*=\s*type\(uint256\)\.max)`),
-			"Proxy Implementation": regexp.MustCompile(`(?i)(delegatecall|fallback\s*\(\)|_implementation)`),
-			"Self Destruct":        regexp.MustCompile(`(?i)(selfdestruct|suicide)`),
-			"Unsafe Logic":         regexp.MustCompile(`(?i)(tx\.origin)`),
-			"Inline Assembly":      regexp.MustCompile(`(?i)(assembly\s*\{)`),
+			"Hàm Mint Ẩn (In tiền)":           regexp.MustCompile(`(?i)(function\s+mint.*public|function\s+mint.*external)`),
+			"Cấp quyền Vô hạn":                regexp.MustCompile(`(?i)(allowance\s*=\s*type\(uint256\)\.max)`),
+			"Proxy (Có thể nâng cấp)":         regexp.MustCompile(`(?i)(delegatecall|fallback\s*\(\)|_implementation)`),
+			"Hàm Tự hủy (Self Destruct)":      regexp.MustCompile(`(?i)(selfdestruct|suicide)`),
+			"Logic Không an toàn (tx.origin)": regexp.MustCompile(`(?i)(tx\.origin)`),
+			"Assembly Nội bộ (Khó kiểm tra)":  regexp.MustCompile(`(?i)(assembly\s*\{)`),
 
 			// Financial Risks
-			"High Tax / Fees":  regexp.MustCompile(`(?i)(fee\s*=\s*[1-9][0-9])`),
-			"Max Transaction":  regexp.MustCompile(`(?i)(_maxTxAmount)`),
-			"Fee Modification": regexp.MustCompile(`(?i)(function\s+set.*Fee)`),
-			"Hidden Ownership": regexp.MustCompile(`(?i)(function\s+renounceOwnership)`),
+			"Thuế / Phí Cao":             regexp.MustCompile(`(?i)(fee\s*=\s*[1-9][0-9])`),
+			"Giới hạn Giao dịch (MaxTx)": regexp.MustCompile(`(?i)(_maxTxAmount)`),
+			"Hàm Chỉnh sửa Phí":          regexp.MustCompile(`(?i)(function\s+set.*Fee)`),
+			"Hàm Từ bỏ Quyền sở hữu":     regexp.MustCompile(`(?i)(function\s+renounceOwnership)`),
 		},
 		safeRegex: map[string]*regexp.Regexp{
 			// Libraries & Standards
-			"OpenZeppelin Library": regexp.MustCompile(`(?i)import.*openzeppelin`),
-			"Standard Interface":   regexp.MustCompile(`(?i)interface\s+IERC20`),
-			"SafeMath Usage":       regexp.MustCompile(`(?i)using\s+SafeMath`),
+			"Thư viện OpenZeppelin":    regexp.MustCompile(`(?i)import.*openzeppelin`),
+			"Tuân thủ chuẩn Interface": regexp.MustCompile(`(?i)interface\s+IERC20`),
+			"Sử dụng SafeMath":         regexp.MustCompile(`(?i)using\s+SafeMath`),
 
 			// Security Patterns
-			"Ownable Pattern":       regexp.MustCompile(`(?i)contract.*is.*Ownable`),
-			"Reentrancy Protection": regexp.MustCompile(`(?i)(ReentrancyGuard|nonReentrant)`),
-			"Pausable Contract":     regexp.MustCompile(`(?i)contract.*is.*Pausable`),
-			"Role Based Access":     regexp.MustCompile(`(?i)(AccessControl|DEFAULT_ADMIN_ROLE)`),
+			"Mô hình Ownable":            regexp.MustCompile(`(?i)contract.*is.*Ownable`),
+			"Bảo vệ Reentrancy":          regexp.MustCompile(`(?i)(ReentrancyGuard|nonReentrant)`),
+			"Có thể Tạm dừng (Pausable)": regexp.MustCompile(`(?i)contract.*is.*Pausable`),
+			"Phân quyền (Role Based)":    regexp.MustCompile(`(?i)(AccessControl|DEFAULT_ADMIN_ROLE)`),
 
 			// Advanced Governance (High Trust)
-			"Timelock Controller": regexp.MustCompile(`(?i)(TimelockController|function\s+queueTransaction)`),
-			"MultiSig Pattern":    regexp.MustCompile(`(?i)(GnosisSafe|function\s+confirmTransaction)`),
-			"DAO Governance":      regexp.MustCompile(`(?i)(Governor|IGovernor|castVote)`),
-			"EIP-712 Signatures":  regexp.MustCompile(`(?i)(EIP712|hashTypedData)`),
+			"Timelock (Khóa thời gian)": regexp.MustCompile(`(?i)(TimelockController|function\s+queueTransaction)`),
+			"Ví Đa chữ ký (MultiSig)":   regexp.MustCompile(`(?i)(GnosisSafe|function\s+confirmTransaction)`),
+			"Quản trị DAO":              regexp.MustCompile(`(?i)(Governor|IGovernor|castVote)`),
+			"Chữ ký EIP-712":            regexp.MustCompile(`(?i)(EIP712|hashTypedData)`),
 		},
 	}
 }
@@ -89,17 +89,17 @@ var knownContracts = map[string]ScanResult{
 	strings.ToLower(BNB): { // BNB (ETH)
 		TrustScore: 95,
 		Issues: []Issue{
-			{Type: IssueInfo, Name: "Legacy Contract (2017)", Description: "Official Binance Coin token. Code is ancient (Solidity 0.4) but proven safe.", Impact: 0},
-			{Type: IssueWarning, Name: "Centralized Recovery", Description: "Owner can withdraw Ether/Tokens (Standard for 2017 exchange tokens).", Impact: 5},
+			{Type: IssueInfo, Name: "Contract Cũ (2017)", Description: "Token BNB gốc. Code cũ (Solidity 0.4) nhưng đã được kiểm chứng an toàn.", Impact: 0},
+			{Type: IssueWarning, Name: "Phục hồi Tập trung", Description: "Chủ sở hữu có thể rút Ether/Token (Tiêu chuẩn của token sàn 2017).", Impact: 5},
 		},
-		SafeFeatures: []string{"Official BNB Token", "Battle Tested (>5 years)", "Exchange Backed"},
+		SafeFeatures: []string{"Token BNB Chính chủ", "Đã kiểm chứng (>5 năm)", "Sàn Binance bảo chứng"},
 	},
 	strings.ToLower(USDT): { // USDT (ETH)
 		TrustScore: 90,
 		Issues: []Issue{
-			{Type: IssueInfo, Name: "Centralized Stablecoin", Description: "Tether Company controls minting and blacklisting.", Impact: 10},
+			{Type: IssueInfo, Name: "Stablecoin Tập trung", Description: "Công ty Tether kiểm soát việc in tiền và khóa ví.", Impact: 10},
 		},
-		SafeFeatures: []string{"Official Tether USD", "Global Standard", "Audited & Proven"},
+		SafeFeatures: []string{"Tether USD Chính chủ", "Tiêu chuẩn Toàn cầu", "Đã được kiểm toán & chứng minh"},
 	},
 }
 
@@ -169,25 +169,25 @@ func (e *Engine) Scan(sourceCode string, address string) ScanResult {
 			deduction := 15 // Default minor deduction
 
 			// Critical Rule Tuning based on Context
-			if name == "Blacklist Function" {
+			if name == "Hàm Blacklist (Cấm ví)" {
 				deduction = 40
 				if hasOpenZeppelin {
 					deduction = 10
 				} // Standard USDC-like blacklist
 			}
-			if name == "Hidden Mint Function" {
+			if name == "Hàm Mint Ẩn (In tiền)" {
 				deduction = 40
 				if hasGovernance || hasOpenZeppelin {
 					deduction = 5
 				} // Likely Yield/Governance minting
 			}
-			if name == "Proxy Implementation" {
+			if name == "Proxy (Có thể nâng cấp)" {
 				deduction = 40
 				if hasOpenZeppelin {
 					deduction = 0
 				} // Standard Proxy Pattern (Safe)
 			}
-			if name == "Inline Assembly" {
+			if name == "Assembly Nội bộ (Khó kiểm tra)" {
 				deduction = 15
 				if hasOpenZeppelin {
 					deduction = 0
@@ -198,7 +198,7 @@ func (e *Engine) Scan(sourceCode string, address string) ScanResult {
 				issues = append(issues, Issue{
 					Type:        IssueWarning,
 					Name:        name,
-					Description: "Detected via Pattern Matching (AI Unavailable)",
+					Description: "Phát hiện qua so khớp mẫu (AI không khả dụng)",
 					Impact:      deduction,
 				})
 				score -= deduction

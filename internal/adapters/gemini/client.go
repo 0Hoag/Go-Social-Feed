@@ -36,8 +36,8 @@ func NewClient(apiKey string) *Client {
 		log.Fatalf("Error creating Gemini client: %v", err)
 	}
 
-	// Use gemini-flash-latest for best performance
-	model := client.GenerativeModel("gemini-flash-latest")
+	// Use gemini-1.5-flash for stability
+	model := client.GenerativeModel("gemini-1.5-flash")
 	model.SetTemperature(0.1)
 
 	return &Client{model: model}
@@ -59,6 +59,11 @@ func (c *Client) AnalyzeContract(sourceCode string) (*AIAnalysisResult, error) {
 	### OBJECTIVE:
 	Determine if the contract is a **Legitimate Project** (DeFi, Stablecoin, Top Token) or a **Scam/Rug Pull**.
 	
+	### OUTPUT LANGUAGE:
+	**CRITICAL: ALL OUTPUT MUST BE IN VIETNAMESE (TIẾNG VIỆT).**
+	**CRITICAL: DO NOT USE ENGLISH FOR DESCRIPTIONS OR EXPLANATIONS.**
+	Use professional security terminology (e.g., "Cơ chế quản trị", "Hàm Mint", "Lỗ hổng bảo mật", "Thư viện chuẩn").
+
 	### ANALYSIS RULES:
 	1. **Context Matters**: 
 	   - If code allows **Minting**: Is it restricted to a specific role (e.g. 'minter'), capped, or time-locked? If yes, this is Standard DeFi (Low Risk). If 'onlyOwner' can mint unlimited without checks -> Critical Risk.
@@ -80,20 +85,20 @@ func (c *Client) AnalyzeContract(sourceCode string) (*AIAnalysisResult, error) {
 		"issues": [
 			{
 				"type": "CRITICAL" | "WARNING" | "INFO",
-				"name": "<Technical Name>",
-				"description": "<Explain WHY it is risky in this specific context. Mention if it's standard for this type of token.>",
+				"name": "<Tên lỗi (Bằng TIẾNG VIỆT)>",
+				"description": "<Mô tả chi tiết bằng TIẾNG VIỆT. Tuyệt đối KHÔNG dùng Tiếng Anh. Giải thích tại sao nguy hiểm.>",
 				"impact": <positive integer deduction>
 			}
 		],
 		"safe_features": [
-			"<List specific mitigating factors found, e.g. 'Minting limited to Minter Role', 'Uses OpenZeppelin Standard', 'Proxy Pattern Detected'>"
+			"<Tính năng an toàn (Bằng TIẾNG VIỆT), vd: 'Mint giới hạn', 'Chuẩn OpenZeppelin', 'Proxy nâng cấp'>"
 		]
 	}
 
 	Source Code:
 	%s
 	
-	Output STRICTLY JSON. Checks must be rigorous but fair.
+	Output STRICTLY JSON. Checks must be rigorous but fair. Response MUST be in Vietnamese.
 `, sourceCode)
 
 	resp, err := c.model.GenerateContent(ctx, genai.Text(prompt))
