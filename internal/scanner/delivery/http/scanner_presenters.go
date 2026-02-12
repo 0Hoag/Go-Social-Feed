@@ -6,12 +6,18 @@ import (
 )
 
 type scannerTokenInput struct {
-	Token string `form:"token"`
+	Token    string `form:"token"`
+	Language string `form:"lang"` // From query param or header
 }
 
 func (r scannerTokenInput) ToScanTokenInput() scanner.ScanTokenInput {
+	lang := r.Language
+	if lang == "" {
+		lang = "en" // Default to English
+	}
 	return scanner.ScanTokenInput{
-		Token: r.Token,
+		Token:    r.Token,
+		Language: lang,
 	}
 }
 

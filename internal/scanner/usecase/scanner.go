@@ -55,8 +55,8 @@ func (uc ScannerUC) ScanToken(ctx context.Context, input scanDomain.ScanTokenInp
 
 	network = networkFound
 
-	// 3. Analyze
-	result := uc.engine.Scan(sourceCode, address)
+	// 3. Analyze (pass language preference)
+	result := uc.engine.Scan(sourceCode, address, input.Language)
 
 	return scanDomain.ScanTokenOutput{
 		Network:      network,

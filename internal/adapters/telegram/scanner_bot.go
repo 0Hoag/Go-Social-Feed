@@ -154,7 +154,7 @@ func (s *ScannerBot) processScan(chatID int64, messageID int, address string) {
 	// Update status before heavy AI task
 	s.editMessage(chatID, messageID, fmt.Sprintf("🧠 **Elite Auditor AI** is analyzing logic on **%s**...\n(This might take up to 60s for complex contracts)", strings.ToUpper(networkFound)))
 
-	result := s.scanEngine.Scan(source, address)
+	result := s.scanEngine.Scan(source, address, "vi") // Telegram bot defaults to Vietnamese
 
 	// Format Output
 	report := s.formatReport(address, networkFound, name, result)

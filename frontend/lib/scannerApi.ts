@@ -18,10 +18,13 @@ export interface Issue {
     type: string;
 }
 
-export const scanToken = async (query: string): Promise<ScanResult> => {
+export const scanToken = async (query: string, language: string = 'en'): Promise<ScanResult> => {
     try {
         const response = await axios.get(`${API_BASE_URL}/news-feed/scanner`, {
-            params: { token: query }
+            params: {
+                token: query,
+                lang: language  // Send language to Backend
+            }
         });
         return response.data.data;
     } catch (error) {

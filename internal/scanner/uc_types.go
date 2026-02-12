@@ -5,7 +5,8 @@ import (
 )
 
 type ScanTokenInput struct {
-	Token string `json:"token"`
+	Token    string `json:"token"`
+	Language string `json:"language"` // "en" or "vi"
 }
 
 type ScanTokenOutput struct {

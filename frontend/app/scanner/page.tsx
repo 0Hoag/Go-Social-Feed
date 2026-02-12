@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { ScanResult, scanToken } from '@/lib/scannerApi';
 import { Search, ShieldCheck, ShieldAlert, Cpu, Check, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { translations } from '@/locales/translations';
 
 export default function ScannerPage() {
     const { t } = useLanguage();
@@ -37,7 +38,8 @@ export default function ScannerPage() {
 
         // Minimum loading time: 4 steps * 800ms = 3200ms
         const minDurationPromise = new Promise(resolve => setTimeout(resolve, 3200));
-        const scanScanPromise = scanToken(query);
+        const currentLang = t === translations.vi ? 'vi' : 'en'; // Detect current language
+        const scanScanPromise = scanToken(query, currentLang);
 
         try {
             // Wait for both the minimum animation time and the API result
