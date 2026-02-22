@@ -169,6 +169,7 @@ func (h handler) newPostDataResp(p models.Post) postDataResp {
 		Pin:           p.Pin,
 		FileIDs:       util.ObjectIDsToHex(p.FileIDs),
 		TaggedTarget:  util.ObjectIDsToHex(p.TaggedTarget),
+		AuthorID:      p.AuthorID.Hex(),
 		SourceURL:     p.SourceURL,
 		CreatedAt:     p.CreatedAt,
 		UpdatedAt:     p.UpdatedAt,
@@ -195,6 +196,7 @@ type postDataResp struct {
 	FileIDs       []string  `json:"file_ids"`
 	TaggedTarget  []string  `json:"tagged_target"`
 	Pin           bool      `json:"pin"`
+	AuthorID      string    `json:"author_id"`
 	SourceURL     string    `json:"source_url"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`

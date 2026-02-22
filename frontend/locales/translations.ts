@@ -4,6 +4,7 @@ export const translations = {
     vi: {
         nav: {
             home: "Trang chủ",
+            feed: "Bảng tin",
             news: "Tin tức",
             scan: "Quét Token",
             analysis: "Phân tích",
@@ -182,11 +183,38 @@ export const translations = {
             search_placeholder: "Tìm kiếm coin...",
             page: "Trang",
             cryptocurrencies: "Tiền điện tử"
+        },
+        auth: {
+            login_title: "Chào mừng trở lại",
+            login_subtitle: "Đăng nhập vào CryptoCheck",
+            register_title: "Tạo tài khoản mới",
+            register_subtitle: "Tham gia cộng đồng CryptoCheck",
+            phone: "Số điện thoại",
+            phone_placeholder: "0912 345 678",
+            password: "Mật khẩu",
+            password_placeholder: "Tối thiểu 6 ký tự",
+            username: "Tên hiển thị",
+            username_placeholder: "Nguyễn Văn A",
+            birthday: "Ngày sinh",
+            login_btn: "Đăng nhập",
+            logging_in: "Đang đăng nhập...",
+            register_btn: "Tạo tài khoản",
+            registering: "Đang tạo tài khoản...",
+            no_account: "Chưa có tài khoản?",
+            has_account: "Đã có tài khoản?",
+            register_link: "Đăng ký ngay",
+            login_link: "Đăng nhập",
+            visibility_public: "Công khai",
+            visibility_private: "Riêng tư",
+            or_continue: "Hoặc tiếp tục với",
+            google_btn: "Tiếp tục với Google",
+            google_coming_soon: "Sắp ra mắt"
         }
     },
     en: {
         nav: {
             home: "Home",
+            feed: "Feed",
             news: "News",
             scan: "Scan Token",
             analysis: "Analysis",
@@ -365,6 +393,32 @@ export const translations = {
             search_placeholder: "Search coins...",
             page: "Page",
             cryptocurrencies: "Cryptocurrencies"
+        },
+        auth: {
+            login_title: "Welcome back",
+            login_subtitle: "Sign in to CryptoCheck",
+            register_title: "Create an account",
+            register_subtitle: "Join the CryptoCheck community",
+            phone: "Phone number",
+            phone_placeholder: "0912 345 678",
+            password: "Password",
+            password_placeholder: "Minimum 6 characters",
+            username: "Display name",
+            username_placeholder: "John Doe",
+            birthday: "Date of birth",
+            login_btn: "Sign in",
+            logging_in: "Signing in...",
+            register_btn: "Create account",
+            registering: "Creating account...",
+            no_account: "Don't have an account?",
+            has_account: "Already have an account?",
+            register_link: "Sign up",
+            login_link: "Sign in",
+            visibility_public: "Public",
+            visibility_private: "Private",
+            or_continue: "Or continue with",
+            google_btn: "Continue with Google",
+            google_coming_soon: "Coming soon"
         }
     }
 }

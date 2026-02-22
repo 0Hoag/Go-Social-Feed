@@ -93,7 +93,7 @@ func (srv HTTPServer) mapHandlers() error {
 	api := srv.gin.Group("/api/v1")
 
 	newsFeedGroup := api.Group("/news-feed")
-	userHTTP.MapRoutes(newsFeedGroup.Group("/user"), userH, mw)
+	userHTTP.MapRoutes(newsFeedGroup.Group("/users"), userH, mw)
 	authHTTP.MapRoutes(newsFeedGroup.Group("/auth"), authH, mw)
 	postHTTP.MapRoutes(newsFeedGroup.Group("/posts"), postH, mw)
 	followHTTP.MapRoutes(newsFeedGroup.Group("/follow"), followH, mw)

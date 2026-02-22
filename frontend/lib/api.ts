@@ -10,6 +10,25 @@ const apiClient = axios.create({
     },
 });
 
+// Attach JWT token from localStorage on every request
+apiClient.interceptors.request.use((config) => {
+    if (typeof window !== 'undefined') {
+        try {
+            const raw = localStorage.getItem('auth-storage');
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                const token = parsed?.state?.token;
+                if (token) {
+                    config.headers.Authorization = `Bearer ${token}`;
+                }
+            }
+        } catch (_) {
+            // ignore parse errors
+        }
+    }
+    return config;
+});
+
 // Add response interceptor for error handling
 apiClient.interceptors.response.use(
     (response) => response,

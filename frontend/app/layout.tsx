@@ -6,6 +6,7 @@ import CryptoTicker from "@/components/CryptoTicker";
 import NewsTicker from "@/components/NewsTicker";
 import Footer from "@/components/Footer";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { Toaster } from "sonner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -41,6 +42,7 @@ export default function RootLayout({
             <main>{children}</main>
             <Footer />
           </LanguageProvider>
+          <Toaster richColors position="top-right" />
         </div>
       </body>
     </html>

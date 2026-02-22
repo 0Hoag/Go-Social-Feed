@@ -3,6 +3,8 @@ package httpserver
 import (
 	"context"
 	"fmt"
+
+	"github.com/hoag/go-social-feed/internal/seeder"
 )
 
 func (srv HTTPServer) Run() error {
@@ -12,15 +14,12 @@ func (srv HTTPServer) Run() error {
 	}
 
 	ctx := context.Background()
-	// go func() {
-	// 	srv.gin.Run(fmt.Sprintf(":%d", srv.port))
-	// }()
 
-	// srv.l.Infof(ctx, "Started server on :%d", srv.port)
-	// ch := make(chan os.Signal, 1)
-	// signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
-	// srv.l.Info(ctx, <-ch)
-	// srv.l.Info(ctx, "Stopping API server.")
+	// Seed database on startup (idempotent — skips existing records)
+	if err := seeder.Run(ctx, srv.db); err != nil {
+		srv.l.Errorf(ctx, "seeder.Run: %v", err)
+		// Non-fatal: log and continue
+	}
 
 	srv.l.Infof(ctx, "Started server on :%d", srv.port)
 	return srv.gin.Run(fmt.Sprintf(":%d", srv.port))

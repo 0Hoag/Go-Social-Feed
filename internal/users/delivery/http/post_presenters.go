@@ -13,7 +13,7 @@ import (
 
 const (
 	AvatarDefault = "https://res.cloudinary.com/ddclol9ih/image/upload/v1759822057/n86sj5uthpcrdits9tsy.png"
-	RoleDefault   = "user"
+	RoleDefault   = "699b29bb8e80e4e1396e1118"
 )
 
 type createReq struct {
